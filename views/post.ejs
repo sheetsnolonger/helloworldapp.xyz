@@ -23,43 +23,9 @@
 
 <body>
 
-<nav>
+<%- include("partials/sidebar") %>
 
-    <a
-        class="logo"
-        href="/feed"
-    >
-        helloworld
-    </a>
-
-    <div class="nav-right">
-
-        <a href="/feed">
-            feed
-        </a>
-
-        <a href="/u/<%= user.username %>">
-            @<%= user.username %>
-        </a>
-
-        <form
-            action="/logout"
-            method="post"
-        >
-
-            <button
-                class="logout"
-                type="submit"
-            >
-                logout
-            </button>
-
-        </form>
-
-    </div>
-
-</nav>
-
+<main class="container">
 
 <main class="container post-page">
 
