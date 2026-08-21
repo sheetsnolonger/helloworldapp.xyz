@@ -1,39 +1,229 @@
-<main class="container profile-page">
+<!DOCTYPE html>
+<html lang="en">
 
-    <section class="profile-header">
+<head>
 
-        <div class="profile-top">
+    <meta charset="UTF-8">
 
-            <!-- profile picture -->
+    <meta
+        name="viewport"
+        content="width=device-width, initial-scale=1.0"
+    >
 
-            <div class="profile-info">
+    <title>
+        @<%= profile.username %> - helloworld
+    </title>
 
-                <h1>
-                    <%= profile.display_name || profile.username %>
-                </h1>
+    <link
+        rel="stylesheet"
+        href="/style.css"
+    >
 
-                <div class="profile-username">
-                    @<%= profile.username %>
+</head>
+
+<body>
+
+    <%- include("partials/sidebar", { user: user }) %>
+
+    <main class="site-main">
+
+        <div class="page-container">
+
+            <section class="profile-header">
+
+                <div class="profile-top">
+
+                    <% if (profile.profile_picture) { %>
+
+                        <img
+                            class="profile-picture"
+                            src="<%= profile.profile_picture %>"
+                            alt="profile picture"
+                        >
+
+                    <% } else { %>
+
+                        <div class="profile-picture-placeholder">
+                            <%= profile.username.charAt(0).toUpperCase() %>
+                        </div>
+
+                    <% } %>
+
+
+                    <div class="profile-info">
+
+                        <h1>
+                            <%= profile.display_name || profile.username %>
+                        </h1>
+
+                        <div class="profile-username">
+                            @<%= profile.username %>
+                        </div>
+
+                        <% if (profile.bio) { %>
+
+                            <div class="profile-bio">
+                                <%= profile.bio %>
+                            </div>
+
+                        <% } %>
+
+                    </div>
+
                 </div>
 
-                <% if (profile.bio) { %>
 
-                    <div class="profile-bio">
-                        <%= profile.bio %>
+                <div class="profile-stats">
+
+                    <div class="profile-stat">
+
+                        <strong>
+                            <%= posts ? posts.length : 0 %>
+                        </strong>
+
+                        posts
+
+                    </div>
+
+                </div>
+
+
+                <% if (user && user.id === profile.id) { %>
+
+                    <div class="profile-actions">
+
+                        <a
+                            href="/settings/profile"
+                            class="button button-secondary"
+                        >
+                            edit profile
+                        </a>
+
                     </div>
 
                 <% } %>
 
-                <div class="profile-stats">
-                    ...
+            </section>
+
+
+            <section class="profile-posts">
+
+                <div class="section-heading">
+
+                    <h2>
+                        posts
+                    </h2>
+
                 </div>
 
-            </div>
+
+                <% if (!posts || posts.length === 0) { %>
+
+                    <div class="empty">
+
+                        <strong>
+                            no posts yet.
+                        </strong>
+
+                    </div>
+
+                <% } else { %>
+
+                    <% posts.forEach(post => { %>
+
+                        <article
+                            class="post"
+                            id="post-<%= post.id %>"
+                        >
+
+                            <div class="post-header">
+
+                                <div class="post-user">
+
+                                    <a href="/u/<%= profile.username %>">
+                                        @<%= profile.username %>
+                                    </a>
+
+                                </div>
+
+                                <% if (post.created_at) { %>
+
+                                    <span class="post-date">
+                                        <%= new Date(post.created_at).toLocaleDateString() %>
+                                    </span>
+
+                                <% } %>
+
+                            </div>
+
+
+                            <% if (post.community_name) { %>
+
+                                <div class="post-community">
+
+                                    <a
+                                        href="/c/<%= encodeURIComponent(post.community_name) %>"
+                                    >
+                                        c/<%= post.community_name %>
+                                    </a>
+
+                                </div>
+
+                            <% } %>
+
+
+                            <a
+                                class="post-main-link"
+                                href="/posts/<%= post.id %>/comments"
+                            >
+
+                                <div class="post-content">
+                                    <%= post.content %>
+                                </div>
+
+
+                                <% if (post.attachment_url) { %>
+
+                                    <div class="post-attachment">
+
+                                        <img
+                                            src="<%= post.attachment_url %>"
+                                            alt="post image"
+                                            loading="lazy"
+                                        >
+
+                                    </div>
+
+                                <% } %>
+
+                            </a>
+
+
+                            <div class="post-actions">
+
+                                <span>
+                                    <%= post.likes || 0 %> likes
+                                </span>
+
+                                <a
+                                    href="/posts/<%= post.id %>/comments"
+                                >
+                                    <%= post.comments || 0 %> comments
+                                </a>
+
+                            </div>
+
+                        </article>
+
+                    <% }) %>
+
+                <% } %>
+
+            </section>
 
         </div>
 
-    </section>
+    </main>
 
-    <!-- user's posts here -->
-
-</main>
+</body>
+</html>
