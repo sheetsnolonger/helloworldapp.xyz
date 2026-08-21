@@ -1,0 +1,113 @@
+<aside class="site-sidebar">
+
+    <div class="sidebar-brand">
+        <a href="/feed" class="sidebar-logo">helloworld</a>
+        <span class="sidebar-subtitle">social space</span>
+    </div>
+
+    <nav class="sidebar-nav">
+
+        <a href="/feed" class="sidebar-link">
+            <span class="sidebar-icon">
+                <svg viewBox="0 0 24 24" aria-hidden="true">
+                    <path d="M3 11.5 12 4l9 7.5v8a1 1 0 0 1-1 1h-5v-6h-6v6H4a1 1 0 0 1-1-1z"/>
+                </svg>
+            </span>
+            <span>home</span>
+        </a>
+
+        <a href="/search" class="sidebar-link">
+            <span class="sidebar-icon">
+                <svg viewBox="0 0 24 24" aria-hidden="true">
+                    <circle cx="11" cy="11" r="6.5"/>
+                    <path d="m16 16 5 5"/>
+                </svg>
+            </span>
+            <span>search</span>
+        </a>
+
+        <a href="/communities" class="sidebar-link">
+            <span class="sidebar-icon">
+                <svg viewBox="0 0 24 24" aria-hidden="true">
+                    <path d="M4 5.5A2.5 2.5 0 0 1 6.5 3h11A2.5 2.5 0 0 1 20 5.5v8a2.5 2.5 0 0 1-2.5 2.5H12l-4.5 4v-4h-1A2.5 2.5 0 0 1 4 13.5z"/>
+                    <path d="M8 8h8M8 11h5"/>
+                </svg>
+            </span>
+            <span>communities</span>
+        </a>
+
+        <% if (user) { %>
+            <a href="/u/<%= user.username %>" class="sidebar-link">
+                <span class="sidebar-icon">
+                    <svg viewBox="0 0 24 24" aria-hidden="true">
+                        <circle cx="12" cy="8" r="3.5"/>
+                        <path d="M5 20c.8-4 3-6 7-6s6.2 2 7 6"/>
+                    </svg>
+                </span>
+                <span>profile</span>
+            </a>
+
+            <a href="/settings/profile" class="sidebar-link">
+                <span class="sidebar-icon">
+                    <svg viewBox="0 0 24 24" aria-hidden="true">
+                        <path d="M12 3v2M12 19v2M3 12h2M19 12h2M5.6 5.6 7 7M17 17l1.4 1.4M18.4 5.6 17 7M7 17l-1.4 1.4"/>
+                        <circle cx="12" cy="12" r="3.5"/>
+                    </svg>
+                </span>
+                <span>settings</span>
+            </a>
+
+            <% if (user.is_admin) { %>
+                <a href="/admin" class="sidebar-link">
+                    <span class="sidebar-icon">
+                        <svg viewBox="0 0 24 24" aria-hidden="true">
+                            <path d="M4 19V9M10 19V5M16 19v-8M22 19V3"/>
+                        </svg>
+                    </span>
+                    <span>admin</span>
+                </a>
+            <% } %>
+
+            <div class="sidebar-divider"></div>
+
+            <form action="/logout" method="post">
+                <button type="submit" class="sidebar-link sidebar-logout">
+                    <span class="sidebar-icon">
+                        <svg viewBox="0 0 24 24" aria-hidden="true">
+                            <path d="M10 4H5a1 1 0 0 0-1 1v14a1 1 0 0 0 1 1h5"/>
+                            <path d="M14 8l4 4-4 4M9 12h9"/>
+                        </svg>
+                    </span>
+                    <span>logout</span>
+                </button>
+            </form>
+        <% } %>
+
+    </nav>
+
+    <% if (user) { %>
+        <div class="sidebar-user">
+            <a href="/u/<%= user.username %>">
+
+                <% if (user.profile_picture) { %>
+                    <img
+                        src="<%= user.profile_picture %>"
+                        alt=""
+                        class="sidebar-avatar"
+                    >
+                <% } else { %>
+                    <div class="sidebar-avatar sidebar-avatar-placeholder">
+                        <%= user.username.charAt(0).toUpperCase() %>
+                    </div>
+                <% } %>
+
+                <div class="sidebar-user-info">
+                    <strong><%= user.display_name || user.username %></strong>
+                    <span>@<%= user.username %></span>
+                </div>
+
+            </a>
+        </div>
+    <% } %>
+
+</aside>
