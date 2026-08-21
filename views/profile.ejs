@@ -1,148 +1,39 @@
-<!doctype html>
-<html>
-<head>
-    <meta charset="utf-8">
-    <meta
-        name="viewport"
-        content="width=device-width,initial-scale=1"
-    >
-
-    <title>
-        @<%= user.username %> — helloworld
-    </title>
-
-    <link rel="stylesheet" href="/style.css">
-</head>
-
-<body>
-
-
-<%- include("partials/sidebar") %>
-
-<main class="container">
-
-<main class="profile-page">
+<main class="container profile-page">
 
     <section class="profile-header">
 
-        <% if (user.profile_picture) { %>
+        <div class="profile-top">
 
-            <img
-                class="profile-avatar"
-                src="<%= user.profile_picture %>"
-                alt=""
-            >
+            <!-- profile picture -->
 
-        <% } else { %>
+            <div class="profile-info">
 
-            <div class="profile-avatar placeholder">
-                <%= user.username[0].toUpperCase() %>
-            </div>
+                <h1>
+                    <%= profile.display_name || profile.username %>
+                </h1>
 
-        <% } %>
-
-        <div class="profile-info">
-
-            <div class="profile-name-row">
-
-                <div>
-                    <h1>
-                        <%= user.display_name || user.username %>
-                    </h1>
-
-                    <p>
-                        @<%= user.username %>
-                    </p>
+                <div class="profile-username">
+                    @<%= profile.username %>
                 </div>
 
-                <% if (currentUser.id === user.id) { %>
+                <% if (profile.bio) { %>
 
-                    <a
-                        class="button small"
-                        href="/settings/profile"
-                    >
-                        edit profile
-                    </a>
-
-                <% } else { %>
-
-                    <form
-                        action="/u/<%= user.username %>/follow"
-                        method="post"
-                    >
-                        <button>
-                            <%= isFollowing ? "unfollow" : "follow" %>
-                        </button>
-                    </form>
+                    <div class="profile-bio">
+                        <%= profile.bio %>
+                    </div>
 
                 <% } %>
 
-            </div>
+                <div class="profile-stats">
+                    ...
+                </div>
 
-            <p class="bio">
-                <%= user.bio || "no bio yet." %>
-            </p>
-
-            <div class="profile-stats">
-                <span>
-                    <strong><%= posts.length %></strong>
-                    posts
-                </span>
-
-                <span>
-                    <strong><%= followers %></strong>
-                    followers
-                </span>
-
-                <span>
-                    <strong><%= following %></strong>
-                    following
-                </span>
             </div>
 
         </div>
 
     </section>
 
-    <section class="profile-posts">
-
-        <h2>posts</h2>
-
-        <% if (!posts.length) { %>
-
-            <div class="empty">
-                no posts yet.
-            </div>
-
-        <% } %>
-
-        <% posts.forEach(post => { %>
-
-            <a
-                class="profile-post"
-                href="/posts/<%= post.id %>/comments"
-            >
-
-                <div>
-                    <%= post.content %>
-                </div>
-
-                <small>
-                    <%= post.likes %> likes
-                    ·
-                    <%= post.comments %> comments
-                    ·
-                    <%= formatDate(post.created_at) %>
-                </small>
-
-            </a>
-
-        <% }) %>
-
-    </section>
+    <!-- user's posts here -->
 
 </main>
-
-</body>
-</html>
-</html>
