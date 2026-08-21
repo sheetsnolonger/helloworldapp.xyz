@@ -1,0 +1,122 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+
+    <meta
+        name="viewport"
+        content="width=device-width, initial-scale=1"
+    >
+
+    <title>communities - helloworld</title>
+
+    <link rel="stylesheet" href="/css/style.css">
+</head>
+
+<body>
+
+<nav>
+    <a class="logo" href="/feed">helloworld</a>
+
+    <div class="nav-right">
+        <a href="/feed">feed</a>
+        <a href="/communities">communities</a>
+        <a href="/search">search</a>
+
+        <a href="/u/<%= user.username %>">
+            @<%= user.username %>
+        </a>
+
+        <form action="/logout" method="post">
+            <button
+                class="logout"
+                type="submit"
+            >
+                logout
+            </button>
+        </form>
+    </div>
+</nav>
+
+<main class="container">
+
+    <header class="feed-header">
+
+        <div class="tiny">
+            find your corner of helloworld
+        </div>
+
+        <h1>communities</h1>
+
+        <p>
+            browse communities and see what people are posting.
+        </p>
+
+    </header>
+
+    <% if (!communities || communities.length === 0) { %>
+
+        <section class="empty">
+
+            <h2>no communities yet.</h2>
+
+            <p>
+                there aren't any communities available right now.
+            </p>
+
+        </section>
+
+    <% } else { %>
+
+        <section class="community-grid">
+
+            <% communities.forEach(community => { %>
+
+                <a
+                    class="community-card"
+                    href="/c/<%= community.name %>"
+                >
+
+                    <div class="community-card-top">
+
+                        <h2>
+                            c/<%= community.name %>
+                        </h2>
+
+                        <span class="community-count">
+                            <%= community.post_count || 0 %>
+                            <%= Number(community.post_count) === 1 ? "post" : "posts" %>
+                        </span>
+
+                    </div>
+
+                    <% if (community.description) { %>
+
+                        <p class="community-description">
+                            <%= community.description %>
+                        </p>
+
+                    <% } else { %>
+
+                        <p class="community-description muted">
+                            no description yet.
+                        </p>
+
+                    <% } %>
+
+                    <div class="community-footer">
+                        view community →
+                    </div>
+
+                </a>
+
+            <% }) %>
+
+        </section>
+
+    <% } %>
+
+</main>
+
+</body>
+</html>
