@@ -1,0 +1,59 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>helloWorld</title>
+    <link rel="stylesheet" href="/css/style.css">
+</head>
+<body>
+<nav>
+    <a href="/feed" class="logo">helloWorld</a>
+    <div class="nav-right">
+        <a href="/u/<%= user.username %>">@<%= user.username %></a>
+        <form method="post" action="/logout"><button class="logout">log out</button></form>
+    </div>
+</nav>
+<main class="container">
+    <header class="feed-header">
+        <p class="tiny">welcome back, @<%= user.username %></p>
+        <h1>what's happening?</h1>
+        <p>there's no pressure here. share something, say hi, or just look around.</p>
+    </header>
+    <section class="composer">
+        <form method="post" action="/posts">
+            <textarea name="content" maxlength="500" placeholder="say something..." required></textarea>
+            <button type="submit">post</button>
+        </form>
+    </section>
+    <section class="feed">
+        <% if (posts.length === 0) { %>
+            <div class="empty">
+                <h2>your feed is quiet.</h2>
+                <p>follow some people or make the first post. there's no wrong way to start.</p>
+            </div>
+        <% } %>
+        <% posts.forEach(post => { %>
+            <article class="post">
+                <div class="post-header">
+                    <a href="/u/<%= post.username %>">@<%= post.username %></a>
+                    <span><%= formatDate(post.created_at) %></span>
+                </div>
+                <p class="post-content"><%= post.content %></p>
+                <div class="post-actions">
+                    <form method="post" action="/posts/<%= post.id %>/like">
+                        <button class="<%= post.liked ? 'liked' : '' %>"><%= post.liked ? 'liked' : 'like' %> · <%= post.likes %></button>
+                    </form>
+                    <span>comments · <%= post.comments %></span>
+                </div>
+                <form class="comment-form" method="post" action="/posts/<%= post.id %>/comments">
+                    <input name="content" maxlength="300" placeholder="leave a kind comment..." required>
+                    <button type="submit">reply</button>
+                </form>
+            </article>
+        <% }) %>
+    </section>
+</main>
+<script src="/js/app.js"></script>
+</body>
+</html>

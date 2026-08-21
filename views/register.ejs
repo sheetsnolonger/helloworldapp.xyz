@@ -1,0 +1,27 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>join helloWorld</title>
+    <link rel="stylesheet" href="/css/style.css">
+</head>
+<body>
+<main class="auth">
+<div class="auth-box">
+    <a href="/" class="logo">helloWorld</a>
+    <h1>welcome in.</h1>
+    <p class="muted">make an account and find your corner of the internet.</p>
+    <% if (error) { %><div class="error"><%= error %></div><% } %>
+    <form method="post" action="/register">
+        <label>username</label>
+        <input name="username" type="text" minlength="3" maxlength="30" required autocomplete="username">
+        <label>password</label>
+        <input name="password" type="password" minlength="8" required autocomplete="new-password">
+        <button type="submit">create account</button>
+    </form>
+    <p class="switch">already here? <a href="/login">log in</a></p>
+</div>
+</main>
+</body>
+</html>

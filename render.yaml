@@ -1,0 +1,18 @@
+services:
+  - type: web
+    name: helloworld
+    runtime: node
+    buildCommand: npm install
+    startCommand: npm start
+    healthCheckPath: /health
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: SESSION_SECRET
+        generateValue: true
+      - key: DATABASE_PATH
+        value: /var/data/helloworld.db
+    disk:
+      name: helloworld-data
+      mountPath: /var/data
+      sizeGB: 1
