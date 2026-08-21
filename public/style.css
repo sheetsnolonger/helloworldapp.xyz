@@ -569,3 +569,48 @@ button,
         flex-wrap: wrap;
     }
 }
+
+/* icon sizing */
+
+img {
+    max-width: 100%;
+}
+
+.icon,
+.nav-icon,
+.menu-icon,
+.post-icon,
+.profile-icon,
+.user-icon,
+.action-icon,
+button img,
+a img {
+    width: 24px;
+    height: 24px;
+    max-width: 24px;
+    max-height: 24px;
+    object-fit: contain;
+}
+
+.profile-picture,
+.profile-picture img {
+    width: 48px;
+    height: 48px;
+    max-width: 48px;
+    max-height: 48px;
+    object-fit: cover;
+    border-radius: 50%;
+}
+
+.logo img {
+    width: 48px;
+    height: 48px;
+    max-width: 48px;
+    max-height: 48px;
+    object-fit: contain;
+}
+
+button img,
+a img {
+    vertical-align: middle;
+}
