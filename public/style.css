@@ -6,8 +6,8 @@ html {
     margin: 0;
     padding: 0;
     min-height: 100%;
+
     background: #080808;
-    color-scheme: dark;
 }
 
 body {
@@ -21,14 +21,6 @@ body {
     font-family: Arial, Helvetica, sans-serif;
     font-size: 14px;
     line-height: 1.5;
-}
-
-body,
-button,
-input,
-textarea,
-select {
-    font-family: Arial, Helvetica, sans-serif;
 }
 
 a {
@@ -55,30 +47,13 @@ img {
     max-width: 100%;
 }
 
-/* =========================================================
-   global scrollbar
-   ========================================================= */
-
-::-webkit-scrollbar {
-    width: 8px;
-    height: 8px;
+form {
+    margin: 0;
 }
 
-::-webkit-scrollbar-track {
-    background: #080808;
-}
-
-::-webkit-scrollbar-thumb {
-    background: #242424;
-    border-radius: 2px;
-}
-
-::-webkit-scrollbar-thumb:hover {
-    background: #3a3a3a;
-}
 
 /* =========================================================
-   navigation
+   sidebar
    ========================================================= */
 
 .site-nav {
@@ -90,9 +65,10 @@ img {
     width: 220px;
     height: 100vh;
 
-    padding: 28px 18px;
+    padding: 28px 16px;
 
     background: #0b0b0b;
+
     border-right: 1px solid #222222;
 
     z-index: 1000;
@@ -119,9 +95,14 @@ img {
 
 .nav-right {
     display: flex;
+
     flex-direction: column;
 
-    gap: 4px;
+    gap: 5px;
+}
+
+.nav-right form {
+    margin: 0;
 }
 
 .nav-right a,
@@ -137,37 +118,38 @@ img {
     padding: 10px 12px;
 
     border: 0;
-    border-radius: 4px;
+    border-radius: 6px;
 
     background: transparent;
-    color: #aaaaaa;
+
+    color: #999999;
 
     text-align: left;
+
     text-decoration: none;
 
     font-size: 14px;
 
     transition:
-        background 0.12s ease,
-        color 0.12s ease;
+        background 0.15s ease,
+        color 0.15s ease;
 }
 
 .nav-right a:hover,
 .nav-right button:hover {
     background: #151515;
+
     color: #ffffff;
 }
 
-.nav-right form {
-    margin: 0;
+.nav-right .active {
+    background: #151515;
+
+    color: #ffffff;
 }
 
-.nav-item {
-    gap: 12px;
-}
-
-.nav-label {
-    white-space: nowrap;
+.nav-right .active:hover {
+    background: #191919;
 }
 
 .nav-icon {
@@ -176,10 +158,12 @@ img {
     align-items: center;
     justify-content: center;
 
-    width: 22px;
-    height: 22px;
+    width: 23px;
+    height: 23px;
 
-    flex: 0 0 22px;
+    flex: 0 0 23px;
+
+    margin-right: 12px;
 }
 
 .nav-icon svg {
@@ -196,88 +180,114 @@ img {
     stroke-linejoin: round;
 }
 
-/* =========================================================
-   main site layout
-   ========================================================= */
+.nav-label {
+    white-space: nowrap;
 
-.main-content {
-    width: 100%;
+    overflow: hidden;
 
-    min-height: 100vh;
-
-    margin-left: 220px;
-
-    padding: 50px 60px 80px;
-
-    overflow-x: hidden;
+    text-overflow: ellipsis;
 }
 
-.main-content > * {
-    width: 100%;
-}
-
-.main-content .settings-page {
-    width: min(720px, 100%);
-}
-
-.main-content .page {
-    width: min(720px, 100%);
-}
-
-.main-content .page-wide {
-    width: min(1000px, 100%);
-}
 
 /* =========================================================
    main layout
    ========================================================= */
 
 .container {
-    width: min(680px, calc(100vw - 300px));
+    width: calc(100% - 220px);
 
-    margin-left: 260px;
+    min-height: 100vh;
+
+    margin: 0;
+
+    margin-left: 220px;
+
+    padding: 50px 60px 80px;
+}
+
+.container > .feed-header,
+.container > .composer,
+.container > .community-list,
+.container > .posts {
+    width: min(680px, 100%);
+
+    margin-left: auto;
     margin-right: auto;
+}
 
-    padding: 40px 0 80px;
+.main-content {
+    width: calc(100% - 220px);
+
+    min-height: 100vh;
+
+    margin-left: 220px;
+
+    padding: 50px 60px 80px;
+}
+
+.main-content > * {
+    width: 100%;
 }
 
 .page {
-    width: min(680px, calc(100vw - 300px));
+    width: min(720px, 100%);
 
-    margin-left: 260px;
+    margin-left: auto;
     margin-right: auto;
-
-    padding: 40px 0 80px;
 }
 
 .page-wide {
-    width: min(1000px, calc(100vw - 300px));
+    width: min(1000px, 100%);
 
-    margin-left: 260px;
+    margin-left: auto;
     margin-right: auto;
-
-    padding: 40px 0 80px;
 }
 
-main:not(.container):not(.page):not(.page-wide) {
-    max-width: 1000px;
+.settings-page {
+    width: min(720px, 100%);
 
-    margin-left: 260px;
+    margin-left: auto;
     margin-right: auto;
-
-    padding: 40px 0 80px;
 }
+
+.admin-page {
+    width: min(1100px, 100%);
+
+    margin-left: auto;
+    margin-right: auto;
+}
+
 
 /* =========================================================
-   typography
+   headings
    ========================================================= */
+
+.page-header,
+.feed-header {
+    margin-bottom: 28px;
+}
+
+.page-header h1,
+.feed-header h1 {
+    margin: 4px 0 5px;
+
+    color: #ffffff;
+
+    font-size: 28px;
+    line-height: 1.2;
+}
+
+.page-header p,
+.feed-header p {
+    margin: 0;
+
+    color: #666666;
+}
 
 h1,
 h2,
 h3,
-h4,
-h5,
-h6 {
+h4 {
     margin-top: 0;
 
     color: #ffffff;
@@ -287,17 +297,14 @@ h6 {
 
 h1 {
     font-size: 28px;
-    font-weight: 700;
 }
 
 h2 {
     font-size: 20px;
-    font-weight: 700;
 }
 
 h3 {
     font-size: 16px;
-    font-weight: 700;
 }
 
 p {
@@ -311,6 +318,7 @@ p {
     font-weight: 700;
 
     letter-spacing: 0.08em;
+
     text-transform: uppercase;
 }
 
@@ -322,34 +330,42 @@ p {
     color: #b00000;
 }
 
+
+/* =========================================================
+   messages
+   ========================================================= */
+
 .error {
-    margin-bottom: 15px;
+    margin-bottom: 18px;
 
     padding: 11px 13px;
 
     background: #180707;
 
     border: 1px solid #5d0000;
-    border-radius: 3px;
 
     color: #d66;
+
+    border-radius: 4px;
 }
 
 .success {
-    margin-bottom: 15px;
+    margin-bottom: 18px;
 
     padding: 11px 13px;
 
     background: #081508;
 
     border: 1px solid #164d16;
-    border-radius: 3px;
 
     color: #8ac88a;
+
+    border-radius: 4px;
 }
 
+
 /* =========================================================
-   shared cards
+   cards
    ========================================================= */
 
 .card,
@@ -363,57 +379,10 @@ p {
     background: #0d0d0d;
 
     border: 1px solid #222222;
-    border-radius: 3px;
+
+    border-radius: 5px;
 }
 
-/* =========================================================
-   generic sections
-   ========================================================= */
-
-section {
-    margin-bottom: 18px;
-}
-
-.section-heading {
-    display: flex;
-
-    align-items: center;
-    justify-content: space-between;
-
-    gap: 15px;
-
-    margin-bottom: 12px;
-}
-
-.section-heading h2 {
-    margin: 0;
-}
-
-.section-heading a {
-    color: #777777;
-
-    font-size: 12px;
-}
-
-.section-heading a:hover {
-    color: #ffffff;
-}
-
-/* =========================================================
-   feed
-   ========================================================= */
-
-.feed-header {
-    margin-bottom: 24px;
-}
-
-.feed-header h1 {
-    margin-bottom: 4px;
-}
-
-.feed-header p {
-    color: #666666;
-}
 
 /* =========================================================
    composer
@@ -427,13 +396,15 @@ section {
     background: #0d0d0d;
 
     border: 1px solid #222222;
-    border-radius: 3px;
+
+    border-radius: 5px;
 }
 
 .composer textarea {
     display: block;
 
     width: 100%;
+
     min-height: 100px;
 
     padding: 12px;
@@ -443,7 +414,8 @@ section {
     background: #080808;
 
     border: 1px solid #292929;
-    border-radius: 3px;
+
+    border-radius: 4px;
 
     color: #ffffff;
 
@@ -459,11 +431,17 @@ section {
 
     align-items: center;
 
-    gap: 10px;
+    gap: 9px;
 
     margin-top: 12px;
 
     flex-wrap: wrap;
+}
+
+.composer-options select {
+    width: auto;
+
+    min-width: 150px;
 }
 
 .file-upload {
@@ -473,25 +451,36 @@ section {
 
     gap: 7px;
 
-    color: #888888;
+    padding: 8px 10px;
+
+    background: #151515;
+
+    border: 1px solid #292929;
+
+    border-radius: 4px;
+
+    color: #999999;
 
     cursor: pointer;
+
+    font-size: 12px;
 }
 
 .file-upload:hover {
+    background: #191919;
+
     color: #ffffff;
 }
 
-.file-upload input[type="file"] {
+.file-upload input {
     display: none;
 }
 
 .file-upload-text {
-    font-size: 12px;
+    white-space: nowrap;
 }
 
-.composer-icon,
-.community-icon {
+.composer-icon {
     display: inline-flex;
 
     align-items: center;
@@ -512,62 +501,104 @@ section {
     stroke-linejoin: round;
 }
 
+
 /* =========================================================
    buttons
    ========================================================= */
 
-.button,
 button,
+.button,
 input[type="submit"] {
-    border: 0;
-    border-radius: 3px;
+    display: inline-flex;
+
+    align-items: center;
+    justify-content: center;
+
+    min-height: 36px;
+
+    padding: 8px 14px;
+
+    border: 1px solid #950000;
+
+    border-radius: 4px;
 
     background: #950000;
+
     color: #ffffff;
 
-    padding: 9px 14px;
+    text-decoration: none;
+
+    font-size: 13px;
 
     transition:
         background 0.15s ease,
+        border-color 0.15s ease,
         color 0.15s ease;
 }
 
-.button:hover,
 button:hover,
+.button:hover,
 input[type="submit"]:hover {
     background: #c00000;
+
+    border-color: #c00000;
+
     color: #ffffff;
 }
 
 .button-secondary {
-    background: #191919;
+    background: #151515;
 
-    border: 1px solid #292929;
+    border-color: #292929;
 
     color: #cccccc;
 }
 
 .button-secondary:hover {
-    background: #242424;
+    background: #202020;
+
+    border-color: #3a3a3a;
 }
 
 .button-danger {
-    background: #4c0000;
+    background: #450000;
+
+    border-color: #650000;
 }
 
 .button-danger:hover {
     background: #a00000;
+
+    border-color: #a00000;
 }
 
 .button-small {
-    padding: 6px 9px;
+    min-height: 30px;
+
+    padding: 5px 9px;
 
     font-size: 12px;
 }
 
+
 /* =========================================================
-   generic inputs
+   forms
    ========================================================= */
+
+.form-group {
+    margin-bottom: 18px;
+}
+
+.form-group label {
+    display: block;
+
+    margin-bottom: 7px;
+
+    color: #bbbbbb;
+
+    font-size: 12px;
+    font-weight: 600;
+}
 
 input[type="text"],
 input[type="password"],
@@ -575,7 +606,6 @@ input[type="email"],
 input[type="search"],
 input[type="file"],
 input[type="url"],
-input[type="number"],
 textarea,
 select {
     width: 100%;
@@ -585,7 +615,8 @@ select {
     background: #080808;
 
     border: 1px solid #292929;
-    border-radius: 3px;
+
+    border-radius: 4px;
 
     color: #ffffff;
 
@@ -604,10 +635,6 @@ textarea {
     resize: vertical;
 }
 
-select {
-    appearance: auto;
-}
-
 input[type="file"] {
     padding: 8px;
 
@@ -623,39 +650,11 @@ input[type="file"]::file-selector-button {
 
     border: 1px solid #292929;
 
+    border-radius: 3px;
+
     color: #dddddd;
 
     cursor: pointer;
-}
-
-/* =========================================================
-   forms
-   ========================================================= */
-
-.form-card {
-    width: 100%;
-
-    padding: 22px;
-}
-
-.form-card h1 {
-    margin-bottom: 20px;
-}
-
-.form-group {
-    margin-bottom: 16px;
-}
-
-.form-group label,
-form label {
-    display: block;
-
-    margin-bottom: 6px;
-
-    color: #bbbbbb;
-
-    font-size: 12px;
-    font-weight: 600;
 }
 
 .form-actions {
@@ -663,78 +662,21 @@ form label {
 
     align-items: center;
 
-    gap: 8px;
+    gap: 9px;
 
-    margin-top: 18px;
+    margin-top: 20px;
 
     flex-wrap: wrap;
 }
 
-/* =========================================================
-   auth
-   ========================================================= */
-
-.auth-page {
-    width: calc(100vw - 220px);
-
-    min-height: 100vh;
-
-    margin-left: 220px;
-
-    display: flex;
-
-    align-items: center;
-    justify-content: center;
-
-    padding: 30px;
-}
-
-.auth-card {
-    width: min(400px, 100%);
-
-    padding: 28px;
-
-    background: #0d0d0d;
-
-    border: 1px solid #222222;
-    border-radius: 3px;
-}
-
-.auth-card h1 {
-    margin-bottom: 5px;
-}
-
-.auth-card .subtitle {
-    margin-bottom: 25px;
-
-    color: #666666;
-}
-
-.auth-card form {
-    width: 100%;
-}
-
-.auth-footer {
-    margin-top: 20px;
-
-    color: #666666;
-
-    text-align: center;
-
-    font-size: 12px;
-}
-
-.auth-footer a {
-    color: #a00000;
-}
-
-.auth-footer a:hover {
-    color: #d00000;
-}
 
 /* =========================================================
-   posts
+   feed
    ========================================================= */
+
+.feed-header h1 {
+    margin-bottom: 4px;
+}
 
 .posts {
     width: 100%;
@@ -748,7 +690,8 @@ form label {
     background: #0d0d0d;
 
     border: 1px solid #222222;
-    border-radius: 3px;
+
+    border-radius: 5px;
 }
 
 .post-header {
@@ -832,6 +775,11 @@ form label {
     overflow-wrap: anywhere;
 }
 
+
+/* =========================================================
+   post attachments
+   ========================================================= */
+
 .post-attachment {
     margin-top: 15px;
 }
@@ -840,6 +788,7 @@ form label {
     display: block;
 
     width: 100%;
+
     max-height: 700px;
 
     object-fit: contain;
@@ -847,6 +796,8 @@ form label {
     background: #050505;
 
     border: 1px solid #222222;
+
+    border-radius: 3px;
 }
 
 .attachment-name {
@@ -858,6 +809,7 @@ form label {
 
     font-size: 11px;
 }
+
 
 /* =========================================================
    post actions
@@ -892,6 +844,8 @@ form label {
 
     gap: 6px;
 
+    min-height: 28px;
+
     padding: 4px 0;
 
     border: 0;
@@ -908,6 +862,8 @@ form label {
 .post-actions button:hover,
 .comments-link:hover {
     background: transparent;
+
+    border-color: transparent;
 
     color: #ffffff;
 }
@@ -939,6 +895,7 @@ form label {
     stroke-linecap: round;
     stroke-linejoin: round;
 }
+
 
 /* =========================================================
    comments
@@ -977,6 +934,29 @@ form label {
 .view-comments:hover {
     color: #ffffff;
 }
+
+.comment-form {
+    display: flex;
+
+    gap: 8px;
+
+    margin-top: 16px;
+}
+
+.comment-form input {
+    flex: 1;
+
+    min-width: 0;
+}
+
+.comment-form button {
+    flex-shrink: 0;
+}
+
+
+/* =========================================================
+   full comments page
+   ========================================================= */
 
 .comments-page {
     width: 100%;
@@ -1024,246 +1004,80 @@ form label {
     overflow-wrap: anywhere;
 }
 
-.comment-form {
-    display: flex;
-
-    gap: 8px;
-
-    margin-top: 16px;
-}
-
-.comment-form input {
-    flex: 1;
-
-    min-width: 0;
-}
 
 /* =========================================================
-   community list
+   authentication
    ========================================================= */
 
-.community-list {
-    display: grid;
+.auth-page {
+    width: calc(100% - 220px);
 
-    grid-template-columns: repeat(2, minmax(0, 1fr));
+    min-height: 100vh;
 
-    gap: 12px;
+    margin-left: 220px;
 
-    margin-top: 18px;
-}
+    padding: 50px 30px;
 
-.community-links {
-    display: grid;
-
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-
-    gap: 8px;
-}
-
-.community-link {
     display: flex;
 
     align-items: center;
+    justify-content: center;
+}
 
-    gap: 9px;
+.auth-card {
+    width: min(400px, 100%);
 
-    min-width: 0;
-
-    padding: 10px 11px;
+    padding: 28px;
 
     background: #0d0d0d;
 
     border: 1px solid #222222;
-    border-radius: 3px;
 
-    color: #aaaaaa;
+    border-radius: 5px;
 }
 
-.community-link:hover {
-    background: #121212;
-
-    border-color: #333333;
-
-    color: #ffffff;
+.auth-card h1 {
+    margin-bottom: 6px;
 }
 
-.community-link strong {
-    min-width: 0;
-
-    overflow: hidden;
-
-    text-overflow: ellipsis;
-    white-space: nowrap;
-
-    color: #dddddd;
-}
-
-.community-link > span:last-child {
-    margin-left: auto;
-
-    color: #555555;
-
-    font-size: 11px;
-}
-
-.community-icon svg {
-    width: 15px;
-    height: 15px;
-
-    fill: none;
-
-    stroke: currentColor;
-
-    stroke-width: 1.7;
-
-    stroke-linecap: round;
-    stroke-linejoin: round;
-}
-
-/* =========================================================
-   community cards
-   ========================================================= */
-
-.community-card {
-    padding: 17px;
-
-    transition:
-        border-color 0.15s ease,
-        background 0.15s ease;
-}
-
-.community-card:hover {
-    background: #101010;
-
-    border-color: #303030;
-}
-
-.community-card h2,
-.community-card h3 {
-    margin-bottom: 5px;
-}
-
-.community-card a {
-    color: #ffffff;
-
-    font-weight: 600;
-}
-
-.community-card a:hover {
-    color: #d00000;
-}
-
-.community-description {
-    margin: 8px 0;
-
-    color: #777777;
-
-    font-size: 13px;
-
-    overflow-wrap: anywhere;
-}
-
-.community-meta {
-    color: #555555;
-
-    font-size: 11px;
-}
-
-/* =========================================================
-   community page
-   ========================================================= */
-
-.community-header {
-    margin-bottom: 22px;
-
-    padding: 20px;
-
-    background: #0d0d0d;
-
-    border: 1px solid #222222;
-    border-radius: 3px;
-}
-
-.community-header h1 {
-    margin-bottom: 5px;
-}
-
-.community-header p {
-    margin-bottom: 0;
-
-    color: #777777;
-}
-
-/* =========================================================
-   search
-   ========================================================= */
-
-.search-form {
-    display: flex;
-
-    gap: 8px;
-
+.auth-card .subtitle {
     margin-bottom: 25px;
+
+    color: #666666;
 }
 
-.search-form input {
-    flex: 1;
-
-    min-width: 0;
+.auth-card .form-group {
+    margin-bottom: 17px;
 }
 
-.search-section {
-    margin-bottom: 18px;
-
-    padding: 17px;
+.auth-card button {
+    width: 100%;
 }
 
-.search-section h2 {
-    margin-bottom: 14px;
+.auth-footer {
+    margin-top: 20px;
 
-    font-size: 16px;
-}
-
-.search-result {
-    padding: 12px 0;
-
-    border-bottom: 1px solid #1d1d1d;
-}
-
-.search-result:last-child {
-    border-bottom: 0;
-}
-
-.search-result-title {
-    color: #ffffff;
-
-    font-weight: 600;
-}
-
-.search-result-title:hover {
-    color: #d00000;
-}
-
-.search-result-meta {
     color: #666666;
 
-    font-size: 11px;
+    text-align: center;
+
+    font-size: 12px;
 }
 
-.search-result-content {
-    margin-top: 4px;
-
-    color: #aaaaaa;
-
-    overflow-wrap: anywhere;
+.auth-footer a {
+    color: #a00000;
 }
+
+.auth-footer a:hover {
+    color: #d00000;
+}
+
 
 /* =========================================================
    profiles
    ========================================================= */
 
-.profile-header,
-.profile-card {
+.profile-header {
     margin-bottom: 22px;
 
     padding: 22px;
@@ -1271,7 +1085,8 @@ form label {
     background: #0d0d0d;
 
     border: 1px solid #222222;
-    border-radius: 3px;
+
+    border-radius: 5px;
 }
 
 .profile-top {
@@ -1373,46 +1188,301 @@ form label {
     flex-wrap: wrap;
 }
 
+
 /* =========================================================
    settings
    ========================================================= */
 
+.settings-page {
+    width: min(720px, 100%);
+}
+
 .settings-section {
     margin-bottom: 18px;
 
-    padding: 20px;
+    padding: 22px;
+
+    background: #0d0d0d;
+
+    border: 1px solid #222222;
+
+    border-radius: 5px;
 }
 
 .settings-section h2 {
+    margin-bottom: 6px;
+
+    font-size: 17px;
+}
+
+.settings-description {
+    margin-bottom: 22px;
+
+    color: #666666;
+
+    font-size: 12px;
+
+    line-height: 1.6;
+}
+
+.settings-row {
+    display: flex;
+
+    align-items: center;
+    justify-content: space-between;
+
+    gap: 20px;
+
+    padding: 13px 0;
+
+    border-top: 1px solid #202020;
+}
+
+.settings-row:first-child {
+    margin-top: 12px;
+}
+
+.settings-row span {
+    color: #666666;
+
+    font-size: 12px;
+}
+
+.settings-row strong {
+    color: #dddddd;
+
+    font-size: 12px;
+
+    text-align: right;
+
+    overflow-wrap: anywhere;
+}
+
+.danger-section {
+    border-color: #321616;
+}
+
+
+/* =========================================================
+   communities
+   ========================================================= */
+
+.community-list {
+    display: grid;
+
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+
+    gap: 12px;
+
+    margin-top: 18px;
+}
+
+.community-links {
+    display: flex;
+
+    flex-direction: column;
+
+    gap: 5px;
+}
+
+.community-link {
+    display: flex;
+
+    align-items: center;
+
+    gap: 9px;
+
+    padding: 9px 10px;
+
+    background: #0d0d0d;
+
+    border: 1px solid #222222;
+
+    border-radius: 4px;
+
+    color: #bbbbbb;
+
+    font-size: 12px;
+}
+
+.community-link:hover {
+    background: #121212;
+
+    color: #ffffff;
+}
+
+.community-link > span:last-child {
+    margin-left: auto;
+
+    color: #555555;
+}
+
+.community-icon {
+    display: inline-flex;
+
+    align-items: center;
+    justify-content: center;
+}
+
+.community-icon svg {
+    width: 15px;
+    height: 15px;
+
+    fill: none;
+
+    stroke: currentColor;
+
+    stroke-width: 1.7;
+
+    stroke-linecap: round;
+    stroke-linejoin: round;
+}
+
+.community-card {
+    padding: 17px;
+}
+
+.community-card h2,
+.community-card h3 {
+    margin-bottom: 5px;
+}
+
+.community-card a {
+    color: #ffffff;
+
+    font-weight: 600;
+}
+
+.community-card a:hover {
+    color: #d00000;
+}
+
+.community-description {
+    margin: 8px 0;
+
+    color: #777777;
+
+    font-size: 13px;
+
+    overflow-wrap: anywhere;
+}
+
+.community-meta {
+    color: #555555;
+
+    font-size: 11px;
+}
+
+
+/* =========================================================
+   community page
+   ========================================================= */
+
+.community-header {
+    margin-bottom: 22px;
+
+    padding: 20px;
+
+    background: #0d0d0d;
+
+    border: 1px solid #222222;
+
+    border-radius: 5px;
+}
+
+.community-header h1 {
+    margin-bottom: 5px;
+}
+
+.community-header p {
+    margin-bottom: 0;
+
+    color: #777777;
+}
+
+
+/* =========================================================
+   search
+   ========================================================= */
+
+.search-page {
+    width: min(720px, 100%);
+
+    margin-left: auto;
+    margin-right: auto;
+}
+
+.search-form {
+    display: flex;
+
+    gap: 8px;
+
+    margin-bottom: 25px;
+}
+
+.search-form input {
+    flex: 1;
+
+    min-width: 0;
+}
+
+.search-section {
     margin-bottom: 18px;
+
+    padding: 17px;
+}
+
+.search-section h2 {
+    margin-bottom: 14px;
 
     font-size: 16px;
 }
 
-.settings-section p {
-    color: #777777;
+.search-result {
+    padding: 12px 0;
+
+    border-bottom: 1px solid #1d1d1d;
 }
 
-.settings-section hr {
-    height: 1px;
-
-    margin: 20px 0;
-
-    border: 0;
-
-    background: #222222;
+.search-result:last-child {
+    border-bottom: 0;
 }
+
+.search-result-title {
+    color: #ffffff;
+
+    font-weight: 600;
+}
+
+.search-result-title:hover {
+    color: #d00000;
+}
+
+.search-result-meta {
+    color: #666666;
+
+    font-size: 11px;
+}
+
+.search-result-content {
+    margin-top: 4px;
+
+    color: #aaaaaa;
+
+    overflow-wrap: anywhere;
+}
+
 
 /* =========================================================
    admin
    ========================================================= */
 
-.admin-page {
-    width: min(1100px, calc(100vw - 300px));
+.admin-grid {
+    display: grid;
 
-    margin-left: 260px;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
 
-    padding: 40px 0 80px;
+    gap: 16px;
 }
 
 .admin-header {
@@ -1428,14 +1498,6 @@ form label {
 
 .admin-header h1 {
     margin: 0;
-}
-
-.admin-grid {
-    display: grid;
-
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-
-    gap: 16px;
 }
 
 .admin-section {
@@ -1466,7 +1528,7 @@ form label {
 
     gap: 15px;
 
-    padding: 11px 0;
+    padding: 12px 0;
 
     border-bottom: 1px solid #1d1d1d;
 }
@@ -1494,9 +1556,9 @@ form label {
 }
 
 .admin-item-actions {
-    flex-shrink: 0;
-
     display: flex;
+
+    flex-shrink: 0;
 
     gap: 6px;
 }
@@ -1509,67 +1571,6 @@ form label {
     border-bottom: 1px solid #222222;
 }
 
-/* =========================================================
-   generic tables
-   ========================================================= */
-
-table {
-    width: 100%;
-
-    border-collapse: collapse;
-
-    background: #0d0d0d;
-
-    border: 1px solid #222222;
-}
-
-th,
-td {
-    padding: 11px 12px;
-
-    border-bottom: 1px solid #1d1d1d;
-
-    text-align: left;
-}
-
-th {
-    background: #111111;
-
-    color: #bbbbbb;
-
-    font-size: 11px;
-
-    font-weight: 700;
-
-    text-transform: uppercase;
-
-    letter-spacing: 0.04em;
-}
-
-td {
-    color: #cccccc;
-}
-
-tr:last-child td {
-    border-bottom: 0;
-}
-
-tr:hover td {
-    background: #101010;
-}
-
-/* =========================================================
-   lists
-   ========================================================= */
-
-ul,
-ol {
-    color: #cccccc;
-}
-
-li {
-    margin-bottom: 5px;
-}
 
 /* =========================================================
    empty states
@@ -1581,24 +1582,29 @@ li {
     background: #0d0d0d;
 
     border: 1px solid #222222;
-    border-radius: 3px;
+
+    border-radius: 5px;
 
     color: #666666;
 
     text-align: center;
 }
 
-.empty strong,
-.empty h2 {
+.empty strong {
+    display: block;
+
+    margin-bottom: 5px;
+
     color: #888888;
 }
 
 .empty p {
-    margin-bottom: 0;
+    margin: 0;
 }
 
+
 /* =========================================================
-   dividers
+   utility
    ========================================================= */
 
 .divider {
@@ -1608,10 +1614,6 @@ li {
 
     background: #222222;
 }
-
-/* =========================================================
-   utility
-   ========================================================= */
 
 .flex {
     display: flex;
@@ -1636,47 +1638,6 @@ li {
     text-align: right;
 }
 
-/* =========================================================
-   generic page headers
-   ========================================================= */
-
-.page-header {
-    margin-bottom: 24px;
-}
-
-.page-header h1 {
-    margin-bottom: 5px;
-}
-
-.page-header p {
-    margin-bottom: 0;
-
-    color: #666666;
-}
-
-.header {
-    margin-bottom: 24px;
-}
-
-.header h1 {
-    margin-bottom: 5px;
-}
-
-.header p {
-    color: #666666;
-}
-
-/* =========================================================
-   links inside content
-   ========================================================= */
-
-.container a,
-.page a,
-.page-wide a,
-.admin-page a,
-.auth-page a {
-    transition: color 0.12s ease;
-}
 
 /* =========================================================
    mobile navigation
@@ -1693,44 +1654,56 @@ li {
         padding: 16px;
 
         border-right: 0;
+
         border-bottom: 1px solid #222222;
 
         overflow: visible;
     }
 
     .logo {
-        margin-bottom: 14px;
+        margin-bottom: 15px;
     }
 
     .nav-right {
         flex-direction: row;
 
         flex-wrap: wrap;
+
+        gap: 4px;
     }
 
     .nav-right a,
     .nav-right button {
         width: auto;
 
+        min-height: 38px;
+
         padding: 8px 10px;
     }
 
-    .nav-right form {
-        width: auto;
+    .nav-icon {
+        margin-right: 0;
     }
 
-    .container,
-    .page,
-    .page-wide,
-    .admin-page,
-    main:not(.container):not(.page):not(.page-wide) {
-        width: calc(100% - 24px);
+    .nav-label {
+        display: none;
+    }
 
-        margin-left: auto;
-        margin-right: auto;
 
-        padding-top: 25px;
-        padding-bottom: 50px;
+    .container {
+        width: 100%;
+
+        margin-left: 0;
+
+        padding: 30px 24px 60px;
+    }
+
+    .main-content {
+        width: 100%;
+
+        margin-left: 0;
+
+        padding: 30px 24px 60px;
     }
 
     .auth-page {
@@ -1738,8 +1711,18 @@ li {
 
         margin-left: 0;
 
-        padding: 25px 15px;
+        padding: 30px 20px;
     }
+
+
+    .page,
+    .page-wide,
+    .settings-page,
+    .search-page,
+    .admin-page {
+        width: 100%;
+    }
+
 
     .admin-grid {
         grid-template-columns: 1fr;
@@ -1748,50 +1731,32 @@ li {
     .admin-section-wide {
         grid-column: auto;
     }
+
 }
 
-/* =========================================================
-   tablet
-   ========================================================= */
-
-@media (max-width: 700px) {
-
-    .community-list,
-    .community-links {
-        grid-template-columns: 1fr;
-    }
-
-    .profile-top {
-        gap: 14px;
-    }
-
-    .admin-grid {
-        grid-template-columns: 1fr;
-    }
-
-    .search-form {
-        width: 100%;
-    }
-}
 
 /* =========================================================
-   mobile
+   tablets / small screens
    ========================================================= */
 
-@media (max-width: 600px) {
+@media (max-width: 650px) {
 
-    body {
-        font-size: 14px;
+    .container {
+        padding: 24px 16px 50px;
     }
 
-    .container,
-    .page,
-    .page-wide,
-    .admin-page,
-    main:not(.container):not(.page):not(.page-wide) {
-        width: calc(100% - 16px);
+    .main-content {
+        padding: 24px 16px 50px;
+    }
 
-        padding-top: 18px;
+    .page-header,
+    .feed-header {
+        margin-bottom: 22px;
+    }
+
+    .page-header h1,
+    .feed-header h1 {
+        font-size: 25px;
     }
 
     .post {
@@ -1802,14 +1767,8 @@ li {
         padding: 14px;
     }
 
-    .post-header {
-        flex-direction: column;
-
-        gap: 4px;
-    }
-
-    .post-date {
-        align-self: flex-start;
+    .community-list {
+        grid-template-columns: 1fr;
     }
 
     .profile-top {
@@ -1836,6 +1795,22 @@ li {
         width: 100%;
     }
 
+    .settings-section {
+        padding: 18px;
+    }
+
+    .settings-row {
+        align-items: flex-start;
+
+        flex-direction: column;
+
+        gap: 4px;
+    }
+
+    .settings-row strong {
+        text-align: left;
+    }
+
     .admin-header {
         align-items: flex-start;
 
@@ -1857,27 +1832,18 @@ li {
         flex: 1;
     }
 
-    .form-card,
-    .settings-section,
-    .admin-section,
-    .community-header,
-    .profile-header,
-    .profile-card {
-        padding: 16px;
-    }
-
-    table {
-        display: block;
-
-        overflow-x: auto;
-    }
 }
 
+
 /* =========================================================
-   very small phones
+   phones
    ========================================================= */
 
-@media (max-width: 400px) {
+@media (max-width: 420px) {
+
+    body {
+        font-size: 13px;
+    }
 
     .site-nav {
         padding: 12px;
@@ -1890,19 +1856,33 @@ li {
     .nav-right a,
     .nav-right button {
         padding: 7px 8px;
-
-        font-size: 12px;
     }
 
-    .container,
-    .page,
-    .page-wide,
-    .admin-page,
-    main:not(.container):not(.page):not(.page-wide) {
-        width: calc(100% - 12px);
+    .nav-icon {
+        width: 22px;
+        height: 22px;
+
+        flex-basis: 22px;
+    }
+
+    .nav-icon svg {
+        width: 20px;
+        height: 20px;
+    }
+
+    .container {
+        padding: 20px 10px 45px;
+    }
+
+    .main-content {
+        padding: 20px 10px 45px;
     }
 
     .post {
+        padding: 12px;
+    }
+
+    .composer {
         padding: 12px;
     }
 
@@ -1910,926 +1890,24 @@ li {
     .settings-section,
     .admin-section,
     .community-header,
-    .profile-header,
-    .profile-card {
+    .profile-header {
         padding: 15px;
     }
 
-    h1 {
-        font-size: 24px;
-    }
+    .composer-options {
+        align-items: stretch;
 
-    h2 {
-        font-size: 18px;
-    }
-}
-
-/* =========================================================
-   global page polish
-   ========================================================= */
-
-.page-header {
-    margin-bottom: 25px;
-}
-
-.page-header h1 {
-    margin: 5px 0 6px;
-}
-
-.page-header p {
-    margin: 0;
-
-    color: #666666;
-}
-
-
-/* =========================================================
-   auth pages
-   ========================================================= */
-
-.auth-page {
-    min-height: 100vh;
-
-    width: 100%;
-
-    margin: 0;
-
-    padding: 40px 20px;
-
-    display: flex;
-
-    align-items: center;
-    justify-content: center;
-}
-
-.auth-card {
-    width: min(410px, 100%);
-
-    padding: 30px;
-
-    background: #0d0d0d;
-
-    border: 1px solid #252525;
-
-    border-radius: 4px;
-
-    box-shadow: 0 15px 45px rgba(0, 0, 0, 0.35);
-}
-
-.auth-card h1 {
-    margin: 0 0 6px;
-
-    font-size: 28px;
-
-    color: #ffffff;
-}
-
-.auth-card .subtitle {
-    margin: 0 0 26px;
-
-    color: #666666;
-
-    line-height: 1.6;
-}
-
-.auth-card .form-group {
-    margin-bottom: 17px;
-}
-
-.auth-card label {
-    display: block;
-
-    margin-bottom: 7px;
-
-    color: #bdbdbd;
-
-    font-size: 12px;
-
-    font-weight: 600;
-}
-
-.auth-card input {
-    width: 100%;
-
-    height: 43px;
-
-    padding: 0 12px;
-
-    background: #080808;
-
-    border: 1px solid #292929;
-
-    border-radius: 3px;
-
-    color: #ffffff;
-
-    outline: none;
-}
-
-.auth-card input:focus {
-    border-color: #850000;
-}
-
-.auth-card button {
-    width: 100%;
-
-    min-height: 43px;
-
-    margin-top: 5px;
-}
-
-.auth-footer {
-    margin-top: 22px;
-
-    padding-top: 18px;
-
-    border-top: 1px solid #1f1f1f;
-
-    color: #666666;
-
-    text-align: center;
-
-    font-size: 12px;
-}
-
-.auth-footer a {
-    color: #b00000;
-}
-
-.auth-footer a:hover {
-    color: #df0000;
-}
-
-
-/* =========================================================
-   settings
-   ========================================================= */
-
-.settings-page {
-    width: 100%;
-}
-
-.settings-section {
-    margin-bottom: 18px;
-
-    padding: 22px;
-
-    background: #0d0d0d;
-
-    border: 1px solid #222222;
-
-    border-radius: 4px;
-}
-
-.settings-section h2 {
-    margin: 0 0 5px;
-
-    font-size: 17px;
-}
-
-.settings-section > p {
-    margin-bottom: 20px;
-
-    color: #666666;
-
-    font-size: 13px;
-}
-
-.settings-section .form-group {
-    margin-bottom: 17px;
-}
-
-.settings-section label {
-    display: block;
-
-    margin-bottom: 7px;
-
-    color: #bdbdbd;
-
-    font-size: 12px;
-
-    font-weight: 600;
-}
-
-.settings-section input,
-.settings-section textarea,
-.settings-section select {
-    background: #080808;
-}
-
-.settings-section textarea {
-    min-height: 110px;
-}
-
-.settings-profile-picture {
-    display: flex;
-
-    align-items: center;
-
-    gap: 18px;
-
-    margin-bottom: 22px;
-}
-
-.settings-profile-picture img,
-.settings-profile-picture .profile-picture-placeholder {
-    width: 76px;
-    height: 76px;
-
-    flex-shrink: 0;
-
-    object-fit: cover;
-
-    border-radius: 50%;
-
-    border: 1px solid #292929;
-
-    background: #151515;
-}
-
-.settings-profile-picture-info {
-    min-width: 0;
-}
-
-.settings-profile-picture-info strong {
-    display: block;
-
-    margin-bottom: 4px;
-
-    color: #ffffff;
-}
-
-.settings-profile-picture-info p {
-    margin: 0;
-
-    color: #666666;
-
-    font-size: 12px;
-}
-
-.settings-actions {
-    display: flex;
-
-    align-items: center;
-
-    gap: 8px;
-
-    padding-top: 5px;
-}
-
-
-/* =========================================================
-   profiles
-   ========================================================= */
-
-.profile-page {
-    width: 100%;
-}
-
-.profile-header {
-    margin-bottom: 20px;
-
-    padding: 24px;
-
-    background: #0d0d0d;
-
-    border: 1px solid #222222;
-
-    border-radius: 4px;
-}
-
-.profile-top {
-    display: flex;
-
-    align-items: flex-start;
-
-    gap: 20px;
-}
-
-.profile-picture,
-.profile-picture-placeholder {
-    width: 86px;
-    height: 86px;
-
-    flex-shrink: 0;
-
-    border-radius: 50%;
-
-    border: 1px solid #292929;
-}
-
-.profile-picture {
-    object-fit: cover;
-
-    background: #111111;
-}
-
-.profile-picture-placeholder {
-    display: flex;
-
-    align-items: center;
-    justify-content: center;
-
-    background: #151515;
-
-    color: #777777;
-
-    font-size: 25px;
-}
-
-.profile-info {
-    flex: 1;
-
-    min-width: 0;
-}
-
-.profile-info h1 {
-    margin: 0 0 2px;
-
-    font-size: 25px;
-
-    overflow-wrap: anywhere;
-}
-
-.profile-username {
-    color: #666666;
-
-    font-size: 12px;
-}
-
-.profile-bio {
-    margin-top: 14px;
-
-    color: #c8c8c8;
-
-    line-height: 1.6;
-
-    white-space: pre-wrap;
-
-    overflow-wrap: anywhere;
-}
-
-.profile-stats {
-    display: flex;
-
-    align-items: center;
-
-    gap: 24px;
-
-    margin-top: 18px;
-
-    padding-top: 16px;
-
-    border-top: 1px solid #202020;
-}
-
-.profile-stat {
-    color: #666666;
-
-    font-size: 12px;
-}
-
-.profile-stat strong {
-    margin-right: 3px;
-
-    color: #ffffff;
-
-    font-size: 13px;
-}
-
-.profile-actions {
-    display: flex;
-
-    gap: 8px;
-
-    margin-top: 18px;
-}
-
-
-/* =========================================================
-   communities index
-   ========================================================= */
-
-.communities-page {
-    width: 100%;
-}
-
-.communities-header {
-    margin-bottom: 22px;
-}
-
-.communities-grid {
-    display: grid;
-
-    grid-template-columns:
-        repeat(2, minmax(0, 1fr));
-
-    gap: 12px;
-}
-
-.community-card {
-    min-width: 0;
-
-    padding: 18px;
-
-    background: #0d0d0d;
-
-    border: 1px solid #222222;
-
-    border-radius: 4px;
-
-    transition:
-        border-color 0.15s ease,
-        background 0.15s ease;
-}
-
-.community-card:hover {
-    background: #101010;
-
-    border-color: #333333;
-}
-
-.community-card h2,
-.community-card h3 {
-    margin: 0 0 7px;
-
-    font-size: 16px;
-}
-
-.community-card h2 a,
-.community-card h3 a {
-    color: #ffffff;
-}
-
-.community-card h2 a:hover,
-.community-card h3 a:hover {
-    color: #d00000;
-}
-
-.community-description {
-    margin: 0 0 13px;
-
-    color: #777777;
-
-    line-height: 1.5;
-
-    font-size: 13px;
-}
-
-.community-meta {
-    color: #555555;
-
-    font-size: 11px;
-}
-
-
-/* =========================================================
-   single community
-   ========================================================= */
-
-.community-page {
-    width: 100%;
-}
-
-.community-header {
-    margin-bottom: 20px;
-
-    padding: 23px;
-
-    background: #0d0d0d;
-
-    border: 1px solid #222222;
-
-    border-radius: 4px;
-}
-
-.community-header h1 {
-    margin: 0 0 6px;
-
-    font-size: 25px;
-}
-
-.community-header p {
-    margin: 0;
-
-    color: #777777;
-
-    line-height: 1.6;
-}
-
-.community-header-meta {
-    display: flex;
-
-    gap: 16px;
-
-    margin-top: 15px;
-
-    padding-top: 13px;
-
-    border-top: 1px solid #202020;
-
-    color: #666666;
-
-    font-size: 12px;
-}
-
-.community-header-actions {
-    display: flex;
-
-    gap: 8px;
-
-    margin-top: 17px;
-}
-
-
-/* =========================================================
-   search
-   ========================================================= */
-
-.search-box {
-    margin-bottom: 20px;
-
-    padding: 16px;
-
-    background: #0d0d0d;
-
-    border: 1px solid #222222;
-
-    border-radius: 4px;
-}
-
-.search-form {
-    display: flex;
-
-    align-items: stretch;
-
-    gap: 8px;
-
-    margin: 0;
-}
-
-.search-form input {
-    flex: 1;
-
-    min-width: 0;
-
-    height: 43px;
-
-    background: #080808;
-}
-
-.search-form button {
-    min-width: 90px;
-}
-
-.search-query {
-    margin-bottom: 16px;
-
-    color: #666666;
-
-    font-size: 12px;
-}
-
-.search-query strong {
-    color: #cccccc;
-}
-
-.search-results {
-    margin-bottom: 16px;
-
-    padding: 17px;
-
-    background: #0d0d0d;
-
-    border: 1px solid #222222;
-
-    border-radius: 4px;
-}
-
-.search-results .section-heading {
-    margin-bottom: 5px;
-}
-
-.search-results .section-heading h2 {
-    margin: 0;
-
-    font-size: 16px;
-}
-
-.search-user {
-    display: flex;
-
-    align-items: center;
-
-    gap: 12px;
-
-    padding: 12px 0;
-
-    border-bottom: 1px solid #1d1d1d;
-}
-
-.search-user:last-child {
-    border-bottom: 0;
-}
-
-.search-avatar {
-    width: 42px;
-    height: 42px;
-
-    flex-shrink: 0;
-
-    object-fit: cover;
-
-    border-radius: 50%;
-
-    border: 1px solid #292929;
-
-    background: #151515;
-}
-
-.search-avatar-placeholder {
-    display: flex;
-
-    align-items: center;
-    justify-content: center;
-
-    color: #777777;
-
-    font-size: 14px;
-}
-
-.search-user-info {
-    display: flex;
-
-    flex-direction: column;
-
-    min-width: 0;
-}
-
-.search-user-info strong {
-    color: #ffffff;
-
-    font-size: 13px;
-}
-
-.search-user-info span {
-    margin-top: 2px;
-
-    color: #666666;
-
-    font-size: 11px;
-}
-
-.search-community {
-    display: flex;
-
-    align-items: flex-start;
-
-    gap: 12px;
-
-    padding: 13px 0;
-
-    border-bottom: 1px solid #1d1d1d;
-}
-
-.search-community:last-child {
-    border-bottom: 0;
-}
-
-.search-community-icon {
-    width: 40px;
-    height: 40px;
-
-    flex-shrink: 0;
-
-    display: flex;
-
-    align-items: center;
-    justify-content: center;
-
-    background: #151515;
-
-    border: 1px solid #292929;
-
-    color: #a00000;
-
-    font-size: 12px;
-
-    font-weight: 700;
-}
-
-.search-community strong {
-    color: #ffffff;
-
-    font-size: 13px;
-}
-
-.search-community p {
-    margin: 4px 0 0;
-
-    color: #666666;
-
-    font-size: 12px;
-}
-
-.search-post {
-    display: block;
-
-    padding: 14px 0;
-
-    border-bottom: 1px solid #1d1d1d;
-}
-
-.search-post:last-child {
-    border-bottom: 0;
-}
-
-.search-post-header {
-    display: flex;
-
-    align-items: center;
-    justify-content: space-between;
-
-    gap: 10px;
-}
-
-.search-post-header strong {
-    color: #ffffff;
-
-    font-size: 12px;
-}
-
-.search-post-header span {
-    color: #555555;
-
-    font-size: 10px;
-}
-
-.search-post-community {
-    margin-top: 4px;
-
-    color: #a00000;
-
-    font-size: 11px;
-}
-
-.search-post-content {
-    margin-top: 7px;
-
-    color: #bbbbbb;
-
-    line-height: 1.5;
-
-    white-space: pre-wrap;
-
-    overflow-wrap: anywhere;
-}
-
-
-/* =========================================================
-   shared cards
-   ========================================================= */
-
-.card,
-.panel,
-.form-card,
-.profile-card,
-.community-card,
-.search-section {
-    box-shadow: none;
-}
-
-
-/* =========================================================
-   sidebar spacing
-   ========================================================= */
-
-.site-nav {
-    padding: 30px 20px;
-}
-
-.logo {
-    margin-bottom: 32px;
-}
-
-.nav-right {
-    gap: 6px;
-}
-
-.nav-right a,
-.nav-right button {
-    min-height: 42px;
-
-    padding: 10px 12px;
-
-    border-radius: 4px;
-}
-
-.nav-item {
-    gap: 12px;
-}
-
-
-/* =========================================================
-   desktop content spacing
-   ========================================================= */
-
-@media (min-width: 851px) {
-
-    .container {
-        padding-top: 48px;
-    }
-
-    .page {
-        min-height: calc(100vh - 48px);
-    }
-
-}
-
-
-/* =========================================================
-   tablet
-   ========================================================= */
-
-@media (max-width: 850px) {
-
-    .site-nav {
-        padding: 16px;
-    }
-
-    .logo {
-        margin-bottom: 15px;
-    }
-
-    .communities-grid {
-        grid-template-columns: 1fr 1fr;
-    }
-
-}
-
-
-/* =========================================================
-   mobile
-   ========================================================= */
-
-@media (max-width: 600px) {
-
-    .auth-page {
-        padding: 20px 12px;
-    }
-
-    .auth-card {
-        padding: 23px 18px;
-    }
-
-    .page-header {
-        margin-bottom: 19px;
-    }
-
-    .page-header h1 {
-        font-size: 24px;
-    }
-
-    .search-form {
         flex-direction: column;
     }
 
-    .search-form button {
+    .composer-options select,
+    .composer-options button,
+    .file-upload {
         width: 100%;
     }
 
-    .communities-grid {
-        grid-template-columns: 1fr;
-    }
-
-    .community-header,
-    .profile-header,
-    .settings-section,
-    .search-box,
-    .search-results {
-        padding: 16px;
-    }
-
-    .profile-top {
-        gap: 14px;
-    }
-
-    .profile-picture,
-    .profile-picture-placeholder {
-        width: 72px;
-        height: 72px;
-    }
-
-    .profile-info h1 {
-        font-size: 21px;
-    }
-
-    .profile-stats {
-        gap: 16px;
-    }
-
-    .settings-profile-picture {
-        align-items: flex-start;
+    .file-upload {
+        justify-content: center;
     }
 
 }
