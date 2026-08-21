@@ -1,65 +1,49 @@
-<!doctype html>
-<html>
-<head>
-    <meta charset="utf-8">
-    <meta
-        name="viewport"
-        content="width=device-width,initial-scale=1"
-    >
+<main class="container communities-page">
 
-    <title>communities — helloworld</title>
+    <header class="page-header">
 
-    <link rel="stylesheet" href="/style.css">
-</head>
+        <div class="tiny">
+            find your people
+        </div>
 
-<body>
+        <h1>
+            communities
+        </h1>
 
-<%- include("partials/sidebar") %>
+        <p>
+            places for people to talk about what they like.
+        </p>
 
-<main class="container">
-<main class="page">
+    </header>
 
-    <div class="page-title">
-        <h1>communities</h1>
-        <p>places to find people with similar interests.</p>
-    </div>
-
-    <section class="community-grid">
-
-        <% if (!communities.length) { %>
-
-            <div class="empty">
-                no communities yet.
-            </div>
-
-        <% } %>
+    <div class="communities-grid">
 
         <% communities.forEach(community => { %>
 
-            <a
-                class="community-card"
-                href="/c/<%= community.name %>"
-            >
+            <article class="community-card">
 
                 <h2>
-                    #<%= community.name %>
+                    <a href="/c/<%= encodeURIComponent(community.name) %>">
+                        c/<%= community.name %>
+                    </a>
                 </h2>
 
-                <p>
-                    <%= community.description || "no description." %>
-                </p>
+                <% if (community.description) { %>
 
-                <small>
-                    <%= community.post_count %> posts
-                </small>
+                    <p class="community-description">
+                        <%= community.description %>
+                    </p>
 
-            </a>
+                <% } %>
+
+                <div class="community-meta">
+                    <%= community.post_count || 0 %> posts
+                </div>
+
+            </article>
 
         <% }) %>
 
-    </section>
+    </div>
 
 </main>
-
-</body>
-</html>
