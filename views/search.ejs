@@ -14,26 +14,9 @@
 
 <body>
 
-<nav class="topbar">
+<%- include("partials/sidebar") %>
 
-    <a class="brand" href="/feed">
-        helloworld
-    </a>
-
-    <form
-        class="search"
-        action="/search"
-        method="get"
-    >
-        <input
-            name="q"
-            value="<%= query %>"
-            placeholder="search"
-            autofocus
-        >
-    </form>
-
-</nav>
+<main class="container">
 
 <main class="page">
 
