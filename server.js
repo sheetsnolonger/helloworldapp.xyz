@@ -8,36 +8,62 @@ const bcrypt = require("bcrypt");
 const multer = require("multer");
 const path = require("path");
 const fs = require("fs");
+const { createClient } = require("@supabase/supabase-js");
 
-const {
-    createClient
-} = require("@supabase/supabase-js");
+
+/* =========================================================
+   app
+   ========================================================= */
 
 const app = express();
 
-const port =
-    Number(process.env.PORT) || 3000;
+const port = Number(process.env.PORT) || 3000;
+
+app.set("view engine", "ejs");
+app.set("views", path.join(__dirname, "views"));
+
+app.disable("x-powered-by");
+
+
+/* =========================================================
+   environment
+   ========================================================= */
+
+const database_url =
+    process.env.DATABASE_URL || "";
+
+const session_secret =
+    process.env.SESSION_SECRET ||
+    "change-this-session-secret";
+
+const supabase_url =
+    process.env.SUPABASE_URL || "";
+
+const supabase_service_role_key =
+    process.env.SUPABASE_SERVICE_ROLE_KEY || "";
+
+const storage_bucket =
+    process.env.SUPABASE_STORAGE_BUCKET ||
+    "uploads";
 
 
 /* =========================================================
    database
    ========================================================= */
 
-if (!process.env.DATABASE_URL) {
-    console.error(
-        "DATABASE_URL is missing."
-    );
-
-    process.exit(1);
+if (!database_url) {
+    console.error("database error:");
+    console.error("DATABASE_URL is not configured.");
 }
 
 const pool = new Pool({
-    connectionString:
-        process.env.DATABASE_URL,
+    connectionString: database_url,
 
-    ssl: {
-        rejectUnauthorized: false
-    },
+    ssl: database_url
+        ? {
+            rejectUnauthorized: false
+        }
+        : false,
 
     max: 10,
 
@@ -46,11 +72,9 @@ const pool = new Pool({
     connectionTimeoutMillis: 10000
 });
 
-pool.on("error", (error) => {
-    console.error(
-        "unexpected postgres error:"
-    );
 
+pool.on("error", (error) => {
+    console.error("unexpected database error:");
     console.error(error);
 });
 
@@ -61,38 +85,25 @@ pool.on("error", (error) => {
 
 let supabase = null;
 
-const storage_bucket =
-    process.env.SUPABASE_STORAGE_BUCKET ||
-    "uploads";
-
 if (
-    process.env.SUPABASE_URL &&
-    process.env.SUPABASE_SERVICE_ROLE_KEY
+    supabase_url &&
+    supabase_service_role_key
 ) {
     try {
         supabase = createClient(
-            process.env.SUPABASE_URL,
-            process.env.SUPABASE_SERVICE_ROLE_KEY
+            supabase_url,
+            supabase_service_role_key
         );
 
-        console.log(
-            "supabase configured"
-        );
+        console.log("supabase configured");
 
     } catch (error) {
-
-        console.error(
-            "supabase configuration error:"
-        );
-
+        console.error("supabase initialization error:");
         console.error(error);
-
     }
-
 } else {
-
     console.warn(
-        "supabase is not configured. image uploads will be unavailable."
+        "supabase is not configured. image uploads will be disabled."
     );
 }
 
@@ -102,103 +113,61 @@ if (
    ========================================================= */
 
 const upload_directory =
-    path.join(
-        __dirname,
-        "uploads"
-    );
+    path.join(__dirname, "uploads");
 
-if (
-    !fs.existsSync(upload_directory)
-) {
-    fs.mkdirSync(
-        upload_directory,
-        {
-            recursive: true
-        }
-    );
+if (!fs.existsSync(upload_directory)) {
+    fs.mkdirSync(upload_directory, {
+        recursive: true
+    });
 }
 
-const upload =
-    multer({
-        storage:
-            multer.memoryStorage(),
 
-        limits: {
-            fileSize:
-                15 * 1024 * 1024
-        },
+const upload = multer({
+    storage: multer.memoryStorage(),
 
-        fileFilter:
-            (req, file, callback) => {
+    limits: {
+        fileSize: 15 * 1024 * 1024
+    },
 
-                const allowed = [
-                    "image/jpeg",
-                    "image/png",
-                    "image/gif",
-                    "image/webp"
-                ];
+    fileFilter: (req, file, callback) => {
 
-                if (
-                    !allowed.includes(
-                        file.mimetype
-                    )
-                ) {
-                    return callback(
-                        new Error(
-                            "only image files are allowed"
-                        )
-                    );
-                }
+        const allowed_types = [
+            "image/jpeg",
+            "image/png",
+            "image/gif",
+            "image/webp"
+        ];
 
-                callback(
-                    null,
-                    true
-                );
-            }
-    });
+        if (!allowed_types.includes(file.mimetype)) {
+            return callback(
+                new Error(
+                    "only image files are allowed"
+                )
+            );
+        }
+
+        callback(null, true);
+    }
+});
 
 
 /* =========================================================
-   express
+   middleware
    ========================================================= */
 
-app.set(
-    "view engine",
-    "ejs"
-);
+app.use(express.urlencoded({
+    extended: true
+}));
 
-app.set(
-    "views",
-    path.join(
-        __dirname,
-        "views"
-    )
-);
+app.use(express.json());
 
-app.use(
-    express.urlencoded({
-        extended: true
-    })
-);
-
-app.use(
-    express.json()
-);
-
-app.use(
-    express.static(
-        path.join(
-            __dirname,
-            "public"
-        )
-    )
-);
+app.use(express.static(
+    path.join(__dirname, "public")
+));
 
 app.use(
     "/uploads",
-    express.static(
-        upload_directory
-    )
+    express.static(upload_directory)
 );
 
 
@@ -206,32 +175,21 @@ app.use(
    sessions
    ========================================================= */
 
-const session_store =
-    new pgSession({
-        pool: pool,
-
-        tableName:
-            "user_sessions",
-
-        createTableIfMissing:
-            true
-    });
-
 app.use(
     session({
-        store:
-            session_store,
+        store: new pgSession({
+            pool: pool,
 
-        secret:
-            process.env.SESSION_SECRET ||
-            "change-this-session-secret",
+            tableName: "user_sessions",
+
+            createTableIfMissing: true
+        }),
+
+        secret: session_secret,
 
         resave: false,
 
-        saveUninitialized:
-            false,
-
-        proxy: true,
+        saveUninitialized: false,
 
         cookie: {
             maxAge:
@@ -241,15 +199,13 @@ app.use(
                 24 *
                 30,
 
-            httpOnly:
-                true,
+            httpOnly: true,
 
             secure:
                 process.env.NODE_ENV ===
                 "production",
 
-            sameSite:
-                "lax"
+            sameSite: "lax"
         }
     })
 );
@@ -259,73 +215,70 @@ app.use(
    helpers
    ========================================================= */
 
-function requireLogin(
-    req,
-    res,
-    next
-) {
-
-    if (
-        !req.session ||
-        !req.session.user_id
-    ) {
-        return res.redirect(
-            "/login"
-        );
-    }
-
-    next();
-}
-
-
-function requireAdmin(
-    req,
-    res,
-    next
-) {
-
-    if (
-        !req.session ||
-        !req.session.user_id
-    ) {
-        return res.redirect(
-            "/login"
-        );
-    }
-
-    if (
-        !req.user ||
-        !req.user.is_admin
-    ) {
-        return res.status(403).send(
-            "you do not have permission to access this page"
-        );
-    }
-
-    next();
-}
-
-
 function formatDate(date) {
 
     if (!date) {
         return "";
     }
 
-    return new Date(
-        date
-    ).toLocaleString(
-        "en-us",
-        {
-            month: "short",
-            day: "numeric",
-            year: "numeric",
-            hour: "numeric",
-            minute: "2-digit"
-        }
-    );
+    try {
+        return new Date(date).toLocaleString(
+            "en-us",
+            {
+                month: "short",
+                day: "numeric",
+                year: "numeric",
+                hour: "numeric",
+                minute: "2-digit"
+            }
+        );
+    } catch {
+        return "";
+    }
 }
 
+
+function requireLogin(req, res, next) {
+
+    if (!req.session.user_id) {
+        return res.redirect("/login");
+    }
+
+    next();
+}
+
+
+function requireAdmin(req, res, next) {
+
+    if (!req.session.user_id) {
+        return res.redirect("/login");
+    }
+
+    if (!req.user || !req.user.is_admin) {
+        return res.status(403).render(
+            "404"
+        );
+    }
+
+    next();
+}
+
+
+function safeNumber(value) {
+
+    const number = Number(value);
+
+    if (!Number.isInteger(number)) {
+        return null;
+    }
+
+    return number;
+}
+
+
+/* =========================================================
+   supabase upload
+   ========================================================= */
 
 async function uploadToSupabase(
     file,
@@ -362,29 +315,26 @@ async function uploadToSupabase(
                     contentType:
                         file.mimetype,
 
-                    upsert:
-                        false
+                    upsert: false
                 }
             );
 
-    if (
-        result.error
-    ) {
+    if (result.error) {
         throw result.error;
     }
 
-    const public_url =
+    const public_result =
         supabase.storage
-            .from(
-                storage_bucket
-            )
+            .from(storage_bucket)
             .getPublicUrl(
                 filename
-            )
-            .data
-            .publicUrl;
+            );
 
-    return public_url;
+    return (
+        public_result
+            .data
+            .publicUrl
+    );
 }
 
 
@@ -393,20 +343,13 @@ async function uploadToSupabase(
    ========================================================= */
 
 app.use(
-    async (
-        req,
-        res,
-        next
-    ) => {
+    async (req, res, next) => {
 
         req.user = null;
 
         res.locals.user = null;
 
-        if (
-            !req.session ||
-            !req.session.user_id
-        ) {
+        if (!req.session.user_id) {
             return next();
         }
 
@@ -434,21 +377,21 @@ app.use(
                 );
 
             if (
-                result.rows.length
+                result.rows.length === 0
             ) {
-
-                req.user =
-                    result.rows[0];
-
-                res.locals.user =
-                    result.rows[0];
-
-            } else {
 
                 req.session.destroy(
                     () => {}
                 );
+
+                return next();
             }
+
+            req.user =
+                result.rows[0];
+
+            res.locals.user =
+                result.rows[0];
 
         } catch (error) {
 
@@ -458,6 +401,12 @@ app.use(
 
             console.error(error);
 
+            /*
+             * do not destroy the session here.
+             * this allows the actual database problem
+             * to be diagnosed.
+             */
+
         }
 
         next();
@@ -466,18 +415,17 @@ app.use(
 
 
 /* =========================================================
-   global template helpers
+   global template values
    ========================================================= */
 
 app.use(
-    (
-        req,
-        res,
-        next
-    ) => {
+    (req, res, next) => {
 
         res.locals.formatDate =
             formatDate;
+
+        res.locals.currentPath =
+            req.path;
 
         next();
     }
@@ -493,38 +441,6 @@ async function initializeDatabase() {
     console.log(
         "initializing database..."
     );
-
-
-    /* =====================================================
-       sessions
-       ===================================================== */
-
-    await pool.query(`
-        create table if not exists user_sessions (
-            sid varchar not null collate "default",
-
-            sess json not null,
-
-            expire timestamp(6)
-                without time zone
-                not null
-        )
-    `);
-
-    await pool.query(`
-        create unique index if not exists user_sessions_pkey
-        on user_sessions (sid)
-    `);
-
-    await pool.query(`
-        create index if not exists user_sessions_expire_idx
-        on user_sessions (expire)
-    `);
-
-
-    /* =====================================================
-       users
-       ===================================================== */
 
     await pool.query(`
         create table if not exists users (
@@ -548,19 +464,13 @@ async function initializeDatabase() {
             profile_picture text,
 
             is_admin boolean
-                not null
                 default false,
 
             created_at timestamptz
-                not null
                 default now()
         )
     `);
 
-
-    /* =====================================================
-       communities
-       ===================================================== */
 
     await pool.query(`
         create table if not exists communities (
@@ -577,15 +487,10 @@ async function initializeDatabase() {
                 on delete set null,
 
             created_at timestamptz
-                not null
                 default now()
         )
     `);
 
-
-    /* =====================================================
-       community members
-       ===================================================== */
 
     await pool.query(`
         create table if not exists community_members (
@@ -600,7 +505,6 @@ async function initializeDatabase() {
                 on delete cascade,
 
             created_at timestamptz
-                not null
                 default now(),
 
             unique (
@@ -610,10 +514,6 @@ async function initializeDatabase() {
         )
     `);
 
-
-    /* =====================================================
-       posts
-       ===================================================== */
 
     await pool.query(`
         create table if not exists posts (
@@ -635,15 +535,10 @@ async function initializeDatabase() {
             attachment_name text,
 
             created_at timestamptz
-                not null
                 default now()
         )
     `);
 
-
-    /* =====================================================
-       likes
-       ===================================================== */
 
     await pool.query(`
         create table if not exists likes (
@@ -658,7 +553,6 @@ async function initializeDatabase() {
                 on delete cascade,
 
             created_at timestamptz
-                not null
                 default now(),
 
             unique (
@@ -668,10 +562,6 @@ async function initializeDatabase() {
         )
     `);
 
-
-    /* =====================================================
-       comments
-       ===================================================== */
 
     await pool.query(`
         create table if not exists comments (
@@ -689,15 +579,10 @@ async function initializeDatabase() {
                 not null,
 
             created_at timestamptz
-                not null
                 default now()
         )
     `);
 
-
-    /* =====================================================
-       follows
-       ===================================================== */
 
     await pool.query(`
         create table if not exists follows (
@@ -712,7 +597,6 @@ async function initializeDatabase() {
                 on delete cascade,
 
             created_at timestamptz
-                not null
                 default now(),
 
             unique (
@@ -723,53 +607,8 @@ async function initializeDatabase() {
     `);
 
 
-    /* =====================================================
-       indexes
-       ===================================================== */
-
-    await pool.query(`
-        create index if not exists posts_created_at_idx
-        on posts (created_at desc)
-    `);
-
-    await pool.query(`
-        create index if not exists posts_user_id_idx
-        on posts (user_id)
-    `);
-
-    await pool.query(`
-        create index if not exists posts_community_id_idx
-        on posts (community_id)
-    `);
-
-    await pool.query(`
-        create index if not exists comments_post_id_idx
-        on comments (post_id)
-    `);
-
-    await pool.query(`
-        create index if not exists likes_post_id_idx
-        on likes (post_id)
-    `);
-
-    await pool.query(`
-        create index if not exists likes_user_id_idx
-        on likes (user_id)
-    `);
-
-    await pool.query(`
-        create index if not exists follows_follower_id_idx
-        on follows (follower_id)
-    `);
-
-    await pool.query(`
-        create index if not exists follows_following_id_idx
-        on follows (following_id)
-    `);
-
-
     console.log(
-        "database initialized successfully"
+        "database initialized"
     );
 }
 
@@ -788,15 +627,13 @@ app.get(
             );
         }
 
-        res.redirect(
-            "/login"
-        );
+        res.redirect("/login");
     }
 );
 
 
 /* =========================================================
-   register
+   register page
    ========================================================= */
 
 app.get(
@@ -818,6 +655,10 @@ app.get(
     }
 );
 
+
+/* =========================================================
+   register
+   ========================================================= */
 
 app.post(
     "/register",
@@ -898,8 +739,8 @@ app.post(
                     `
                     select id
                     from users
-                    where lower(username) = $1
-                       or lower(email) = $2
+                    where username = $1
+                       or email = $2
                     limit 1
                     `,
                     [
@@ -961,25 +802,23 @@ app.post(
 
 
             req.session.save(
-                (error) => {
+                (session_error) => {
 
-                    if (error) {
+                    if (session_error) {
 
                         console.error(
                             "register session error:"
                         );
 
                         console.error(
-                            error
+                            session_error
                         );
 
-                        return res.render(
-                            "register",
-                            {
-                                error:
-                                    "account was created but the login session could not be saved"
-                            }
-                        );
+                        return res
+                            .status(500)
+                            .send(
+                                "internal server error"
+                            );
                     }
 
                     res.redirect(
@@ -994,16 +833,10 @@ app.post(
                 "register error:"
             );
 
-            console.error(
-                error
-            );
+            console.error(error);
 
-            res.status(500).render(
-                "register",
-                {
-                    error:
-                        "internal server error"
-                }
+            res.status(500).send(
+                "internal server error"
             );
         }
     }
@@ -1011,7 +844,7 @@ app.post(
 
 
 /* =========================================================
-   login
+   login page
    ========================================================= */
 
 app.get(
@@ -1033,6 +866,10 @@ app.get(
     }
 );
 
+
+/* =========================================================
+   login
+   ========================================================= */
 
 app.post(
     "/login",
@@ -1060,15 +897,19 @@ app.post(
                 !password
             ) {
 
-                return res.status(400)
-                    .render(
-                        "login",
-                        {
-                            error:
-                                "username and password are required"
-                        }
-                    );
+                return res.render(
+                    "login",
+                    {
+                        error:
+                            "username and password are required"
+                    }
+                );
             }
+
+
+            console.log(
+                `login attempt for ${username}`
+            );
 
 
             const result =
@@ -1085,7 +926,7 @@ app.post(
                         is_admin,
                         created_at
                     from users
-                    where lower(username) = $1
+                    where username = $1
                     limit 1
                     `,
                     [
@@ -1095,17 +936,20 @@ app.post(
 
 
             if (
-                !result.rows.length
+                result.rows.length === 0
             ) {
 
-                return res.status(401)
-                    .render(
-                        "login",
-                        {
-                            error:
-                                "invalid username or password"
-                        }
-                    );
+                console.log(
+                    `login failed: user ${username} not found`
+                );
+
+                return res.render(
+                    "login",
+                    {
+                        error:
+                            "invalid username or password"
+                    }
+                );
             }
 
 
@@ -1122,52 +966,82 @@ app.post(
 
             if (!valid) {
 
-                return res.status(401)
-                    .render(
-                        "login",
-                        {
-                            error:
-                                "invalid username or password"
-                        }
-                    );
+                console.log(
+                    `login failed: invalid password for ${username}`
+                );
+
+                return res.render(
+                    "login",
+                    {
+                        error:
+                            "invalid username or password"
+                    }
+                );
             }
 
 
-            req.session.user_id =
-                user.id;
+            /*
+             * regenerate the session after
+             * successful authentication.
+             */
 
+            req.session.regenerate(
+                (session_error) => {
 
-            req.session.save(
-                (error) => {
-
-                    if (error) {
+                    if (session_error) {
 
                         console.error(
-                            "login session save error:"
+                            "session regenerate error:"
                         );
 
                         console.error(
-                            error
+                            session_error
                         );
 
-                        return res.status(500)
-                            .render(
-                                "login",
-                                {
-                                    error:
-                                        "could not save login session"
-                                }
+                        return res
+                            .status(500)
+                            .send(
+                                "internal server error"
                             );
                     }
 
 
-                    console.log(
-                        `user logged in: ${user.username}`
-                    );
+                    req.session.user_id =
+                        user.id;
 
 
-                    res.redirect(
-                        "/feed"
+                    req.session.save(
+                        (save_error) => {
+
+                            if (
+                                save_error
+                            ) {
+
+                                console.error(
+                                    "session save error:"
+                                );
+
+                                console.error(
+                                    save_error
+                                );
+
+                                return res
+                                    .status(500)
+                                    .send(
+                                        "internal server error"
+                                    );
+                            }
+
+
+                            console.log(
+                                `login successful: ${username}`
+                            );
+
+
+                            res.redirect(
+                                "/feed"
+                            );
+                        }
                     );
                 }
             );
@@ -1178,16 +1052,10 @@ app.post(
                 "login error:"
             );
 
-            console.error(
-                error
-            );
+            console.error(error);
 
-            res.status(500).render(
-                "login",
-                {
-                    error:
-                        "internal server error"
-                }
+            res.status(500).send(
+                "internal server error"
             );
         }
     }
@@ -1207,10 +1075,17 @@ app.post(
 
                 if (error) {
                     console.error(
-                        "logout error:",
+                        "logout error:"
+                    );
+
+                    console.error(
                         error
                     );
                 }
+
+                res.clearCookie(
+                    "connect.sid"
+                );
 
                 res.redirect(
                     "/login"
@@ -1247,29 +1122,35 @@ app.get(
                         (
                             select count(*)
                             from likes l
-                            where l.post_id = p.id
+                            where l.post_id =
+                                p.id
                         ) as likes,
 
                         (
                             select count(*)
                             from comments cm
-                            where cm.post_id = p.id
+                            where cm.post_id =
+                                p.id
                         ) as comments,
 
                         exists (
                             select 1
                             from likes l2
-                            where l2.post_id = p.id
-                            and l2.user_id = $1
+                            where l2.post_id =
+                                p.id
+                            and l2.user_id =
+                                $1
                         ) as liked
 
                     from posts p
 
                     join users u
-                        on u.id = p.user_id
+                        on u.id =
+                            p.user_id
 
                     left join communities c
-                        on c.id = p.community_id
+                        on c.id =
+                            p.community_id
 
                     order by
                         p.created_at desc
@@ -1282,7 +1163,7 @@ app.get(
                 );
 
 
-            const communities =
+            const community_result =
                 await pool.query(
                     `
                     select
@@ -1294,7 +1175,8 @@ app.get(
                     from communities c
 
                     left join posts p
-                        on p.community_id = c.id
+                        on p.community_id =
+                            c.id
 
                     group by c.id
 
@@ -1314,14 +1196,17 @@ app.get(
                             cm.id,
                             cm.content,
                             cm.created_at,
-                            u.username
+                            u.username,
+                            u.display_name
 
                         from comments cm
 
                         join users u
-                            on u.id = cm.user_id
+                            on u.id =
+                                cm.user_id
 
-                        where cm.post_id = $1
+                        where cm.post_id =
+                            $1
 
                         order by
                             cm.created_at desc
@@ -1332,6 +1217,7 @@ app.get(
                             post.id
                         ]
                     );
+
 
                 post.comment_list =
                     comments.rows;
@@ -1347,7 +1233,7 @@ app.get(
                         posts.rows,
 
                     communities:
-                        communities.rows
+                        community_result.rows
                 }
             );
 
@@ -1357,9 +1243,7 @@ app.get(
                 "feed error:"
             );
 
-            console.error(
-                error
-            );
+            console.error(error);
 
             res.status(500).send(
                 "internal server error"
@@ -1376,9 +1260,7 @@ app.get(
 app.post(
     "/posts",
     requireLogin,
-    upload.single(
-        "attachment"
-    ),
+    upload.single("attachment"),
     async (req, res) => {
 
         try {
@@ -1387,12 +1269,12 @@ app.post(
                 String(
                     req.body.content ||
                     ""
-                )
-                    .trim();
+                ).trim();
+
 
             const community_id =
                 req.body.community_id
-                    ? Number(
+                    ? safeNumber(
                         req.body.community_id
                     )
                     : null;
@@ -1409,10 +1291,11 @@ app.post(
                 content.length > 500
             ) {
 
-                return res.status(400)
-                    .send(
-                        "post is too long"
-                    );
+                return res.status(
+                    400
+                ).send(
+                    "post is too long"
+                );
             }
 
 
@@ -1473,9 +1356,7 @@ app.post(
                 "create post error:"
             );
 
-            console.error(
-                error
-            );
+            console.error(error);
 
             res.status(500).send(
                 "internal server error"
@@ -1497,9 +1378,18 @@ app.post(
         try {
 
             const post_id =
-                Number(
+                safeNumber(
                     req.params.id
                 );
+
+
+            if (!post_id) {
+                return res.status(
+                    400
+                ).send(
+                    "invalid post id"
+                );
+            }
 
 
             const existing =
@@ -1567,9 +1457,7 @@ app.post(
                 "like error:"
             );
 
-            console.error(
-                error
-            );
+            console.error(error);
 
             res.status(500).send(
                 "internal server error"
@@ -1590,6 +1478,21 @@ app.get(
 
         try {
 
+            const post_id =
+                safeNumber(
+                    req.params.id
+                );
+
+
+            if (!post_id) {
+                return res.status(
+                    404
+                ).send(
+                    "post not found"
+                );
+            }
+
+
             const post =
                 await pool.query(
                     `
@@ -1605,17 +1508,20 @@ app.get(
                     from posts p
 
                     join users u
-                        on u.id = p.user_id
+                        on u.id =
+                            p.user_id
 
                     left join communities c
-                        on c.id = p.community_id
+                        on c.id =
+                            p.community_id
 
-                    where p.id = $1
+                    where p.id =
+                        $1
 
                     limit 1
                     `,
                     [
-                        req.params.id
+                        post_id
                     ]
                 );
 
@@ -1624,10 +1530,11 @@ app.get(
                 !post.rows.length
             ) {
 
-                return res.status(404)
-                    .send(
-                        "post not found"
-                    );
+                return res.status(
+                    404
+                ).send(
+                    "post not found"
+                );
             }
 
 
@@ -1643,15 +1550,17 @@ app.get(
                     from comments cm
 
                     join users u
-                        on u.id = cm.user_id
+                        on u.id =
+                            cm.user_id
 
-                    where cm.post_id = $1
+                    where cm.post_id =
+                        $1
 
                     order by
                         cm.created_at asc
                     `,
                     [
-                        req.params.id
+                        post_id
                     ]
                 );
 
@@ -1675,9 +1584,7 @@ app.get(
                 "comments page error:"
             );
 
-            console.error(
-                error
-            );
+            console.error(error);
 
             res.status(500).send(
                 "internal server error"
@@ -1687,6 +1594,10 @@ app.get(
 );
 
 
+/* =========================================================
+   create comment
+   ========================================================= */
+
 app.post(
     "/posts/:id/comments",
     requireLogin,
@@ -1694,18 +1605,31 @@ app.post(
 
         try {
 
+            const post_id =
+                safeNumber(
+                    req.params.id
+                );
+
+
             const content =
                 String(
                     req.body.content ||
                     ""
-                )
-                    .trim();
+                ).trim();
+
+
+            if (!post_id) {
+                return res.status(
+                    400
+                ).send(
+                    "invalid post id"
+                );
+            }
 
 
             if (!content) {
-
                 return res.redirect(
-                    `/posts/${req.params.id}/comments`
+                    `/posts/${post_id}/comments`
                 );
             }
 
@@ -1714,10 +1638,11 @@ app.post(
                 content.length > 300
             ) {
 
-                return res.status(400)
-                    .send(
-                        "comment is too long"
-                    );
+                return res.status(
+                    400
+                ).send(
+                    "comment is too long"
+                );
             }
 
 
@@ -1736,14 +1661,14 @@ app.post(
                 `,
                 [
                     req.user.id,
-                    req.params.id,
+                    post_id,
                     content
                 ]
             );
 
 
             res.redirect(
-                `/posts/${req.params.id}/comments`
+                `/posts/${post_id}/comments`
             );
 
         } catch (error) {
@@ -1752,9 +1677,7 @@ app.post(
                 "comment error:"
             );
 
-            console.error(
-                error
-            );
+            console.error(error);
 
             res.status(500).send(
                 "internal server error"
@@ -1775,6 +1698,21 @@ app.post(
 
         try {
 
+            const post_id =
+                safeNumber(
+                    req.params.id
+                );
+
+
+            if (!post_id) {
+                return res.status(
+                    400
+                ).send(
+                    "invalid post id"
+                );
+            }
+
+
             await pool.query(
                 `
                 delete from posts
@@ -1793,7 +1731,7 @@ app.post(
                 )
                 `,
                 [
-                    req.params.id,
+                    post_id,
                     req.user.id
                 ]
             );
@@ -1810,9 +1748,7 @@ app.post(
                 "delete post error:"
             );
 
-            console.error(
-                error
-            );
+            console.error(error);
 
             res.status(500).send(
                 "internal server error"
@@ -1856,7 +1792,8 @@ app.get(
 
                     from users
 
-                    where lower(username) = $1
+                    where username =
+                        $1
 
                     limit 1
                     `,
@@ -1870,10 +1807,11 @@ app.get(
                 !profile_result.rows.length
             ) {
 
-                return res.status(404)
-                    .send(
-                        "user not found"
-                    );
+                return res.status(
+                    404
+                ).render(
+                    "404"
+                );
             }
 
 
@@ -1893,21 +1831,25 @@ app.get(
                         (
                             select count(*)
                             from comments cm
-                            where cm.post_id = p.id
+                            where cm.post_id =
+                                p.id
                         ) as comments,
 
                         (
                             select count(*)
                             from likes l
-                            where l.post_id = p.id
+                            where l.post_id =
+                                p.id
                         ) as likes
 
                     from posts p
 
                     left join communities c
-                        on c.id = p.community_id
+                        on c.id =
+                            p.community_id
 
-                    where p.user_id = $1
+                    where p.user_id =
+                        $1
 
                     order by
                         p.created_at desc
@@ -1925,8 +1867,7 @@ app.get(
                 {
                     user: req.user,
 
-                    profile:
-                        profile,
+                    profile: profile,
 
                     posts:
                         posts_result.rows
@@ -1936,12 +1877,10 @@ app.get(
         } catch (error) {
 
             console.error(
-                "profile error:"
+                "profile page error:"
             );
 
-            console.error(
-                error
-            );
+            console.error(error);
 
             res.status(500).send(
                 "internal server error"
@@ -1977,9 +1916,7 @@ app.get(
 app.post(
     "/settings/profile",
     requireLogin,
-    upload.single(
-        "profile_picture"
-    ),
+    upload.single("profile_picture"),
     async (req, res) => {
 
         try {
@@ -1988,19 +1925,19 @@ app.post(
                 String(
                     req.body.display_name ||
                     ""
-                )
-                    .trim();
+                ).trim();
+
 
             const bio =
                 String(
                     req.body.bio ||
                     ""
-                )
-                    .trim();
+                ).trim();
 
 
             let profile_picture =
-                req.user.profile_picture;
+                req.user.profile_picture ||
+                null;
 
 
             if (req.file) {
@@ -2047,9 +1984,7 @@ app.post(
                 "profile settings error:"
             );
 
-            console.error(
-                error
-            );
+            console.error(error);
 
             res.render(
                 "profile-settings",
@@ -2059,8 +1994,7 @@ app.post(
                     error:
                         "could not update your profile",
 
-                    success:
-                        null
+                    success: null
                 }
             );
         }
@@ -2094,16 +2028,19 @@ app.get(
                     from communities c
 
                     left join users u
-                        on u.id = c.creator_id
+                        on u.id =
+                            c.creator_id
 
                     left join posts p
-                        on p.community_id = c.id
+                        on p.community_id =
+                            c.id
 
                     group by
                         c.id,
                         u.username
 
-                    order by c.name asc
+                    order by
+                        c.name asc
                     `
                 );
 
@@ -2124,9 +2061,7 @@ app.get(
                 "communities error:"
             );
 
-            console.error(
-                error
-            );
+            console.error(error);
 
             res.status(500).send(
                 "internal server error"
@@ -2155,12 +2090,12 @@ app.post(
                     .trim()
                     .toLowerCase();
 
+
             const description =
                 String(
                     req.body.description ||
                     ""
-                )
-                    .trim();
+                ).trim();
 
 
             if (
@@ -2168,10 +2103,11 @@ app.post(
                     .test(name)
             ) {
 
-                return res.status(400)
-                    .send(
-                        "community name must use only letters, numbers, and underscores"
-                    );
+                return res.status(
+                    400
+                ).send(
+                    "community name must use only letters, numbers, and underscores"
+                );
             }
 
 
@@ -2206,9 +2142,7 @@ app.post(
                 "create community error:"
             );
 
-            console.error(
-                error
-            );
+            console.error(error);
 
 
             if (
@@ -2216,10 +2150,11 @@ app.post(
                 "23505"
             ) {
 
-                return res.status(400)
-                    .send(
-                        "that community already exists"
-                    );
+                return res.status(
+                    400
+                ).send(
+                    "that community already exists"
+                );
             }
 
 
@@ -2262,9 +2197,11 @@ app.get(
                     from communities c
 
                     left join users u
-                        on u.id = c.creator_id
+                        on u.id =
+                            c.creator_id
 
-                    where lower(c.name) = $1
+                    where c.name =
+                        $1
 
                     limit 1
                     `,
@@ -2278,10 +2215,11 @@ app.get(
                 !community_result.rows.length
             ) {
 
-                return res.status(404)
-                    .send(
-                        "community not found"
-                    );
+                return res.status(
+                    404
+                ).render(
+                    "404"
+                );
             }
 
 
@@ -2301,21 +2239,25 @@ app.get(
                         (
                             select count(*)
                             from likes l
-                            where l.post_id = p.id
+                            where l.post_id =
+                                p.id
                         ) as likes,
 
                         (
                             select count(*)
                             from comments cm
-                            where cm.post_id = p.id
+                            where cm.post_id =
+                                p.id
                         ) as comments
 
                     from posts p
 
                     join users u
-                        on u.id = p.user_id
+                        on u.id =
+                            p.user_id
 
-                    where p.community_id = $1
+                    where p.community_id =
+                        $1
 
                     order by
                         p.created_at desc
@@ -2344,12 +2286,10 @@ app.get(
         } catch (error) {
 
             console.error(
-                "community error:"
+                "community page error:"
             );
 
-            console.error(
-                error
-            );
+            console.error(error);
 
             res.status(500).send(
                 "internal server error"
@@ -2374,8 +2314,7 @@ app.get(
                 String(
                     req.query.q ||
                     ""
-                )
-                    .trim();
+                ).trim();
 
 
             let users = [];
@@ -2406,7 +2345,8 @@ app.get(
 
                            or display_name ilike $1
 
-                        order by username
+                        order by
+                            username
 
                         limit 25
                         `,
@@ -2428,7 +2368,8 @@ app.get(
                         from communities c
 
                         left join posts p
-                            on p.community_id = c.id
+                            on p.community_id =
+                                c.id
 
                         where c.name ilike $1
 
@@ -2462,10 +2403,12 @@ app.get(
                         from posts p
 
                         join users u
-                            on u.id = p.user_id
+                            on u.id =
+                                p.user_id
 
                         left join communities c
-                            on c.id = p.community_id
+                            on c.id =
+                                p.community_id
 
                         where p.content ilike $1
 
@@ -2513,9 +2456,7 @@ app.get(
                 "search error:"
             );
 
-            console.error(
-                error
-            );
+            console.error(error);
 
             res.status(500).send(
                 "internal server error"
@@ -2569,7 +2510,8 @@ app.get(
                     from posts p
 
                     join users u
-                        on u.id = p.user_id
+                        on u.id =
+                            p.user_id
 
                     order by
                         p.created_at desc
@@ -2594,7 +2536,8 @@ app.get(
                     from communities c
 
                     left join users u
-                        on u.id = c.creator_id
+                        on u.id =
+                            c.creator_id
 
                     order by
                         c.created_at desc
@@ -2626,9 +2569,7 @@ app.get(
                 "admin error:"
             );
 
-            console.error(
-                error
-            );
+            console.error(error);
 
             res.status(500).send(
                 "internal server error"
@@ -2670,9 +2611,7 @@ app.post(
                 "admin delete post error:"
             );
 
-            console.error(
-                error
-            );
+            console.error(error);
 
             res.status(500).send(
                 "internal server error"
@@ -2694,9 +2633,18 @@ app.post(
         try {
 
             const target_id =
-                Number(
+                safeNumber(
                     req.params.id
                 );
+
+
+            if (!target_id) {
+                return res.status(
+                    400
+                ).send(
+                    "invalid user id"
+                );
+            }
 
 
             if (
@@ -2704,10 +2652,11 @@ app.post(
                 Number(req.user.id)
             ) {
 
-                return res.status(400)
-                    .send(
-                        "you cannot delete yourself"
-                    );
+                return res.status(
+                    400
+                ).send(
+                    "you cannot delete yourself"
+                );
             }
 
 
@@ -2732,9 +2681,7 @@ app.post(
                 "admin delete user error:"
             );
 
-            console.error(
-                error
-            );
+            console.error(error);
 
             res.status(500).send(
                 "internal server error"
@@ -2758,19 +2705,24 @@ app.get(
                 "select 1"
             );
 
-            res.json({
-                status: "ok"
+
+            res.status(200).json({
+                status: "ok",
+                database: "connected"
             });
 
         } catch (error) {
 
             console.error(
-                "health check error:",
-                error
+                "health check database error:"
             );
 
+            console.error(error);
+
+
             res.status(500).json({
-                status: "error"
+                status: "error",
+                database: "disconnected"
             });
         }
     }
@@ -2782,39 +2734,27 @@ app.get(
    ========================================================= */
 
 app.use(
-    (
-        req,
-        res
-    ) => {
+    (req, res) => {
 
         res.status(404);
 
-        res.render(
-            "404"
-        );
+        res.render("404");
     }
 );
 
 
 /* =========================================================
-   upload / application errors
+   multer / global error handler
    ========================================================= */
 
 app.use(
-    (
-        error,
-        req,
-        res,
-        next
-    ) => {
+    (error, req, res, next) => {
 
         console.error(
             "server error:"
         );
 
-        console.error(
-            error
-        );
+        console.error(error);
 
 
         if (
@@ -2827,10 +2767,11 @@ app.use(
                 "LIMIT_FILE_SIZE"
             ) {
 
-                return res.status(400)
-                    .send(
-                        "file is too large. maximum size is 15mb"
-                    );
+                return res.status(
+                    400
+                ).send(
+                    "file is too large. maximum size is 15mb"
+                );
             }
         }
 
@@ -2840,10 +2781,11 @@ app.use(
             "only image files are allowed"
         ) {
 
-            return res.status(400)
-                .send(
-                    "only png, jpeg, gif, and webp images are allowed"
-                );
+            return res.status(
+                400
+            ).send(
+                "only png, jpeg, gif, and webp images are allowed"
+            );
         }
 
 
@@ -2855,7 +2797,7 @@ app.use(
 
 
 /* =========================================================
-   start
+   start server
    ========================================================= */
 
 async function startServer() {
@@ -2864,9 +2806,20 @@ async function startServer() {
 
         await initializeDatabase();
 
+
+        /*
+         * Test the database before accepting traffic.
+         */
+
         await pool.query(
             "select 1"
         );
+
+
+        console.log(
+            "database connection successful"
+        );
+
 
         app.listen(
             port,
@@ -2875,6 +2828,10 @@ async function startServer() {
 
                 console.log(
                     `helloworld running on port ${port}`
+                );
+
+                console.log(
+                    `listening on 0.0.0.0:${port}`
                 );
             }
         );
@@ -2885,8 +2842,10 @@ async function startServer() {
             "failed to start server:"
         );
 
+        console.error(error);
+
         console.error(
-            error
+            "check DATABASE_URL and your render postgres database."
         );
 
         process.exit(1);
@@ -2895,3 +2854,48 @@ async function startServer() {
 
 
 startServer();
+
+
+/* =========================================================
+   graceful shutdown
+   ========================================================= */
+
+async function shutdown(signal) {
+
+    console.log(
+        `${signal} received. shutting down...`
+    );
+
+
+    try {
+
+        await pool.end();
+
+        console.log(
+            "database connection closed"
+        );
+
+        process.exit(0);
+
+    } catch (error) {
+
+        console.error(
+            "shutdown error:"
+        );
+
+        console.error(error);
+
+        process.exit(1);
+    }
+}
+
+
+process.on(
+    "SIGTERM",
+    () => shutdown("SIGTERM")
+);
+
+process.on(
+    "SIGINT",
+    () => shutdown("SIGINT")
+);
