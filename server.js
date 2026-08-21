@@ -1683,82 +1683,125 @@ app.post(
     requireLogin,
     upload.single("profile_picture"),
     async (req, res) => {
-
         try {
+            const display_name = String(
+                req.body.display_name || ""
+            ).trim();
 
-            const display_name =
-                String(
-                    req.body.display_name || ""
-                ).trim();
-
-            const bio =
-                String(
-                    req.body.bio || ""
-                ).trim();
-
+            const bio = String(
+                req.body.bio || ""
+            ).trim();
 
             let profile_picture =
-                req.user.profile_picture;
+                req.user.profile_picture ||
+                req.user.profile_image_url ||
+                null;
 
-
+            /*
+             * only attempt supabase upload when a new
+             * profile picture was actually selected.
+             */
             if (req.file) {
-
-                profile_picture =
-                    await uploadToSupabase(
-                        req.file,
-                        `profiles/${req.user.id}`
+                try {
+                    profile_picture =
+                        await uploadToSupabase(
+                            req.file,
+                            `profiles/${req.user.id}`
+                        );
+                } catch (upload_error) {
+                    console.error(
+                        "profile picture upload error:",
+                        upload_error
                     );
-            }
 
+                    return res.render(
+                        "profile-settings",
+                        {
+                            user: req.user,
+                            error:
+                                "profile picture upload failed. your text changes were not saved.",
+                            success: null
+                        }
+                    );
+                }
+            }
 
             await pool.query(
                 `
                 update users
-
                 set
                     display_name = $1,
                     bio = $2,
                     profile_picture = $3
-
                 where id = $4
                 `,
                 [
-                    display_name ||
-                        req.user.username,
-
+                    display_name || req.user.username,
                     bio,
-
                     profile_picture,
-
                     req.user.id
                 ]
             );
 
+            /*
+             * refresh the user stored in the request so
+             * the settings page has the newest values.
+             */
+            const updated =
+                await pool.query(
+                    `
+                    select
+                        id,
+                        username,
+                        email,
+                        display_name,
+                        bio,
+                        profile_picture,
+                        profile_image_url,
+                        is_admin,
+                        created_at
+                    from users
+                    where id = $1
+                    limit 1
+                    `,
+                    [req.user.id]
+                );
 
-            res.redirect(
-                `/u/${req.user.username}`
+            const updated_user =
+                updated.rows[0];
+
+            req.user = updated_user;
+
+            res.locals.user = updated_user;
+
+            return res.render(
+                "profile-settings",
+                {
+                    user: updated_user,
+                    error: null,
+                    success: "profile updated successfully"
+                }
             );
 
         } catch (error) {
+            console.error(
+                "profile settings error:"
+            );
 
-            console.error("profile settings error:");
             console.error(error);
 
-            res.render(
+            return res.status(500).render(
                 "profile-settings",
                 {
                     user: req.user,
-
                     error:
                         "could not update your profile",
-
                     success: null
                 }
             );
         }
     }
 );
-
 
 /* =========================================================
    communities
