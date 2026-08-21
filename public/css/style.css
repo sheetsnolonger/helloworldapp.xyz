@@ -943,3 +943,113 @@ textarea:focus {
         grid-template-columns: 1fr;
     }
 }
+
+.communities-section {
+    margin-bottom: 35px;
+}
+
+.section-heading {
+    margin-bottom: 15px;
+}
+
+.section-heading h2 {
+    margin: 5px 0 0;
+    font-size: 32px;
+}
+
+.communities-list {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 12px;
+}
+
+.community-card {
+    display: block;
+    padding: 18px;
+    border: 1px solid #b7d8df;
+    border-radius: 12px;
+    background: rgba(255, 255, 255, 0.75);
+    box-shadow: 0 5px 15px rgba(40, 100, 120, 0.12);
+}
+
+.community-card:hover {
+    transform: translateY(-2px);
+}
+
+.community-card-title {
+    font-size: 20px;
+    font-weight: bold;
+    color: #12627a;
+}
+
+.community-card-description {
+    margin-top: 7px;
+    color: #52717a;
+    line-height: 1.5;
+}
+
+.community-card-meta {
+    display: flex;
+    justify-content: space-between;
+    gap: 10px;
+    margin-top: 14px;
+    font-size: 13px;
+    color: #66858d;
+}
+
+.post-community {
+    margin-left: 8px;
+}
+
+.post-community a {
+    color: #12627a;
+    font-weight: bold;
+}
+
+.composer-bottom {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 12px;
+    margin-top: 10px;
+}
+
+.composer-bottom select {
+    padding: 10px 12px;
+    border: 1px solid #b7d8df;
+    border-radius: 8px;
+    background: white;
+    color: #24515c;
+}
+
+.comment-link {
+    color: inherit;
+}
+
+.delete-post {
+    background: transparent;
+    border: 0;
+    color: #a33;
+    padding: 0;
+}
+
+@media (max-width: 600px) {
+    .communities-list {
+        grid-template-columns: 1fr;
+    }
+
+    .composer-bottom {
+        align-items: stretch;
+        flex-direction: column;
+    }
+
+    .composer-bottom select,
+    .composer-bottom button {
+        width: 100%;
+    }
+
+    .post-header {
+        flex-direction: column;
+        gap: 5px;
+    }
+}
