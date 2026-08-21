@@ -1,81 +1,78 @@
-<!DOCTYPE html>
-<html lang="en">
+<!doctype html>
+<html>
 <head>
     <meta charset="utf-8">
+
     <meta
         name="viewport"
-        content="width=device-width, initial-scale=1"
+        content="width=device-width,initial-scale=1"
     >
 
-    <title>helloworld admin</title>
+    <title>admin — helloworld</title>
 
-    <link
-        rel="stylesheet"
-        href="/css/style.css"
-    >
+    <link rel="stylesheet" href="/style.css">
 </head>
 
 <body>
 
-<main class="container admin-page">
+<nav class="topbar">
 
-    <header class="feed-header">
+    <a class="brand" href="/feed">
+        helloworld
+    </a>
 
-        <div class="tiny">
-            private administration
-        </div>
+    <strong>
+        admin panel
+    </strong>
+
+    <form
+        action="<%= adminPath %>/logout"
+        method="post"
+    >
+        <button class="text-button">
+            logout
+        </button>
+    </form>
+
+</nav>
+
+<main class="admin-page">
+
+    <header class="page-title">
 
         <h1>admin panel</h1>
 
         <p>
-            manage helloworld.
+            manage users, posts, and communities.
         </p>
 
     </header>
-
-    <div class="admin-actions">
-
-        <a href="/feed">
-            back to feed
-        </a>
-
-        <form
-            action="<%= adminPath %>/logout"
-            method="post"
-        >
-            <button type="submit">
-                logout
-            </button>
-        </form>
-
-    </div>
 
     <section class="admin-section">
 
         <h2>create community</h2>
 
         <form
+            class="admin-form"
             action="<%= adminPath %>/communities/create"
             method="post"
-            class="admin-form"
         >
 
             <input
-                type="text"
                 name="name"
                 maxlength="50"
                 placeholder="community name"
                 required
             >
 
-            <textarea
+            <input
                 name="description"
                 maxlength="300"
-                placeholder="community description"
-            ></textarea>
+                placeholder="description"
+            >
 
             <button type="submit">
-                create community
+                create
             </button>
 
         </form>
@@ -86,59 +83,44 @@
 
         <h2>communities</h2>
 
-        <% if (!communities || communities.length === 0) { %>
+        <% communities.forEach(community => { %>
 
-            <p>
-                no communities yet.
-            </p>
+            <div class="admin-row">
 
-        <% } else { %>
+                <div>
+                    <strong>
+                        #<%= community.name %>
+                    </strong>
 
-            <div class="admin-list">
+                    <span>
+                        <%= community.post_count %> posts
+                    </span>
+                </div>
 
-                <% communities.forEach(community => { %>
+                <div class="admin-actions">
 
-                    <article class="admin-item">
+                    <a
+                        href="/c/<%= community.name %>"
+                        target="_blank"
+                    >
+                        view
+                    </a>
 
-                        <div>
-                            <strong>
-                                <a
-                                    href="/c/<%= community.name %>"
-                                >
-                                    /c/<%= community.name %>
-                                </a>
-                            </strong>
+                    <form
+                        action="<%= adminPath %>/communities/<%= community.id %>/delete"
+                        method="post"
+                        onsubmit="return confirm('delete this community?')"
+                    >
+                        <button class="danger-button">
+                            delete
+                        </button>
+                    </form>
 
-                            <p>
-                                <%= community.description || "no description." %>
-                            </p>
-
-                            <small>
-                                <%= community.post_count || 0 %>
-                                posts
-                            </small>
-                        </div>
-
-                        <form
-                            action="<%= adminPath %>/communities/<%= community.id %>/delete"
-                            method="post"
-                            onsubmit="return confirm('delete this community?');"
-                        >
-                            <button
-                                type="submit"
-                                class="danger"
-                            >
-                                delete
-                            </button>
-                        </form>
-
-                    </article>
-
-                <% }) %>
+                </div>
 
             </div>
 
-        <% } %>
+        <% }) %>
 
     </section>
 
@@ -146,142 +128,94 @@
 
         <h2>posts</h2>
 
-        <% if (!posts || posts.length === 0) { %>
+        <% posts.forEach(post => { %>
 
-            <p>
-                no posts yet.
-            </p>
+            <div class="admin-row">
 
-        <% } else { %>
+                <div>
 
-            <div class="admin-list">
+                    <strong>
+                        @<%= post.username %>
+                    </strong>
 
-                <% posts.forEach(post => { %>
+                    <% if (post.community_name) { %>
 
-                    <article class="admin-item">
+                        <span>
+                            #<%= post.community_name %>
+                        </span>
 
-                        <div>
+                    <% } %>
 
-                            <strong>
-                                @<%= post.username %>
-                            </strong>
+                    <p>
+                        <%= post.content %>
+                    </p>
 
-                            <% if (post.community_name) { %>
+                </div>
 
-                                <a
-                                    href="/c/<%= post.community_name %>"
-                                >
-                                    /c/<%= post.community_name %>
-                                </a>
+                <form
+                    action="<%= adminPath %>/posts/<%= post.id %>/delete"
+                    method="post"
+                    onsubmit="return confirm('delete this post?')"
+                >
 
-                            <% } %>
+                    <button class="danger-button">
+                        delete
+                    </button>
 
-                            <p>
-                                <%= post.content %>
-                            </p>
-
-                            <small>
-                                <%= formatDate(post.created_at) %>
-                            </small>
-
-                        </div>
-
-                        <div class="admin-item-actions">
-
-                            <a
-                                href="/posts/<%= post.id %>/comments"
-                            >
-                                comments
-                            </a>
-
-                            <form
-                                action="<%= adminPath %>/posts/<%= post.id %>/delete"
-                                method="post"
-                                onsubmit="return confirm('delete this post?');"
-                            >
-                                <button
-                                    type="submit"
-                                    class="danger"
-                                >
-                                    delete
-                                </button>
-                            </form>
-
-                        </div>
-
-                    </article>
-
-                <% }) %>
+                </form>
 
             </div>
 
-        <% } %>
+        <% }) %>
 
     </section>
 
     <section class="admin-section">
 
-        <h2>accounts</h2>
+        <h2>users</h2>
 
-        <% if (!users || users.length === 0) { %>
+        <% users.forEach(account => { %>
 
-            <p>
-                no accounts yet.
-            </p>
+            <div class="admin-row">
 
-        <% } else { %>
+                <div>
 
-            <div class="admin-list">
+                    <strong>
+                        @<%= account.username %>
+                    </strong>
 
-                <% users.forEach(account => { %>
+                    <span>
+                        <%= account.display_name %>
+                    </span>
 
-                    <article class="admin-item">
+                </div>
 
-                        <div>
+                <div class="admin-actions">
 
-                            <strong>
-                                <a
-                                    href="/u/<%= account.username %>"
-                                >
-                                    @<%= account.username %>
-                                </a>
-                            </strong>
+                    <a
+                        href="/u/<%= account.username %>"
+                        target="_blank"
+                    >
+                        view
+                    </a>
 
-                            <% if (account.display_name) { %>
+                    <form
+                        action="<%= adminPath %>/users/<%= account.id %>/delete"
+                        method="post"
+                        onsubmit="return confirm('delete this account and all of its content?')"
+                    >
 
-                                <p>
-                                    <%= account.display_name %>
-                                </p>
+                        <button class="danger-button">
+                            delete
+                        </button>
 
-                            <% } %>
+                    </form>
 
-                            <small>
-                                joined
-                                <%= formatDate(account.created_at) %>
-                            </small>
-
-                        </div>
-
-                        <form
-                            action="<%= adminPath %>/users/<%= account.id %>/delete"
-                            method="post"
-                            onsubmit="return confirm('delete this account and all of its posts?');"
-                        >
-                            <button
-                                type="submit"
-                                class="danger"
-                            >
-                                delete account
-                            </button>
-                        </form>
-
-                    </article>
-
-                <% }) %>
+                </div>
 
             </div>
 
-        <% } %>
+        <% }) %>
 
     </section>
 
