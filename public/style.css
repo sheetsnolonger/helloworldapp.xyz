@@ -6,7 +6,7 @@ html {
     margin: 0;
     padding: 0;
     min-height: 100%;
-    background: #080808;
+    background: #070707;
 }
 
 body {
@@ -14,21 +14,23 @@ body {
     padding: 0;
     min-height: 100vh;
 
-    background: #080808;
-    color: #eeeeee;
+    background: #070707;
+    color: #ededed;
 
     font-family: Arial, Helvetica, sans-serif;
     font-size: 14px;
     line-height: 1.5;
+
+    overflow-x: hidden;
 }
 
 a {
-    color: #dddddd;
+    color: #d8d8d8;
     text-decoration: none;
 }
 
 a:hover {
-    color: #d00000;
+    color: #e00000;
 }
 
 button,
@@ -47,7 +49,7 @@ img {
 }
 
 /* =========================================================
-   site layout
+   global navigation
    ========================================================= */
 
 .site-nav {
@@ -58,10 +60,10 @@ img {
     width: 220px;
     height: 100vh;
 
-    padding: 28px 18px;
+    padding: 26px 16px;
 
-    background: #0b0b0b;
-    border-right: 1px solid #222222;
+    background: #090909;
+    border-right: 1px solid #202020;
 
     z-index: 1000;
 
@@ -71,44 +73,47 @@ img {
 .logo {
     display: block;
 
-    margin: 0 0 30px;
+    margin: 0 0 28px;
+    padding: 0 12px;
 
     color: #ffffff;
 
     font-size: 22px;
     font-weight: 700;
-    letter-spacing: -0.5px;
+    letter-spacing: -0.7px;
 }
 
 .logo:hover {
-    color: #d00000;
+    color: #e00000;
 }
 
 .nav-right {
     display: flex;
     flex-direction: column;
 
-    gap: 4px;
+    gap: 3px;
 }
 
 .nav-right a,
 .nav-right button {
-    display: block;
-
     width: 100%;
 
     padding: 11px 12px;
 
     border: 0;
-    border-radius: 4px;
+    border-radius: 5px;
 
     background: transparent;
-    color: #aaaaaa;
+    color: #a7a7a7;
 
     text-align: left;
     text-decoration: none;
 
     font-size: 14px;
+
+    transition:
+        background 0.12s ease,
+        color 0.12s ease;
 }
 
 .nav-right a:hover,
@@ -122,7 +127,7 @@ img {
 }
 
 /* =========================================================
-   main content
+   main layout
    ========================================================= */
 
 .container {
@@ -131,7 +136,7 @@ img {
     margin-left: 260px;
     margin-right: auto;
 
-    padding: 40px 0 80px;
+    padding: 42px 0 80px;
 }
 
 .page {
@@ -140,10 +145,15 @@ img {
 
 .page-wide {
     width: min(1000px, calc(100vw - 300px));
+
+    margin-left: 260px;
+    margin-right: auto;
+
+    padding: 42px 0 80px;
 }
 
 /* =========================================================
-   headings
+   typography
    ========================================================= */
 
 h1,
@@ -159,10 +169,12 @@ h4 {
 
 h1 {
     font-size: 28px;
+    letter-spacing: -0.5px;
 }
 
 h2 {
     font-size: 20px;
+    letter-spacing: -0.2px;
 }
 
 h3 {
@@ -174,56 +186,55 @@ p {
 }
 
 .tiny {
-    color: #8b0000;
+    color: #b00000;
 
-    font-size: 11px;
+    font-size: 10px;
     font-weight: 700;
 
-    letter-spacing: 0.08em;
+    letter-spacing: 0.1em;
     text-transform: uppercase;
 }
 
 .muted {
-    color: #666666;
+    color: #626262;
 }
 
 .error {
     margin-bottom: 15px;
-
     padding: 10px 12px;
 
-    border: 1px solid #5d0000;
+    background: #170606;
+    border: 1px solid #4d0909;
 
-    background: #180707;
-    color: #d66;
+    color: #e27a7a;
 }
 
 .success {
     margin-bottom: 15px;
-
     padding: 10px 12px;
 
-    border: 1px solid #164d16;
+    background: #071307;
+    border: 1px solid #183c18;
 
-    background: #081508;
-    color: #8ac88a;
+    color: #91c891;
 }
 
 /* =========================================================
-   cards
+   universal surfaces
    ========================================================= */
 
 .card,
-.post,
 .panel,
 .form-card,
 .profile-card,
 .community-card,
-.search-section {
-    background: #0d0d0d;
+.search-section,
+.settings-section,
+.admin-section {
+    background: #0c0c0c;
 
-    border: 1px solid #222222;
-    border-radius: 3px;
+    border: 1px solid #202020;
+    border-radius: 4px;
 }
 
 /* =========================================================
@@ -239,7 +250,7 @@ p {
 }
 
 .feed-header p {
-    color: #666666;
+    color: #646464;
 }
 
 /* =========================================================
@@ -248,12 +259,11 @@ p {
 
 .composer {
     margin-bottom: 22px;
-
     padding: 16px;
 
-    background: #0d0d0d;
-    border: 1px solid #222222;
-    border-radius: 3px;
+    background: #0c0c0c;
+    border: 1px solid #202020;
+    border-radius: 4px;
 }
 
 .composer textarea {
@@ -266,22 +276,24 @@ p {
 
     resize: vertical;
 
-    background: #080808;
-    border: 1px solid #292929;
+    background: #070707;
+    border: 1px solid #282828;
 
     color: #ffffff;
 
     outline: none;
+
+    transition: border-color 0.15s ease;
 }
 
 .composer textarea:focus {
-    border-color: #750000;
+    border-color: #820000;
 }
 
 .composer-options {
     display: flex;
     align-items: center;
-    gap: 10px;
+    gap: 9px;
 
     margin-top: 12px;
 
@@ -296,16 +308,17 @@ p {
 button,
 input[type="submit"] {
     border: 0;
-    border-radius: 3px;
+    border-radius: 4px;
 
-    background: #950000;
+    background: #920000;
     color: #ffffff;
 
     padding: 9px 14px;
 
     transition:
-        background 0.15s ease,
-        color 0.15s ease;
+        background 0.12s ease,
+        color 0.12s ease,
+        border-color 0.12s ease;
 }
 
 .button:hover,
@@ -316,13 +329,15 @@ input[type="submit"]:hover {
 }
 
 .button-secondary {
-    background: #191919;
+    background: #161616;
+
     border: 1px solid #292929;
-    color: #cccccc;
+
+    color: #cfcfcf;
 }
 
 .button-secondary:hover {
-    background: #242424;
+    background: #202020;
 }
 
 .button-danger {
@@ -335,7 +350,6 @@ input[type="submit"]:hover {
 
 .button-small {
     padding: 6px 9px;
-
     font-size: 12px;
 }
 
@@ -343,9 +357,25 @@ input[type="submit"]:hover {
    posts
    ========================================================= */
 
+.posts {
+    width: 100%;
+}
+
 .post {
     margin-bottom: 16px;
     padding: 17px;
+
+    background: #0c0c0c;
+    border: 1px solid #202020;
+    border-radius: 4px;
+
+    transition:
+        border-color 0.12s ease,
+        background 0.12s ease;
+}
+
+.post:hover {
+    border-color: #292929;
 }
 
 .post-header {
@@ -372,7 +402,7 @@ input[type="submit"]:hover {
 }
 
 .post-user a:hover {
-    color: #d00000;
+    color: #e00000;
 }
 
 .display-name {
@@ -383,7 +413,7 @@ input[type="submit"]:hover {
 .post-date {
     flex-shrink: 0;
 
-    color: #555555;
+    color: #505050;
     font-size: 11px;
 }
 
@@ -392,22 +422,14 @@ input[type="submit"]:hover {
 }
 
 .post-community a {
-    color: #a00000;
+    color: #a90000;
 
     font-size: 12px;
+    font-weight: 500;
 }
 
 .post-community a:hover {
-    color: #d00000;
-}
-
-.post-content {
-    color: #eeeeee;
-
-    line-height: 1.6;
-
-    white-space: pre-wrap;
-    overflow-wrap: anywhere;
+    color: #e00000;
 }
 
 .post-main-link {
@@ -421,8 +443,17 @@ input[type="submit"]:hover {
     color: inherit;
 }
 
+.post-content {
+    color: #eeeeee;
+
+    line-height: 1.6;
+
+    white-space: pre-wrap;
+    overflow-wrap: anywhere;
+}
+
 /* =========================================================
-   post images / files
+   post attachments
    ========================================================= */
 
 .post-attachment {
@@ -458,12 +489,12 @@ input[type="submit"]:hover {
     display: flex;
     align-items: center;
 
-    gap: 14px;
+    gap: 15px;
 
     margin-top: 15px;
     padding-top: 12px;
 
-    border-top: 1px solid #1d1d1d;
+    border-top: 1px solid #1c1c1c;
 
     flex-wrap: wrap;
 }
@@ -493,19 +524,19 @@ input[type="submit"]:hover {
 }
 
 .post-actions .liked {
-    color: #d00000;
+    color: #e00000;
 }
 
 .delete-post {
-    color: #6d0000 !important;
+    color: #6e0000 !important;
 }
 
 .delete-post:hover {
-    color: #d00000 !important;
+    color: #e00000 !important;
 }
 
 /* =========================================================
-   comments
+   comments preview
    ========================================================= */
 
 .comment-preview {
@@ -517,9 +548,11 @@ input[type="submit"]:hover {
 
     margin-top: 7px;
 
-    color: #888888;
+    color: #858585;
 
     font-size: 12px;
+
+    overflow-wrap: anywhere;
 }
 
 .comment-preview-item a {
@@ -532,7 +565,7 @@ input[type="submit"]:hover {
 
     margin-top: 8px;
 
-    color: #666666;
+    color: #606060;
 
     font-size: 12px;
 }
@@ -583,6 +616,7 @@ input[type="submit"]:hover {
 
 .comment-content {
     color: #cccccc;
+
     overflow-wrap: anywhere;
 }
 
@@ -600,7 +634,7 @@ input[type="submit"]:hover {
 
     padding: 10px;
 
-    background: #080808;
+    background: #070707;
     border: 1px solid #292929;
 
     color: #ffffff;
@@ -609,7 +643,7 @@ input[type="submit"]:hover {
 }
 
 .comment-form input:focus {
-    border-color: #750000;
+    border-color: #820000;
 }
 
 /* =========================================================
@@ -618,7 +652,6 @@ input[type="submit"]:hover {
 
 .form-card {
     width: 100%;
-
     padding: 22px;
 }
 
@@ -631,7 +664,7 @@ input[type="submit"]:hover {
 
     margin-bottom: 6px;
 
-    color: #bbbbbb;
+    color: #bcbcbc;
 
     font-size: 12px;
     font-weight: 600;
@@ -649,31 +682,31 @@ select {
 
     padding: 10px 11px;
 
-    background: #080808;
+    background: #070707;
     border: 1px solid #292929;
 
-    border-radius: 3px;
+    border-radius: 4px;
 
     color: #ffffff;
 
     outline: none;
+
+    transition: border-color 0.15s ease;
 }
 
 input:focus,
 textarea:focus,
 select:focus {
-    border-color: #750000;
+    border-color: #820000;
 }
 
 textarea {
     min-height: 120px;
-
     resize: vertical;
 }
 
 input[type="file"] {
     padding: 8px;
-
     color: #999999;
 }
 
@@ -682,7 +715,7 @@ input[type="file"]::file-selector-button {
 
     padding: 6px 9px;
 
-    background: #191919;
+    background: #171717;
     border: 1px solid #292929;
 
     color: #dddddd;
@@ -701,7 +734,7 @@ input[type="file"]::file-selector-button {
 }
 
 /* =========================================================
-   login / register
+   auth pages
    ========================================================= */
 
 .auth-page {
@@ -713,6 +746,8 @@ input[type="file"]::file-selector-button {
     justify-content: center;
 
     padding: 25px;
+
+    background: #070707;
 }
 
 .auth-card {
@@ -720,8 +755,9 @@ input[type="file"]::file-selector-button {
 
     padding: 28px;
 
-    background: #0d0d0d;
-    border: 1px solid #222222;
+    background: #0c0c0c;
+    border: 1px solid #202020;
+    border-radius: 4px;
 }
 
 .auth-card h1 {
@@ -744,7 +780,11 @@ input[type="file"]::file-selector-button {
 }
 
 .auth-footer a {
-    color: #a00000;
+    color: #b00000;
+}
+
+.auth-footer a:hover {
+    color: #e00000;
 }
 
 /* =========================================================
@@ -753,11 +793,11 @@ input[type="file"]::file-selector-button {
 
 .profile-header {
     margin-bottom: 22px;
-
     padding: 22px;
 
-    background: #0d0d0d;
-    border: 1px solid #222222;
+    background: #0c0c0c;
+    border: 1px solid #202020;
+    border-radius: 4px;
 }
 
 .profile-top {
@@ -767,7 +807,8 @@ input[type="file"]::file-selector-button {
     gap: 18px;
 }
 
-.profile-picture {
+.profile-picture,
+.profile-picture-placeholder {
     width: 80px;
     height: 80px;
 
@@ -782,19 +823,9 @@ input[type="file"]::file-selector-button {
 }
 
 .profile-picture-placeholder {
-    width: 80px;
-    height: 80px;
-
-    flex-shrink: 0;
-
     display: flex;
     align-items: center;
     justify-content: center;
-
-    background: #151515;
-
-    border: 1px solid #292929;
-    border-radius: 50%;
 
     color: #666666;
 
@@ -834,7 +865,6 @@ input[type="file"]::file-selector-button {
 
 .profile-stat {
     color: #777777;
-
     font-size: 12px;
 }
 
@@ -851,22 +881,23 @@ input[type="file"]::file-selector-button {
     flex-wrap: wrap;
 }
 
+/* profile posts should look exactly like feed posts */
+
+.profile-header + .posts {
+    width: 100%;
+}
+
 /* =========================================================
    profile settings
    ========================================================= */
 
 .settings-section {
     margin-bottom: 18px;
-
     padding: 20px;
-
-    background: #0d0d0d;
-    border: 1px solid #222222;
 }
 
 .settings-section h2 {
     margin-bottom: 18px;
-
     font-size: 16px;
 }
 
@@ -880,13 +911,69 @@ input[type="file"]::file-selector-button {
     grid-template-columns:
         repeat(2, minmax(0, 1fr));
 
-    gap: 12px;
+    gap: 10px;
 
     margin-top: 18px;
 }
 
+.community-links {
+    display: flex;
+    flex-direction: column;
+
+    gap: 5px;
+}
+
+.community-link {
+    display: flex;
+    align-items: center;
+
+    gap: 10px;
+
+    min-width: 0;
+
+    padding: 10px 11px;
+
+    background: #0c0c0c;
+    border: 1px solid #202020;
+    border-radius: 4px;
+
+    color: #cfcfcf;
+
+    transition:
+        background 0.12s ease,
+        border-color 0.12s ease,
+        color 0.12s ease;
+}
+
+.community-link:hover {
+    background: #111111;
+    border-color: #303030;
+
+    color: #ffffff;
+}
+
+.community-link strong {
+    flex: 1;
+
+    min-width: 0;
+
+    overflow: hidden;
+
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.community-link > span:last-child {
+    color: #555555;
+    font-size: 11px;
+}
+
 .community-card {
     padding: 16px;
+}
+
+.community-card:hover {
+    border-color: #2c2c2c;
 }
 
 .community-card h2,
@@ -900,7 +987,7 @@ input[type="file"]::file-selector-button {
 }
 
 .community-card a:hover {
-    color: #d00000;
+    color: #e00000;
 }
 
 .community-description {
@@ -924,11 +1011,11 @@ input[type="file"]::file-selector-button {
 
 .community-header {
     margin-bottom: 22px;
-
     padding: 20px;
 
-    background: #0d0d0d;
-    border: 1px solid #222222;
+    background: #0c0c0c;
+    border: 1px solid #202020;
+    border-radius: 4px;
 }
 
 .community-header h1 {
@@ -937,8 +1024,34 @@ input[type="file"]::file-selector-button {
 
 .community-header p {
     margin-bottom: 0;
-
     color: #777777;
+}
+
+/* =========================================================
+   section headings
+   ========================================================= */
+
+.section-heading {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+
+    gap: 15px;
+
+    margin-bottom: 10px;
+}
+
+.section-heading h2 {
+    margin: 0;
+}
+
+.section-heading a {
+    color: #777777;
+    font-size: 12px;
+}
+
+.section-heading a:hover {
+    color: #e00000;
 }
 
 /* =========================================================
@@ -949,7 +1062,7 @@ input[type="file"]::file-selector-button {
     display: flex;
     gap: 8px;
 
-    margin-bottom: 25px;
+    margin-bottom: 22px;
 }
 
 .search-form input {
@@ -957,15 +1070,17 @@ input[type="file"]::file-selector-button {
     min-width: 0;
 }
 
-.search-section {
-    margin-bottom: 18px;
+.search-form button {
+    flex-shrink: 0;
+}
 
+.search-section {
+    margin-bottom: 16px;
     padding: 17px;
 }
 
 .search-section h2 {
     margin-bottom: 14px;
-
     font-size: 16px;
 }
 
@@ -975,13 +1090,22 @@ input[type="file"]::file-selector-button {
     border-bottom: 1px solid #1d1d1d;
 }
 
+.search-result:first-child {
+    padding-top: 0;
+}
+
 .search-result:last-child {
     border-bottom: 0;
+    padding-bottom: 0;
 }
 
 .search-result-title {
     color: #ffffff;
     font-weight: 600;
+}
+
+.search-result-title:hover {
+    color: #e00000;
 }
 
 .search-result-meta {
@@ -1005,8 +1129,9 @@ input[type="file"]::file-selector-button {
     width: min(1100px, calc(100vw - 300px));
 
     margin-left: 260px;
+    margin-right: auto;
 
-    padding: 40px 0 80px;
+    padding: 42px 0 80px;
 }
 
 .admin-header {
@@ -1034,9 +1159,6 @@ input[type="file"]::file-selector-button {
 
 .admin-section {
     padding: 18px;
-
-    background: #0d0d0d;
-    border: 1px solid #222222;
 }
 
 .admin-section-wide {
@@ -1045,7 +1167,6 @@ input[type="file"]::file-selector-button {
 
 .admin-section h2 {
     margin-bottom: 15px;
-
     font-size: 16px;
 }
 
@@ -1095,7 +1216,6 @@ input[type="file"]::file-selector-button {
 
 .admin-create {
     margin-bottom: 20px;
-
     padding-bottom: 18px;
 
     border-bottom: 1px solid #222222;
@@ -1108,12 +1228,17 @@ input[type="file"]::file-selector-button {
 .empty {
     padding: 50px 20px;
 
-    background: #0d0d0d;
-    border: 1px solid #222222;
+    background: #0c0c0c;
+    border: 1px solid #202020;
+    border-radius: 4px;
 
     color: #666666;
 
     text-align: center;
+}
+
+.empty strong {
+    color: #999999;
 }
 
 .empty h2 {
@@ -1121,7 +1246,7 @@ input[type="file"]::file-selector-button {
 }
 
 /* =========================================================
-   divider
+   dividers
    ========================================================= */
 
 .divider {
@@ -1129,11 +1254,11 @@ input[type="file"]::file-selector-button {
 
     margin: 20px 0;
 
-    background: #222222;
+    background: #202020;
 }
 
 /* =========================================================
-   utility
+   utilities
    ========================================================= */
 
 .flex {
@@ -1163,55 +1288,228 @@ input[type="file"]::file-selector-button {
 }
 
 /* =========================================================
-   mobile
+   icons
+   ========================================================= */
+
+.nav-icon {
+    display: inline-flex;
+
+    align-items: center;
+    justify-content: center;
+
+    width: 22px;
+    height: 22px;
+
+    flex: 0 0 22px;
+}
+
+.nav-icon svg {
+    width: 21px;
+    height: 21px;
+
+    fill: none;
+
+    stroke: currentColor;
+
+    stroke-width: 1.8;
+
+    stroke-linecap: round;
+    stroke-linejoin: round;
+}
+
+.nav-item {
+    display: flex !important;
+
+    align-items: center;
+
+    gap: 12px;
+}
+
+.nav-label {
+    white-space: nowrap;
+}
+
+.composer-icon,
+.community-icon {
+    display: inline-flex;
+
+    align-items: center;
+    justify-content: center;
+}
+
+.composer-icon svg {
+    width: 17px;
+    height: 17px;
+
+    fill: none;
+
+    stroke: currentColor;
+
+    stroke-width: 1.8;
+
+    stroke-linecap: round;
+    stroke-linejoin: round;
+}
+
+.community-icon svg {
+    width: 15px;
+    height: 15px;
+
+    fill: none;
+
+    stroke: currentColor;
+
+    stroke-width: 1.7;
+
+    stroke-linecap: round;
+    stroke-linejoin: round;
+}
+
+.action-icon {
+    width: 16px;
+    height: 16px;
+
+    flex: 0 0 16px;
+
+    fill: none;
+
+    stroke: currentColor;
+
+    stroke-width: 1.8;
+
+    stroke-linecap: round;
+    stroke-linejoin: round;
+}
+
+.post-actions button,
+.comments-link,
+.delete-post {
+    display: inline-flex;
+
+    align-items: center;
+    justify-content: center;
+
+    gap: 6px;
+}
+
+.file-upload {
+    display: inline-flex;
+
+    align-items: center;
+
+    gap: 7px;
+
+    cursor: pointer;
+}
+
+.file-upload input {
+    position: absolute;
+
+    width: 1px;
+    height: 1px;
+
+    opacity: 0;
+
+    pointer-events: none;
+}
+
+/* =========================================================
+   mobile navigation
    ========================================================= */
 
 @media (max-width: 850px) {
 
     .site-nav {
-        position: relative;
+        position: sticky;
+
+        top: 0;
+        left: 0;
 
         width: 100%;
         height: auto;
 
-        padding: 16px;
+        padding: 13px 12px 10px;
+
+        background: #090909;
 
         border-right: 0;
-        border-bottom: 1px solid #222222;
+        border-bottom: 1px solid #202020;
 
         overflow: visible;
     }
 
     .logo {
-        margin-bottom: 14px;
+        margin: 0 0 10px;
+        padding: 0 4px;
+
+        font-size: 20px;
     }
 
     .nav-right {
         flex-direction: row;
-        flex-wrap: wrap;
+        align-items: center;
+
+        width: 100%;
+
+        gap: 3px;
     }
 
     .nav-right a,
     .nav-right button {
         width: auto;
 
-        padding: 8px 10px;
+        flex: 1;
+
+        padding: 8px 7px;
+
+        text-align: center;
     }
 
     .nav-right form {
         width: auto;
+        flex: 1;
+    }
+
+    .nav-item {
+        justify-content: center;
+        gap: 0;
+    }
+
+    .nav-label {
+        display: none;
+    }
+
+    .nav-icon {
+        width: 23px;
+        height: 23px;
+
+        flex-basis: 23px;
+    }
+
+    .nav-icon svg {
+        width: 22px;
+        height: 22px;
+    }
+
+    .nav-settings {
+        display: flex !important;
     }
 
     .container,
     .page-wide,
     .admin-page {
-        width: calc(100% - 24px);
+        width: min(680px, calc(100% - 24px));
 
         margin-left: auto;
         margin-right: auto;
 
         padding-top: 25px;
         padding-bottom: 50px;
+    }
+
+    .page-wide,
+    .admin-page {
+        width: calc(100% - 24px);
     }
 
     .admin-grid {
@@ -1222,6 +1520,10 @@ input[type="file"]::file-selector-button {
         grid-column: auto;
     }
 }
+
+/* =========================================================
+   tablet / phone
+   ========================================================= */
 
 @media (max-width: 600px) {
 
@@ -1237,21 +1539,47 @@ input[type="file"]::file-selector-button {
         padding-top: 18px;
     }
 
+    .feed-header {
+        margin-bottom: 18px;
+    }
+
+    .feed-header h1 {
+        font-size: 25px;
+    }
+
+    .composer {
+        padding: 13px;
+    }
+
     .post {
         padding: 14px;
     }
 
-    .composer {
-        padding: 14px;
-    }
-
     .post-header {
-        flex-direction: column;
-        gap: 4px;
+        flex-direction: row;
+
+        gap: 8px;
     }
 
     .post-date {
         align-self: flex-start;
+    }
+
+    .composer-options {
+        gap: 7px;
+    }
+
+    .composer-options select {
+        flex: 1;
+        min-width: 130px;
+    }
+
+    .composer-options > button {
+        flex-shrink: 0;
+    }
+
+    .file-upload-text {
+        display: none;
     }
 
     .community-list {
@@ -1259,7 +1587,13 @@ input[type="file"]::file-selector-button {
     }
 
     .profile-top {
-        flex-direction: column;
+        flex-direction: row;
+    }
+
+    .profile-picture,
+    .profile-picture-placeholder {
+        width: 68px;
+        height: 68px;
     }
 
     .profile-stats {
@@ -1267,19 +1601,19 @@ input[type="file"]::file-selector-button {
     }
 
     .search-form {
-        flex-direction: column;
+        flex-direction: row;
     }
 
     .search-form button {
-        width: 100%;
+        width: auto;
     }
 
     .comment-form {
-        flex-direction: column;
+        flex-direction: row;
     }
 
     .comment-form button {
-        width: 100%;
+        width: auto;
     }
 
     .admin-header {
@@ -1300,27 +1634,51 @@ input[type="file"]::file-selector-button {
     .admin-item-actions .button {
         flex: 1;
     }
+
+    .form-card,
+    .settings-section,
+    .admin-section,
+    .community-header,
+    .profile-header {
+        padding: 16px;
+    }
 }
 
 /* =========================================================
-   very small phones
+   small phones
    ========================================================= */
 
-@media (max-width: 400px) {
+@media (max-width: 420px) {
 
     .site-nav {
-        padding: 12px;
+        padding: 11px 8px 9px;
+    }
+
+    .logo {
+        padding: 0 3px;
+
+        font-size: 19px;
     }
 
     .nav-right {
-        gap: 2px;
+        gap: 1px;
     }
 
     .nav-right a,
     .nav-right button {
-        padding: 7px 8px;
+        padding: 7px 4px;
+    }
 
-        font-size: 12px;
+    .nav-icon {
+        width: 22px;
+        height: 22px;
+
+        flex-basis: 22px;
+    }
+
+    .nav-icon svg {
+        width: 21px;
+        height: 21px;
     }
 
     .container,
@@ -1333,11 +1691,50 @@ input[type="file"]::file-selector-button {
         padding: 12px;
     }
 
-    .form-card,
-    .settings-section,
-    .admin-section,
-    .community-header,
-    .profile-header {
-        padding: 15px;
+    .post-actions {
+        gap: 12px;
+    }
+
+    .profile-top {
+        gap: 13px;
+    }
+
+    .profile-picture,
+    .profile-picture-placeholder {
+        width: 60px;
+        height: 60px;
+    }
+
+    .profile-info h1 {
+        font-size: 22px;
+    }
+
+    .search-form {
+        flex-direction: column;
+    }
+
+    .search-form button {
+        width: 100%;
+    }
+
+    .comment-form {
+        flex-direction: column;
+    }
+
+    .comment-form button {
+        width: 100%;
+    }
+
+    .composer-options {
+        align-items: stretch;
+    }
+
+    .composer-options select {
+        width: 100%;
+        flex-basis: 100%;
+    }
+
+    .composer-options > button {
+        flex: 1;
     }
 }
