@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>admin</title>
+    <link rel="stylesheet" href="/css/style.css">
+</head>
+
+<body>
+
+<main class="auth">
+
+    <section class="auth-box">
+
+        <div class="tiny">helloworld administration</div>
+
+        <h1>admin</h1>
+
+        <p class="muted">
+            restricted area.
+        </p>
+
+        <% if (error) { %>
+            <div class="error">
+                <%= error %>
+            </div>
+        <% } %>
+
+        <form method="post">
+
+            <label for="password">
+                password
+            </label>
+
+            <input
+                id="password"
+                name="password"
+                type="password"
+                autocomplete="off"
+                required
+            >
+
+            <button type="submit">
+                enter
+            </button>
+
+        </form>
+
+    </section>
+
+</main>
+
+</body>
+</html>
