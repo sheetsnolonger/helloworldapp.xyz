@@ -614,3 +614,163 @@ button img,
 a img {
     vertical-align: middle;
 }
+
+/* =========================================================
+   sidebar
+   ========================================================= */
+
+.sidebar {
+    position: fixed;
+    top: 0;
+    left: 0;
+
+    width: 220px;
+    height: 100vh;
+
+    box-sizing: border-box;
+
+    display: flex;
+    flex-direction: column;
+
+    padding: 20px 14px;
+
+    overflow-y: auto;
+
+    z-index: 1000;
+}
+
+.sidebar nav {
+    width: 100%;
+}
+
+.sidebar ul {
+    width: 100%;
+
+    margin: 0;
+    padding: 0;
+
+    list-style: none;
+}
+
+.sidebar li {
+    width: 100%;
+    margin: 0 0 6px;
+    padding: 0;
+}
+
+.sidebar a {
+    width: 100%;
+    min-height: 42px;
+
+    box-sizing: border-box;
+
+    display: flex;
+    align-items: center;
+    gap: 10px;
+
+    padding: 8px 10px;
+
+    text-decoration: none;
+}
+
+/* force sidebar icons to stay small */
+
+.sidebar img,
+.sidebar svg,
+.sidebar .icon,
+.sidebar .nav-icon,
+.sidebar .menu-icon,
+.sidebar i {
+    display: inline-flex;
+
+    width: 22px !important;
+    height: 22px !important;
+
+    min-width: 22px !important;
+    min-height: 22px !important;
+
+    max-width: 22px !important;
+    max-height: 22px !important;
+
+    flex: 0 0 22px;
+
+    object-fit: contain;
+
+    font-size: 18px;
+}
+
+/* sidebar logo */
+
+.sidebar .logo,
+.sidebar .sidebar-logo {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+
+    margin-bottom: 24px;
+}
+
+.sidebar .logo img,
+.sidebar .sidebar-logo img {
+    width: 40px !important;
+    height: 40px !important;
+
+    min-width: 40px !important;
+    min-height: 40px !important;
+
+    max-width: 40px !important;
+    max-height: 40px !important;
+
+    object-fit: contain;
+}
+
+/* =========================================================
+   page content beside sidebar
+   ========================================================= */
+
+body {
+    margin: 0;
+}
+
+.page,
+.main,
+main,
+.content,
+.feed,
+.feed-page {
+    box-sizing: border-box;
+}
+
+@media (min-width: 800px) {
+
+    .page,
+    .main,
+    main,
+    .content,
+    .feed,
+    .feed-page {
+        margin-left: 220px;
+        width: calc(100% - 220px);
+    }
+
+}
+
+/* =========================================================
+   prevent random images from becoming enormous
+   ========================================================= */
+
+.sidebar * {
+    box-sizing: border-box;
+}
+
+.sidebar img {
+    object-fit: contain !important;
+}
+
+/* don't let icons inherit huge dimensions */
+
+.sidebar img[width],
+.sidebar img[height] {
+    width: 22px !important;
+    height: 22px !important;
+}
