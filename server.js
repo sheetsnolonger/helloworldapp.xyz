@@ -2031,110 +2031,34 @@ app.get(
 app.get(
     "/settings/profile",
     requireLogin,
-    (
-        req,
-        res
-    ) => {
-
-        res.render(
-            "profile-settings",
-            {
-                user: req.user,
-                error: null,
-                success: null
-            }
-        );
-    }
-);
-
-app.post(
-    "/settings/profile",
-    requireLogin,
-    upload.single("profile_picture"),
-    async (req, res) => {
+    (req, res) => {
 
         try {
-
-            const displayName =
-                String(
-                    req.body.display_name || ""
-                ).trim();
-
-            const bio =
-                String(
-                    req.body.bio || ""
-                ).trim();
-
-            let profilePicture =
-                req.user.profile_picture ||
-                req.user.profile_image_url ||
-                null;
-
-
-            if (req.file) {
-
-                profilePicture =
-                    await uploadToSupabase(
-                        req.file,
-                        `profiles/${req.user.id}`
-                    );
-            }
-
-
-            await pool.query(
-                `
-                update users
-
-                set
-                    display_name = $1,
-                    bio = $2,
-                    profile_picture = $3,
-                    profile_image_url = $3
-
-                where id = $4
-                `,
-                [
-                    displayName ||
-                        req.user.username,
-
-                    bio,
-
-                    profilePicture,
-
-                    req.user.id
-                ]
-            );
-
-
-            res.redirect(
-                `/u/${req.user.username}`
-            );
-
-
-        } catch (error) {
-
-            console.error(
-                "profile settings error:"
-            );
-
-            console.error(error);
-
 
             res.render(
                 "profile-settings",
                 {
                     user: req.user,
-
-                    error:
-                        "could not update your profile",
-
+                    error: null,
                     success: null
                 }
+            );
+
+        } catch (error) {
+
+            console.error(
+                "profile settings page error:"
+            );
+
+            console.error(error);
+
+            res.status(500).send(
+                "profile settings error: " +
+                error.message
             );
         }
     }
 );
-
 /* =========================================================
    communities
    ========================================================= */
@@ -2428,15 +2352,10 @@ app.get(
             let communities = [];
             let posts = [];
 
-            if (query.length > 0) {
+            if (query) {
 
                 const search =
                     `%${query}%`;
-
-
-                /* =================================================
-                   users
-                   ================================================= */
 
                 const usersResult =
                     await pool.query(
@@ -2446,29 +2365,15 @@ app.get(
                             username,
                             display_name,
                             profile_picture
-
                         from users
-
                         where
                             username ilike $1
-                            or coalesce(
-                                display_name,
-                                ''
-                            ) ilike $1
-
+                            or coalesce(display_name, '') ilike $1
                         order by username asc
-
                         limit 25
                         `,
-                        [
-                            search
-                        ]
+                        [search]
                     );
-
-
-                /* =================================================
-                   communities
-                   ================================================= */
 
                 const communitiesResult =
                     await pool.query(
@@ -2477,38 +2382,20 @@ app.get(
                             c.id,
                             c.name,
                             c.description,
-                            c.creator_id,
-                            c.created_at,
-
                             (
                                 select count(*)
                                 from posts p
                                 where p.community_id = c.id
-                            )::integer
-                            as post_count
-
+                            )::integer as post_count
                         from communities c
-
                         where
                             c.name ilike $1
-                            or coalesce(
-                                c.description,
-                                ''
-                            ) ilike $1
-
+                            or coalesce(c.description, '') ilike $1
                         order by c.name asc
-
                         limit 25
                         `,
-                        [
-                            search
-                        ]
+                        [search]
                     );
-
-
-                /* =================================================
-                   posts
-                   ================================================= */
 
                 const postsResult =
                     await pool.query(
@@ -2517,81 +2404,43 @@ app.get(
                             p.id,
                             p.content,
                             p.created_at,
-                            p.attachment_url,
-                            p.attachment_name,
-
                             u.username,
-                            u.display_name,
-
-                            c.name
-                            as community_name
-
+                            c.name as community_name
                         from posts p
-
                         join users u
                             on u.id = p.user_id
-
                         left join communities c
                             on c.id = p.community_id
-
-                        where
-                            p.content ilike $1
-
-                        order by
-                            p.created_at desc
-
+                        where p.content ilike $1
+                        order by p.created_at desc
                         limit 50
                         `,
-                        [
-                            search
-                        ]
+                        [search]
                     );
 
-
-                users =
-                    usersResult.rows;
-
-                communities =
-                    communitiesResult.rows;
-
-                posts =
-                    postsResult.rows;
+                users = usersResult.rows;
+                communities = communitiesResult.rows;
+                posts = postsResult.rows;
             }
-
 
             res.render(
                 "search",
                 {
                     user: req.user,
-                    query: query,
-                    users: users,
-                    communities: communities,
-                    posts: posts
+                    query,
+                    users,
+                    communities,
+                    posts
                 }
             );
 
-
         } catch (error) {
 
-            console.error(
-                "================================"
-            );
-
-            console.error(
-                "search error"
-            );
-
-            console.error(
-                error
-            );
-
-            console.error(
-                "================================"
-            );
+            console.error("search error:");
+            console.error(error);
 
             res.status(500).send(
-                "search error: " +
-                error.message
+                "search error: " + error.message
             );
         }
     }
