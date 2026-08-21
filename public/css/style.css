@@ -2,74 +2,97 @@
     box-sizing: border-box;
 }
 
-:root {
-    font-family: "trebuchet ms", verdana, arial, sans-serif;
-    color: #17435a;
-    background: #b9e9f7;
-}
-
 html {
+    width: 100%;
     min-height: 100%;
+    margin: 0;
+    padding: 0;
+
     background:
         radial-gradient(
-            circle at 50% 0%,
-            rgba(255, 255, 255, 0.95) 0,
-            rgba(255, 255, 255, 0.55) 18%,
+            ellipse at 50% -10%,
+            rgba(255, 255, 255, 0.95) 0%,
+            rgba(255, 255, 255, 0.55) 20%,
             transparent 45%
         ),
         linear-gradient(
             to bottom,
-            #69d4f4 0%,
-            #bceef9 38%,
-            #dff8fc 68%,
-            #8fd66b 100%
+            #42c5ed 0%,
+            #8edff3 25%,
+            #c8f3fa 52%,
+            #b9e9a0 76%,
+            #6fc45c 100%
         );
+
+    background-color: #6fc45c;
+    background-attachment: fixed;
 }
 
 body {
-    margin: 0;
+    width: 100%;
+    min-width: 100%;
     min-height: 100vh;
+
+    margin: 0;
+    padding: 0;
+
+    font-family: "trebuchet ms", verdana, arial, sans-serif;
+
+    color: #17435a;
+
     background:
         radial-gradient(
-            ellipse at 50% 8%,
-            rgba(255, 255, 255, 0.95),
-            transparent 28%
+            ellipse at 50% 0%,
+            rgba(255, 255, 255, 0.9) 0%,
+            rgba(255, 255, 255, 0.4) 18%,
+            transparent 42%
         ),
         radial-gradient(
-            ellipse at 15% 35%,
-            rgba(255, 255, 255, 0.45),
+            ellipse at 10% 35%,
+            rgba(255, 255, 255, 0.35),
             transparent 22%
         ),
         radial-gradient(
-            ellipse at 85% 42%,
-            rgba(255, 255, 255, 0.45),
-            transparent 22%
+            ellipse at 90% 40%,
+            rgba(255, 255, 255, 0.3),
+            transparent 20%
         ),
         linear-gradient(
             to bottom,
-            #54c9ee 0%,
-            #b8edf8 35%,
-            #dff9fc 68%,
-            #8bd56a 100%
+            #42c5ed 0%,
+            #8edff3 25%,
+            #c8f3fa 52%,
+            #b9e9a0 76%,
+            #6fc45c 100%
         );
+
     background-attachment: fixed;
+    background-repeat: no-repeat;
+    background-size: cover;
 }
 
 body::before {
     content: "";
     position: fixed;
-    inset: 0;
+    z-index: -1;
+
+    top: 0;
+    left: 0;
+
+    width: 100%;
+    height: 100%;
+
     pointer-events: none;
-    opacity: 0.25;
+
     background:
         radial-gradient(
-            ellipse at 20% 20%,
-            rgba(255, 255, 255, 0.8),
-            transparent 15%
+            ellipse at 25% 15%,
+            rgba(255, 255, 255, 0.65),
+            transparent 14%
         ),
         radial-gradient(
-            ellipse at 75% 30%,
-            rgba(255, 255, 255, 0.7),
+            ellipse at 75% 25%,
+            rgba(255, 255, 255, 0.5),
             transparent 13%
         );
 }
@@ -97,9 +120,10 @@ button {
 nav {
     position: sticky;
     top: 10px;
-    z-index: 10;
+    z-index: 100;
 
     width: min(1100px, calc(100% - 30px));
+
     margin: 10px auto 0;
 
     display: flex;
@@ -114,8 +138,8 @@ nav {
     background:
         linear-gradient(
             to bottom,
-            rgba(255, 255, 255, 0.95),
-            rgba(211, 246, 253, 0.88)
+            rgba(255, 255, 255, 0.97),
+            rgba(207, 245, 252, 0.92)
         );
 
     box-shadow:
@@ -128,12 +152,14 @@ nav {
 
 .logo {
     color: #075d87;
+
     font-size: 25px;
     font-weight: bold;
     letter-spacing: -1px;
+
     text-shadow:
         0 1px 0 #ffffff,
-        0 2px 2px rgba(0, 80, 110, 0.2);
+        0 2px 3px rgba(0, 80, 110, 0.2);
 }
 
 .nav-right {
@@ -173,6 +199,8 @@ nav {
             #ffffff,
             #d4f5fa
         );
+
+    transform: none;
 }
 
 .landing {
@@ -181,7 +209,7 @@ nav {
 }
 
 .hero {
-    min-height: 75vh;
+    min-height: calc(100vh - 80px);
 
     display: flex;
     flex-direction: column;
@@ -192,17 +220,21 @@ nav {
 
 .tiny {
     text-transform: lowercase;
+
     font-size: 13px;
     letter-spacing: 0.08em;
+
     color: #39778d;
+
     text-shadow: 0 1px 0 #ffffff;
 }
 
 .hero h1 {
+    margin: 15px 0 25px;
+
     font-size: clamp(45px, 8vw, 85px);
     line-height: 0.95;
     letter-spacing: -4px;
-    margin: 15px 0 25px;
 
     color: #075b83;
 
@@ -213,8 +245,10 @@ nav {
 
 .hero p {
     max-width: 550px;
+
     font-size: 20px;
     line-height: 1.5;
+
     color: #255c70;
 }
 
@@ -276,32 +310,42 @@ button:active {
 }
 
 .welcome {
-    border-top: 1px solid rgba(255, 255, 255, 0.8);
-    padding: 80px 0;
     max-width: 600px;
+
+    padding: 80px 0;
+
+    border-top: 1px solid rgba(255, 255, 255, 0.8);
 }
 
 .welcome h2 {
-    font-size: 35px;
     margin-top: 0;
+
+    font-size: 35px;
+
     color: #075d87;
+
     text-shadow: 0 1px 0 #ffffff;
 }
 
 .welcome p {
-    line-height: 1.7;
     color: #255c70;
+    line-height: 1.7;
 }
 
 .auth {
+    width: 100%;
     min-height: 100vh;
+
     display: grid;
     place-items: center;
+
     padding: 20px;
 }
 
 .auth-box {
     width: min(420px, 100%);
+
+    padding: 40px;
 
     border: 1px solid #ffffff;
     border-radius: 22px;
@@ -313,8 +357,6 @@ button:active {
             rgba(218, 247, 252, 0.94)
         );
 
-    padding: 40px;
-
     box-shadow:
         inset 0 2px 0 #ffffff,
         inset 0 -3px 0 rgba(70, 170, 190, 0.2),
@@ -322,8 +364,9 @@ button:active {
 }
 
 .auth-box h1 {
-    font-size: 40px;
     margin-bottom: 8px;
+
+    font-size: 40px;
 
     color: #075d87;
 
@@ -345,6 +388,7 @@ form {
 
 label {
     margin-top: 12px;
+
     font-size: 14px;
     color: #28647a;
 }
@@ -353,8 +397,14 @@ input,
 textarea {
     width: 100%;
 
+    padding: 12px;
+
     border: 1px solid #91c9d8;
     border-radius: 12px;
+
+    outline: none;
+
+    color: #17435a;
 
     background:
         linear-gradient(
@@ -362,12 +412,6 @@ textarea {
             #ffffff,
             #edfafd
         );
-
-    padding: 12px;
-
-    color: #17435a;
-
-    outline: none;
 
     box-shadow:
         inset 0 2px 5px rgba(0, 90, 120, 0.08),
@@ -416,15 +460,13 @@ textarea:focus {
         );
 
     color: #8a3b3b;
-
-    box-shadow:
-        inset 0 1px 0 #ffffff,
-        0 2px 5px rgba(130, 50, 50, 0.12);
 }
 
 .container {
     width: min(760px, calc(100% - 30px));
-    margin: auto;
+    margin: 0 auto;
+
+    padding-bottom: 60px;
 }
 
 .feed-header {
@@ -432,8 +474,9 @@ textarea:focus {
 }
 
 .feed-header h1 {
-    font-size: 45px;
     margin: 10px 0;
+
+    font-size: 45px;
 
     color: #075d87;
 
@@ -450,6 +493,8 @@ textarea:focus {
 .composer {
     padding: 20px;
 
+    margin-bottom: 30px;
+
     border: 1px solid #ffffff;
     border-radius: 20px;
 
@@ -459,8 +504,6 @@ textarea:focus {
             rgba(255, 255, 255, 0.96),
             rgba(213, 246, 251, 0.92)
         );
-
-    margin-bottom: 30px;
 
     box-shadow:
         inset 0 2px 0 #ffffff,
@@ -477,6 +520,9 @@ textarea:focus {
 }
 
 .post {
+    padding: 22px;
+    margin-bottom: 18px;
+
     border: 1px solid #ffffff;
     border-radius: 20px;
 
@@ -487,9 +533,6 @@ textarea:focus {
             rgba(218, 248, 252, 0.94)
         );
 
-    padding: 22px;
-    margin-bottom: 18px;
-
     box-shadow:
         inset 0 2px 0 #ffffff,
         inset 0 -2px 0 rgba(70, 170, 190, 0.15),
@@ -498,7 +541,9 @@ textarea:focus {
 
 .post-header {
     display: flex;
+    align-items: flex-start;
     justify-content: space-between;
+
     gap: 20px;
 
     font-size: 13px;
@@ -510,15 +555,21 @@ textarea:focus {
     font-weight: bold;
 }
 
+.post-header-right {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
 .post-content {
+    margin: 15px 0;
+
     font-size: 18px;
     line-height: 1.6;
 
     color: #174b62;
 
     white-space: pre-wrap;
-
-    margin: 15px 0;
 }
 
 .post-actions {
@@ -526,9 +577,9 @@ textarea:focus {
     align-items: center;
     gap: 18px;
 
-    border-top: 1px solid rgba(117, 187, 202, 0.35);
-
     padding-top: 14px;
+
+    border-top: 1px solid rgba(117, 187, 202, 0.35);
 
     color: #628896;
     font-size: 14px;
@@ -539,11 +590,13 @@ textarea:focus {
 }
 
 .post-actions button {
-    background: transparent;
-    color: #0875a4;
+    padding: 0;
 
     border: 0;
-    padding: 0;
+
+    color: #0875a4;
+
+    background: transparent;
 
     box-shadow: none;
     text-shadow: 0 1px 0 #ffffff;
@@ -551,7 +604,10 @@ textarea:focus {
 
 .post-actions button:hover {
     color: #004f79;
+
     transform: none;
+
+    filter: none;
 }
 
 .post-actions button.liked {
@@ -559,11 +615,77 @@ textarea:focus {
     font-weight: bold;
 }
 
+.comments-link {
+    color: #0875a4;
+    font-weight: bold;
+}
+
+.comments-link:hover {
+    color: #004f79;
+}
+
+.delete-form {
+    display: block;
+}
+
+.delete-button {
+    padding: 0;
+
+    border: 0;
+
+    color: #a34b4b;
+
+    background: transparent;
+
+    box-shadow: none;
+    text-shadow: none;
+
+    font-size: 12px;
+}
+
+.delete-button:hover {
+    color: #7c2020;
+
+    text-decoration: underline;
+
+    transform: none;
+    filter: none;
+}
+
+.comments-page {
+    padding-bottom: 80px;
+}
+
+.back-link {
+    display: inline-block;
+
+    margin: 35px 0 15px;
+
+    color: #0875a4;
+    font-weight: bold;
+}
+
+.comments-section {
+    margin-top: 25px;
+}
+
+.comments-section h1 {
+    margin: 0 0 18px;
+
+    color: #075d87;
+
+    text-shadow:
+        0 1px 0 #ffffff,
+        0 2px 3px rgba(0, 80, 110, 0.15);
+}
+
 .comments {
     display: flex;
     flex-direction: column;
+
     gap: 10px;
-    margin-top: 18px;
+
+    margin-top: 20px;
 }
 
 .comment {
@@ -605,7 +727,9 @@ textarea:focus {
 
 .comment-content {
     color: #16445b;
+
     line-height: 1.5;
+
     white-space: pre-wrap;
 }
 
@@ -613,6 +737,7 @@ textarea:focus {
     margin-top: 15px;
 
     color: #6b8b97;
+
     font-size: 13px;
     font-style: italic;
 }
@@ -620,7 +745,9 @@ textarea:focus {
 .comment-form {
     display: flex;
     flex-direction: row;
+
     gap: 8px;
+
     margin-top: 18px;
 }
 
@@ -633,8 +760,9 @@ textarea:focus {
 }
 
 .empty {
-    text-align: center;
     padding: 70px 20px;
+
+    text-align: center;
 
     border: 1px dashed #82becd;
     border-radius: 20px;
@@ -650,8 +778,9 @@ textarea:focus {
 
 .profile {
     display: flex;
-    gap: 25px;
     align-items: flex-start;
+
+    gap: 25px;
 
     padding: 60px 0 40px;
 
@@ -703,6 +832,7 @@ textarea:focus {
 .stats {
     display: flex;
     gap: 20px;
+
     margin: 20px 0;
 
     color: #527988;
@@ -713,26 +843,89 @@ textarea:focus {
 }
 
 @media (max-width: 600px) {
+    html {
+        width: 100%;
+        min-height: 100%;
+
+        background:
+            radial-gradient(
+                ellipse at 50% 0%,
+                rgba(255, 255, 255, 0.9),
+                transparent 35%
+            ),
+            linear-gradient(
+                to bottom,
+                #42c5ed 0%,
+                #8edff3 28%,
+                #c8f3fa 52%,
+                #b9e9a0 76%,
+                #6fc45c 100%
+            );
+
+        background-attachment: fixed;
+    }
+
+    body {
+        width: 100%;
+        min-height: 100vh;
+
+        margin: 0;
+        padding: 0;
+
+        background:
+            radial-gradient(
+                ellipse at 50% 0%,
+                rgba(255, 255, 255, 0.8),
+                transparent 35%
+            ),
+            linear-gradient(
+                to bottom,
+                #42c5ed 0%,
+                #8edff3 28%,
+                #c8f3fa 52%,
+                #b9e9a0 76%,
+                #6fc45c 100%
+            );
+
+        background-attachment: fixed;
+        background-size: cover;
+        background-repeat: no-repeat;
+    }
+
     nav {
-        width: calc(100% - 16px);
-        top: 8px;
-        padding: 12px 14px;
+        position: relative;
+        top: 0;
+
+        width: 100%;
+
+        margin: 0;
+
+        border-radius: 0 0 16px 16px;
     }
 
-    .logo {
-        font-size: 21px;
+    .landing {
+        width: calc(100% - 24px);
     }
 
-    .nav-right {
-        gap: 10px;
+    .container {
+        width: calc(100% - 24px);
+
+        padding-bottom: 40px;
     }
 
-    .hero h1 {
-        letter-spacing: -2px;
+    .hero {
+        min-height: calc(100vh - 70px);
+    }
+
+    .auth {
+        width: 100%;
+        min-height: 100vh;
+
+        padding: 12px;
     }
 
     .auth-box {
-        padding: 25px;
+        width: 100%;
     }
 
     .profile {
@@ -753,132 +946,6 @@ textarea:focus {
 
     .post {
         border-radius: 16px;
-    }
-}
-
-.post-header-right {
-    display: flex;
-    align-items: center;
-    gap: 12px;
-}
-
-.delete-form {
-    display: block;
-}
-
-.delete-button {
-    padding: 0;
-    border: 0;
-    background: transparent;
-    color: #a34b4b;
-    box-shadow: none;
-    text-shadow: none;
-    font-size: 12px;
-}
-
-.delete-button:hover {
-    color: #7c2020;
-    text-decoration: underline;
-    transform: none;
-}
-
-.comments-link {
-    color: #0875a4;
-    font-size: 14px;
-    font-weight: bold;
-}
-
-.comments-link:hover {
-    color: #004f79;
-    text-decoration: underline;
-}
-
-.comments-page {
-    padding-bottom: 80px;
-}
-
-.back-link {
-    display: inline-block;
-    margin: 35px 0 15px;
-    color: #0875a4;
-    font-weight: bold;
-}
-
-.comments-section {
-    margin-top: 25px;
-}
-
-.comments-section h1 {
-    margin: 0 0 18px;
-    color: #075d87;
-    text-shadow:
-        0 1px 0 #ffffff,
-        0 2px 3px rgba(0, 80, 110, 0.15);
-}
-
-.comments-section .comments {
-    margin-top: 20px;
-}
-
-@media (max-width: 600px) {
-    html,
-    body {
-        width: 100%;
-        min-height: 100%;
-        margin: 0;
-        padding: 0;
-    }
-
-    html {
-        background:
-            radial-gradient(
-                ellipse at 50% 0%,
-                rgba(255, 255, 255, 0.9),
-                transparent 35%
-            ),
-            linear-gradient(
-                to bottom,
-                #54c9ee 0%,
-                #b8edf8 45%,
-                #dff9fc 72%,
-                #8bd56a 100%
-            );
-        background-attachment: fixed;
-    }
-
-    body {
-        min-height: 100vh;
-        background: transparent;
-        overflow-x: hidden;
-    }
-
-    nav {
-        position: relative;
-        top: 0;
-        width: 100%;
-        margin: 0;
-        border-radius: 0 0 16px 16px;
-    }
-
-    .landing {
-        width: calc(100% - 24px);
-    }
-
-    .container {
-        width: calc(100% - 24px);
-    }
-
-    .hero {
-        min-height: calc(100vh - 70px);
-    }
-
-    .auth {
-        min-height: 100vh;
-        padding: 12px;
-    }
-
-    .auth-box {
-        width: 100%;
     }
 
     .post-header {
