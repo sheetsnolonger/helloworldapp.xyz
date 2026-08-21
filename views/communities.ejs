@@ -1,123 +1,73 @@
-<!DOCTYPE html>
-<html lang="en">
+<!doctype html>
+<html>
 <head>
-    <meta charset="UTF-8">
+    <meta charset="utf-8">
     <meta
         name="viewport"
-        content="width=device-width, initial-scale=1.0"
+        content="width=device-width,initial-scale=1"
     >
 
-    <title>communities - helloworld</title>
+    <title>communities — helloworld</title>
 
-    <link rel="stylesheet" href="/css/style.css">
+    <link rel="stylesheet" href="/style.css">
 </head>
 
 <body>
 
-<nav>
-    <a class="logo" href="/feed">helloworld</a>
+<nav class="topbar">
 
-    <div class="nav-right">
+    <a class="brand" href="/feed">
+        helloworld
+    </a>
+
+    <div class="nav-links">
         <a href="/feed">feed</a>
-
-        <a href="/communities">
-            communities
-        </a>
-
-        <a href="/search">
-            search
-        </a>
-
-        <a href="/u/<%= user.username %>">
-            @<%= user.username %>
-        </a>
-
-        <form action="/logout" method="post">
-            <button
-                class="logout"
-                type="submit"
-            >
-                logout
-            </button>
-        </form>
+        <a href="/communities">communities</a>
     </div>
+
 </nav>
 
-<main class="container">
+<main class="page">
 
-    <header class="feed-header">
-        <div class="tiny">
-            find your little corner of the internet
-        </div>
-
+    <div class="page-title">
         <h1>communities</h1>
+        <p>places to find people with similar interests.</p>
+    </div>
 
-        <p>
-            explore the communities people have created.
-        </p>
-    </header>
+    <section class="community-grid">
 
-    <% if (!communities || communities.length === 0) { %>
+        <% if (!communities.length) { %>
 
-        <section class="empty">
-            <p>
-                there aren't any communities yet.
-            </p>
+            <div class="empty">
+                no communities yet.
+            </div>
 
-            <p>
-                check back later.
-            </p>
-        </section>
+        <% } %>
 
-    <% } else { %>
+        <% communities.forEach(community => { %>
 
-        <section class="communities-grid">
+            <a
+                class="community-card"
+                href="/c/<%= community.name %>"
+            >
 
-            <% communities.forEach(community => { %>
+                <h2>
+                    #<%= community.name %>
+                </h2>
 
-                <a
-                    class="community-card"
-                    href="/c/<%= encodeURIComponent(community.name) %>"
-                >
+                <p>
+                    <%= community.description || "no description." %>
+                </p>
 
-                    <div class="community-card-header">
+                <small>
+                    <%= community.post_count %> posts
+                </small>
 
-                        <h2>
-                            /<%= community.name %>
-                        </h2>
+            </a>
 
-                        <span>
-                            <%= community.post_count || 0 %>
-                            <%= Number(community.post_count) === 1 ? "post" : "posts" %>
-                        </span>
+        <% }) %>
 
-                    </div>
-
-                    <% if (community.description) { %>
-
-                        <p class="community-description">
-                            <%= community.description %>
-                        </p>
-
-                    <% } else { %>
-
-                        <p class="community-description muted">
-                            no description yet.
-                        </p>
-
-                    <% } %>
-
-                    <div class="community-card-footer">
-                        view community →
-                    </div>
-
-                </a>
-
-            <% }) %>
-
-        </section>
-
-    <% } %>
+    </section>
 
 </main>
 
