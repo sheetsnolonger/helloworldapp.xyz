@@ -1096,7 +1096,14 @@ app.post(
     (req, res) => {
         req.session.admin = false;
 
-        res.redirect(adminPath);
+        req.session.save(error => {
+            if (error) {
+                console.error("admin logout error:", error);
+                return res.status(500).send("something went wrong.");
+            }
+
+            res.redirect(adminPath);
+        });
     }
 );
 
