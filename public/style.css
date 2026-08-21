@@ -2219,3 +2219,356 @@ input[type="file"]::file-selector-button {
     }
 
 }
+
+/* =========================================================
+   unified site layout
+   ========================================================= */
+
+.site-main {
+    width: calc(100% - 220px);
+
+    min-height: 100vh;
+
+    margin-left: 220px;
+
+    padding: 45px 40px 90px;
+}
+
+.page-container {
+    width: min(680px, 100%);
+
+    margin: 0 auto;
+}
+
+.page-container-wide {
+    width: min(1000px, 100%);
+
+    margin: 0 auto;
+}
+
+
+/* headers */
+
+.page-header {
+    margin-bottom: 26px;
+}
+
+.page-header h1 {
+    margin: 4px 0 6px;
+}
+
+.page-header p {
+    margin: 0;
+
+    color: #666666;
+}
+
+
+/* section headings */
+
+.section-heading {
+    display: flex;
+
+    align-items: center;
+    justify-content: space-between;
+
+    gap: 15px;
+
+    margin-bottom: 14px;
+}
+
+.section-heading h2 {
+    margin: 0;
+}
+
+
+/* profile */
+
+.profile-posts {
+    width: 100%;
+}
+
+
+/* settings */
+
+.settings-page {
+    width: calc(100% - 220px);
+
+    min-height: 100vh;
+
+    margin-left: 220px;
+
+    padding: 45px 40px 90px;
+}
+
+.settings-container {
+    width: min(680px, 100%);
+
+    margin: 0 auto;
+}
+
+
+/* search */
+
+.search-page {
+    width: calc(100% - 220px);
+
+    min-height: 100vh;
+
+    margin-left: 220px;
+
+    padding: 45px 40px 90px;
+}
+
+.search-container {
+    width: min(680px, 100%);
+
+    margin: 0 auto;
+}
+
+
+/* communities */
+
+.communities-page {
+    width: calc(100% - 220px);
+
+    min-height: 100vh;
+
+    margin-left: 220px;
+
+    padding: 45px 40px 90px;
+}
+
+.communities-container {
+    width: min(850px, 100%);
+
+    margin: 0 auto;
+}
+
+
+/* individual community */
+
+.community-page {
+    width: calc(100% - 220px);
+
+    min-height: 100vh;
+
+    margin-left: 220px;
+
+    padding: 45px 40px 90px;
+}
+
+.community-container {
+    width: min(680px, 100%);
+
+    margin: 0 auto;
+}
+
+
+/* admin */
+
+.admin-page {
+    width: calc(100% - 220px);
+
+    min-height: 100vh;
+
+    margin-left: 220px;
+
+    padding: 45px 40px 90px;
+}
+
+.admin-container {
+    width: min(1050px, 100%);
+
+    margin: 0 auto;
+}
+
+
+/* =========================================================
+   sidebar
+   ========================================================= */
+
+.site-nav {
+    position: fixed;
+
+    top: 0;
+    left: 0;
+
+    width: 220px;
+    height: 100vh;
+
+    padding: 28px 16px;
+
+    background: #0b0b0b;
+
+    border-right: 1px solid #222222;
+
+    z-index: 1000;
+
+    overflow-y: auto;
+}
+
+.logo {
+    display: block;
+
+    margin: 0 0 30px;
+
+    color: #ffffff;
+
+    font-size: 21px;
+    font-weight: 700;
+}
+
+.logo:hover {
+    color: #d00000;
+}
+
+.nav-right {
+    display: flex;
+
+    flex-direction: column;
+
+    gap: 5px;
+}
+
+.nav-right form {
+    margin: 0;
+}
+
+.nav-item {
+    display: flex !important;
+
+    align-items: center;
+
+    gap: 13px;
+
+    width: 100%;
+
+    min-height: 42px;
+
+    padding: 10px 12px !important;
+
+    border: 0;
+
+    border-radius: 5px;
+
+    background: transparent;
+
+    color: #999999;
+
+    text-align: left;
+
+    text-decoration: none;
+
+    font-size: 14px;
+
+    transition:
+        background .15s ease,
+        color .15s ease;
+}
+
+.nav-item:hover {
+    background: #151515;
+
+    color: #ffffff;
+}
+
+.nav-icon {
+    width: 22px;
+    height: 22px;
+
+    flex: 0 0 22px;
+
+    display: flex;
+
+    align-items: center;
+    justify-content: center;
+
+    color: currentColor;
+
+    font-size: 17px;
+}
+
+.nav-label {
+    overflow: hidden;
+
+    text-overflow: ellipsis;
+
+    white-space: nowrap;
+}
+
+
+/* =========================================================
+   mobile
+   ========================================================= */
+
+@media (max-width: 850px) {
+
+    .site-nav {
+        position: relative;
+
+        width: 100%;
+        height: auto;
+
+        padding: 15px;
+
+        border-right: 0;
+        border-bottom: 1px solid #222222;
+    }
+
+    .logo {
+        margin-bottom: 14px;
+    }
+
+    .nav-right {
+        flex-direction: row;
+
+        flex-wrap: wrap;
+
+        gap: 4px;
+    }
+
+    .nav-item {
+        width: auto !important;
+
+        min-height: 38px;
+
+        padding: 8px 10px !important;
+    }
+
+    .site-main,
+    .settings-page,
+    .search-page,
+    .communities-page,
+    .community-page,
+    .admin-page {
+        width: 100%;
+
+        margin-left: 0;
+
+        padding: 30px 20px 70px;
+    }
+
+}
+
+@media (max-width: 600px) {
+
+    .site-main,
+    .settings-page,
+    .search-page,
+    .communities-page,
+    .community-page,
+    .admin-page {
+        padding: 20px 12px 55px;
+    }
+
+    .page-container,
+    .settings-container,
+    .search-container,
+    .communities-container,
+    .community-container,
+    .admin-container {
+        width: 100%;
+    }
+
+}
