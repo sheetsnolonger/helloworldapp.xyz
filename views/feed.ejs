@@ -1,290 +1,196 @@
-<!DOCTYPE html>
-<html lang="en">
+<!doctype html>
+<html>
 <head>
-    <meta charset="UTF-8">
-
+    <meta charset="utf-8">
     <meta
         name="viewport"
-        content="width=device-width, initial-scale=1.0"
+        content="width=device-width,initial-scale=1"
     >
 
-    <title>feed - helloworld</title>
+    <title>feed — helloworld</title>
 
-    <link
-        rel="stylesheet"
-        href="/css/style.css"
-    >
+    <link rel="stylesheet" href="/style.css">
 </head>
 
 <body>
 
-<nav>
+<nav class="topbar">
 
-    <a
-        class="logo"
-        href="/feed"
-    >
+    <a class="brand" href="/feed">
         helloworld
     </a>
 
-    <div class="nav-right">
+    <form
+        class="search"
+        action="/search"
+        method="get"
+    >
+        <input
+            name="q"
+            placeholder="search"
+        >
+    </form>
 
-        <a href="/search">
-            search
-        </a>
-
-        <a href="/communities">
-            communities
-        </a>
-
+    <div class="nav-links">
+        <a href="/communities">communities</a>
         <a href="/u/<%= user.username %>">
             @<%= user.username %>
         </a>
 
-        <form
-            action="/logout"
-            method="post"
-        >
-            <button
-                class="logout"
-                type="submit"
-            >
+        <form action="/logout" method="post">
+            <button class="text-button">
                 logout
             </button>
         </form>
-
     </div>
 
 </nav>
 
+<main class="layout">
 
-<main class="container">
+    <section class="feed">
 
-
-    <header class="feed-header">
-
-        <div class="tiny">
-            your little corner of the internet
+        <div class="page-title">
+            <h1>feed</h1>
+            <p>what's happening?</p>
         </div>
 
-        <h1>
-            feed
-        </h1>
+        <section class="composer">
 
-        <p>
-            see what people are saying.
-        </p>
+            <form action="/posts" method="post">
 
-    </header>
+                <textarea
+                    name="content"
+                    maxlength="500"
+                    placeholder="what's on your mind?"
+                    required
+                ></textarea>
 
+                <div class="composer-bottom">
 
-    <section class="composer">
-
-        <form
-            action="/posts"
-            method="post"
-        >
-
-            <textarea
-                name="content"
-                maxlength="500"
-                placeholder="what's on your mind?"
-                required
-            ></textarea>
-
-
-            <% if (
-                communities &&
-                communities.length > 0
-            ) { %>
-
-                <select
-                    name="community_id"
-                >
-
-                    <option value="">
-                        no community
-                    </option>
-
-                    <% communities.forEach(community => { %>
-
-                        <option
-                            value="<%= community.id %>"
-                        >
-                            <%= community.name %>
+                    <select name="community_id">
+                        <option value="">
+                            no community
                         </option>
 
-                    <% }) %>
+                        <% communities.forEach(community => { %>
 
-                </select>
+                            <option
+                                value="<%= community.id %>"
+                            >
+                                <%= community.name %>
+                            </option>
 
-            <% } %>
+                        <% }) %>
+                    </select>
 
+                    <button type="submit">
+                        post
+                    </button>
 
-            <button type="submit">
-                post
-            </button>
+                </div>
 
-        </form>
+            </form>
 
-    </section>
+        </section>
 
+        <% if (!posts.length) { %>
 
-    <% if (
-        !posts ||
-        posts.length === 0
-    ) { %>
+            <div class="empty">
+                no posts yet.
+            </div>
 
-        <div class="empty">
-
-            <p>
-                there aren't any posts yet.
-            </p>
-
-            <p>
-                make the first one.
-            </p>
-
-        </div>
-
-    <% } %>
-
-
-    <section class="posts">
+        <% } %>
 
         <% posts.forEach(post => { %>
 
             <article class="post">
 
+                <div class="post-head">
 
-                <div class="post-header">
+                    <% if (post.profile_picture) { %>
+
+                        <img
+                            class="avatar"
+                            src="<%= post.profile_picture %>"
+                            alt=""
+                        >
+
+                    <% } else { %>
+
+                        <div class="avatar placeholder">
+                            <%= post.username[0].toUpperCase() %>
+                        </div>
+
+                    <% } %>
 
                     <div>
-
                         <a
+                            class="username"
                             href="/u/<%= post.username %>"
                         >
-                            @<%= post.username %>
+                            <%= post.display_name || post.username %>
                         </a>
 
-                        <% if (
-                            post.display_name
-                        ) { %>
-
-                            <span class="display-name">
-                                <%= post.display_name %>
-                            </span>
-
-                        <% } %>
-
+                        <div class="post-meta">
+                            @<%= post.username %>
+                            ·
+                            <%= formatDate(post.created_at) %>
+                        </div>
                     </div>
-
-
-                    <span class="post-date">
-
-                        <%= formatDate(
-                            post.created_at
-                        ) %>
-
-                    </span>
 
                 </div>
 
+                <% if (post.community_name) { %>
 
-                <% if (
-                    post.community_name
-                ) { %>
-
-                    <div class="post-community">
-
-                        <a
-                            href="/c/<%= post.community_name %>"
-                        >
-                            <%= post.community_name %>
-                        </a>
-
-                    </div>
+                    <a
+                        class="community-tag"
+                        href="/c/<%= post.community_name %>"
+                    >
+                        #<%= post.community_name %>
+                    </a>
 
                 <% } %>
 
-
                 <a
-                    class="post-body-link"
+                    class="post-body"
                     href="/posts/<%= post.id %>/comments"
                 >
-
-                    <div class="post-content">
-
-                        <%= post.content %>
-
-                    </div>
-
+                    <%= post.content %>
                 </a>
 
-
                 <div class="post-actions">
-
 
                     <form
                         action="/posts/<%= post.id %>/like"
                         method="post"
                     >
-
-                        <button
-                            type="submit"
-                            class="<%= post.liked ? 'liked' : '' %>"
-                        >
-
-                            <%= post.liked
-                                ? "liked"
-                                : "like" %>
-
-                            <%= post.likes || 0 %>
-
+                        <button class="<%= post.liked ? 'liked' : '' %>">
+                            like <%= post.likes || 0 %>
                         </button>
-
                     </form>
 
-
                     <a
-                        class="comments-link"
                         href="/posts/<%= post.id %>/comments"
                     >
-
-                        <%= post.comments || 0 %>
-
-                        <%= post.comments === 1
-                            ? "comment"
-                            : "comments" %>
-
+                        comments <%= post.comments || 0 %>
                     </a>
 
-
-                    <% if (
-                        Number(post.user_id) ===
-                        Number(user.id)
-                    ) { %>
+                    <% if (post.username === user.username) { %>
 
                         <form
                             action="/posts/<%= post.id %>/delete"
                             method="post"
-                            onsubmit="return confirm('delete this post?');"
+                            onsubmit="return confirm('delete this post?')"
                         >
-
-                            <button
-                                class="delete-button"
-                                type="submit"
-                            >
+                            <button class="danger-button">
                                 delete
                             </button>
-
                         </form>
 
                     <% } %>
 
-
                 </div>
-
 
             </article>
 
@@ -292,6 +198,37 @@
 
     </section>
 
+    <aside class="sidebar">
+
+        <div class="sidebar-box">
+            <h3>communities</h3>
+
+            <a
+                class="sidebar-link"
+                href="/communities"
+            >
+                view all
+            </a>
+
+            <% communities.slice(0, 10).forEach(community => { %>
+
+                <a
+                    class="community-item"
+                    href="/c/<%= community.name %>"
+                >
+                    <strong>
+                        #<%= community.name %>
+                    </strong>
+
+                    <span>
+                        <%= community.post_count %> posts
+                    </span>
+                </a>
+
+            <% }) %>
+        </div>
+
+    </aside>
 
 </main>
 
