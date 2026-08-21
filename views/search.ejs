@@ -8,7 +8,7 @@
         content="width=device-width, initial-scale=1.0"
     >
 
-    <title>search - helloworld</title>
+    <title>communities - helloworld</title>
 
     <link
         rel="stylesheet"
@@ -18,103 +18,81 @@
 
 <body>
 
-    <%- include("partials/sidebar") %>
+    <%- include("partials/sidebar", { user: user }) %>
 
-    <main class="container page">
+    <main class="container page communities-page">
 
         <header class="page-header">
-
             <div class="tiny">
-                find people and posts
+                find your people
             </div>
 
             <h1>
-                search
+                communities
             </h1>
 
             <p>
-                search helloworld for users, communities, and posts.
+                discover communities and join conversations.
             </p>
-
         </header>
 
 
-        <section class="search-box">
+        <% if (typeof error !== "undefined" && error) { %>
 
-            <form
-                class="search-form"
-                action="/search"
-                method="get"
-            >
-
-                <input
-                    type="search"
-                    name="q"
-                    value="<%= typeof q !== 'undefined' ? q : '' %>"
-                    placeholder="search..."
-                    autocomplete="off"
-                >
-
-                <button type="submit">
-                    search
-                </button>
-
-            </form>
-
-        </section>
-
-
-        <% if (typeof q !== 'undefined' && q) { %>
-
-            <div class="search-query">
-                results for
-                <strong>
-                    "<%= q %>"
-                </strong>
+            <div class="error">
+                <%= error %>
             </div>
 
+        <% } %>
 
-            <% if (users && users.length) { %>
 
-                <section class="search-results">
+        <% if (typeof success !== "undefined" && success) { %>
 
-                    <div class="section-heading">
-                        <h2>people</h2>
-                    </div>
+            <div class="success">
+                <%= success %>
+            </div>
 
-                    <% users.forEach(result => { %>
+        <% } %>
+
+
+        <% if (typeof userCommunities !== "undefined" && userCommunities && userCommunities.length) { %>
+
+            <section class="page-section">
+
+                <div class="section-heading">
+                    <h2>
+                        your communities
+                    </h2>
+                </div>
+
+                <div class="community-grid">
+
+                    <% userCommunities.forEach(community => { %>
 
                         <a
-                            class="search-user"
-                            href="/u/<%= encodeURIComponent(result.username) %>"
+                            href="/c/<%= encodeURIComponent(community.name) %>"
+                            class="community-card"
                         >
 
-                            <% if (result.profile_picture) { %>
-
-                                <img
-                                    src="<%= result.profile_picture %>"
-                                    alt=""
-                                    class="search-avatar"
+                            <div class="community-card-icon">
+                                <svg
+                                    viewBox="0 0 24 24"
+                                    aria-hidden="true"
                                 >
+                                    <path d="M4 5.5A2.5 2.5 0 0 1 6.5 3h11A2.5 2.5 0 0 1 20 5.5v8a2.5 2.5 0 0 1-2.5 2.5H11l-4.5 4v-4.2A2.5 2.5 0 0 1 4 13.5z"/>
+                                </svg>
+                            </div>
 
-                            <% } else { %>
-
-                                <div class="search-avatar search-avatar-placeholder">
-                                    <%= result.username.charAt(0).toUpperCase() %>
-                                </div>
-
-                            <% } %>
-
-                            <div class="search-user-info">
+                            <div class="community-card-content">
 
                                 <strong>
-                                    @<%= result.username %>
+                                    c/<%= community.name %>
                                 </strong>
 
-                                <% if (result.display_name) { %>
+                                <% if (community.description) { %>
 
                                     <span>
-                                        <%= result.display_name %>
+                                        <%= community.description %>
                                     </span>
 
                                 <% } %>
@@ -125,31 +103,55 @@
 
                     <% }) %>
 
-                </section>
+                </div>
 
-            <% } %>
+            </section>
+
+        <% } %>
+
+
+        <section class="page-section">
+
+            <div class="section-heading">
+
+                <div>
+                    <h2>
+                        all communities
+                    </h2>
+
+                    <p class="section-description">
+                        browse communities on helloworld.
+                    </p>
+                </div>
+
+            </div>
 
 
             <% if (communities && communities.length) { %>
 
-                <section class="search-results">
-
-                    <div class="section-heading">
-                        <h2>communities</h2>
-                    </div>
+                <div class="community-grid">
 
                     <% communities.forEach(community => { %>
 
                         <a
-                            class="search-community"
                             href="/c/<%= encodeURIComponent(community.name) %>"
+                            class="community-card"
                         >
 
-                            <div class="search-community-icon">
-                                c/
+                            <div class="community-card-icon">
+
+                                <svg
+                                    viewBox="0 0 24 24"
+                                    aria-hidden="true"
+                                >
+                                    <path d="M4 5.5A2.5 2.5 0 0 1 6.5 3h11A2.5 2.5 0 0 1 20 5.5v8a2.5 2.5 0 0 1-2.5 2.5H11l-4.5 4v-4.2A2.5 2.5 0 0 1 4 13.5z"/>
+                                    <path d="M8 8h8M8 11h5"/>
+                                </svg>
+
                             </div>
 
-                            <div>
+
+                            <div class="community-card-content">
 
                                 <strong>
                                     c/<%= community.name %>
@@ -157,9 +159,19 @@
 
                                 <% if (community.description) { %>
 
-                                    <p>
+                                    <span>
                                         <%= community.description %>
-                                    </p>
+                                    </span>
+
+                                <% } %>
+
+                                <% if (
+                                    typeof community.member_count !== "undefined"
+                                ) { %>
+
+                                    <small>
+                                        <%= community.member_count %> members
+                                    </small>
 
                                 <% } %>
 
@@ -169,94 +181,25 @@
 
                     <% }) %>
 
-                </section>
+                </div>
 
-            <% } %>
-
-
-            <% if (posts && posts.length) { %>
-
-                <section class="search-results">
-
-                    <div class="section-heading">
-                        <h2>posts</h2>
-                    </div>
-
-                    <% posts.forEach(post => { %>
-
-                        <a
-                            class="search-post"
-                            href="/posts/<%= post.id %>/comments"
-                        >
-
-                            <div class="search-post-header">
-
-                                <strong>
-                                    @<%= post.username %>
-                                </strong>
-
-                                <span>
-                                    <%= formatDate(post.created_at) %>
-                                </span>
-
-                            </div>
-
-                            <% if (post.community_name) { %>
-
-                                <div class="search-post-community">
-                                    c/<%= post.community_name %>
-                                </div>
-
-                            <% } %>
-
-                            <div class="search-post-content">
-                                <%= post.content %>
-                            </div>
-
-                        </a>
-
-                    <% }) %>
-
-                </section>
-
-            <% } %>
-
-
-            <% if (
-                (!users || !users.length) &&
-                (!communities || !communities.length) &&
-                (!posts || !posts.length)
-            ) { %>
+            <% } else { %>
 
                 <div class="empty">
 
                     <strong>
-                        nothing found.
+                        no communities yet
                     </strong>
 
                     <p>
-                        try searching for something else.
+                        there aren't any communities to show right now.
                     </p>
 
                 </div>
 
             <% } %>
 
-        <% } else { %>
-
-            <div class="empty">
-
-                <strong>
-                    search helloworld.
-                </strong>
-
-                <p>
-                    enter something above to get started.
-                </p>
-
-            </div>
-
-        <% } %>
+        </section>
 
     </main>
 
