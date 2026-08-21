@@ -17,7 +17,7 @@ if (isProduction && (!sessionSecret || sessionSecret.length < 32)) {
     throw new Error("SESSION_SECRET must be set to a long random value in production.");
 }
 
-const adminPath = "/qzmxvtrpalks";
+const adminPath = "/admin/m7qzv2k9x4p8n3r6";
 const adminPassword =
     process.env.ADMIN_PASSWORD || "SamanthaVT*374-SJpa";
 
