@@ -204,6 +204,22 @@ app.get("/feed", requireLogin, (req, res) => {
         limit 100
     `).all(user.id, user.id, user.id);
 
+    const getComments = db.prepare(`
+        select
+            comments.id,
+            comments.content,
+            comments.created_at,
+            users.username
+        from comments
+        join users on users.id = comments.user_id
+        where comments.post_id = ?
+        order by comments.created_at asc
+    `);
+
+    for (const post of posts) {
+        post.comment_list = getComments.all(post.id);
+    }
+
     res.render("feed", {
         user,
         posts
@@ -216,6 +232,28 @@ app.post("/posts", requireLogin, (req, res) => {
     if (!content || content.length > 500) {
         return res.redirect("/feed");
     }
+
+    <div class="comments">
+    <% if (post.comment_list.length > 0) { %>
+        <% post.comment_list.forEach(comment => { %>
+            <div class="comment">
+                <div class="comment-header">
+                    <a href="/u/<%= comment.username %>">
+                        @<%= comment.username %>
+                    </a>
+
+                    <span>
+                        <%= formatDate(comment.created_at) %>
+                    </span>
+                </div>
+
+                <div class="comment-content">
+                    <%= comment.content %>
+                </div>
+            </div>
+        <% }) %>
+    <% } %>
+</div>
 
     db.prepare(
         "insert into posts (user_id, content) values (?, ?)"
