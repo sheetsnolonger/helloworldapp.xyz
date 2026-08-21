@@ -1,152 +1,264 @@
-<!doctype html>
-<html>
+<!DOCTYPE html>
+<html lang="en">
 <head>
-    <meta charset="utf-8">
+    <meta charset="UTF-8">
+
     <meta
         name="viewport"
-        content="width=device-width,initial-scale=1"
+        content="width=device-width, initial-scale=1.0"
     >
 
-    <title>search — helloworld</title>
+    <title>search - helloworld</title>
 
-    <link rel="stylesheet" href="/style.css">
+    <link
+        rel="stylesheet"
+        href="/style.css"
+    >
 </head>
 
 <body>
 
-<%- include("partials/sidebar") %>
+    <%- include("partials/sidebar") %>
 
-<main class="container">
+    <main class="container page">
 
-<main class="page">
+        <header class="page-header">
 
-    <h1>
-        search
-        <% if (query) { %>
-            for "<%= query %>"
-        <% } %>
-    </h1>
+            <div class="tiny">
+                find people and posts
+            </div>
 
-    <% if (!query) { %>
+            <h1>
+                search
+            </h1>
 
-        <div class="empty">
-            search for users, posts, or communities.
-        </div>
+            <p>
+                search helloworld for users, communities, and posts.
+            </p>
 
-    <% } %>
+        </header>
 
-    <% if (users.length) { %>
 
-        <section class="search-section">
+        <section class="search-box">
 
-            <h2>users</h2>
+            <form
+                class="search-form"
+                action="/search"
+                method="get"
+            >
 
-            <% users.forEach(foundUser => { %>
-
-                <a
-                    class="search-user"
-                    href="/u/<%= foundUser.username %>"
+                <input
+                    type="search"
+                    name="q"
+                    value="<%= typeof q !== 'undefined' ? q : '' %>"
+                    placeholder="search..."
+                    autocomplete="off"
                 >
 
-                    <% if (foundUser.profile_picture) { %>
+                <button type="submit">
+                    search
+                </button>
 
-                        <img
-                            class="avatar"
-                            src="<%= foundUser.profile_picture %>"
-                            alt=""
-                        >
+            </form>
 
-                    <% } else { %>
+        </section>
 
-                        <div class="avatar placeholder">
-                            <%= foundUser.username[0].toUpperCase() %>
-                        </div>
 
-                    <% } %>
+        <% if (typeof q !== 'undefined' && q) { %>
 
-                    <div>
-                        <strong>
-                            <%= foundUser.display_name || foundUser.username %>
-                        </strong>
+            <div class="search-query">
+                results for
+                <strong>
+                    "<%= q %>"
+                </strong>
+            </div>
 
-                        <span>
-                            @<%= foundUser.username %>
-                        </span>
+
+            <% if (users && users.length) { %>
+
+                <section class="search-results">
+
+                    <div class="section-heading">
+                        <h2>people</h2>
                     </div>
 
-                </a>
+                    <% users.forEach(result => { %>
 
-            <% }) %>
+                        <a
+                            class="search-user"
+                            href="/u/<%= encodeURIComponent(result.username) %>"
+                        >
 
-        </section>
+                            <% if (result.profile_picture) { %>
 
-    <% } %>
+                                <img
+                                    src="<%= result.profile_picture %>"
+                                    alt=""
+                                    class="search-avatar"
+                                >
 
-    <% if (communities.length) { %>
+                            <% } else { %>
 
-        <section class="search-section">
+                                <div class="search-avatar search-avatar-placeholder">
+                                    <%= result.username.charAt(0).toUpperCase() %>
+                                </div>
 
-            <h2>communities</h2>
+                            <% } %>
 
-            <% communities.forEach(community => { %>
+                            <div class="search-user-info">
 
-                <a
-                    class="search-community"
-                    href="/c/<%= community.name %>"
-                >
+                                <strong>
+                                    @<%= result.username %>
+                                </strong>
+
+                                <% if (result.display_name) { %>
+
+                                    <span>
+                                        <%= result.display_name %>
+                                    </span>
+
+                                <% } %>
+
+                            </div>
+
+                        </a>
+
+                    <% }) %>
+
+                </section>
+
+            <% } %>
+
+
+            <% if (communities && communities.length) { %>
+
+                <section class="search-results">
+
+                    <div class="section-heading">
+                        <h2>communities</h2>
+                    </div>
+
+                    <% communities.forEach(community => { %>
+
+                        <a
+                            class="search-community"
+                            href="/c/<%= encodeURIComponent(community.name) %>"
+                        >
+
+                            <div class="search-community-icon">
+                                c/
+                            </div>
+
+                            <div>
+
+                                <strong>
+                                    c/<%= community.name %>
+                                </strong>
+
+                                <% if (community.description) { %>
+
+                                    <p>
+                                        <%= community.description %>
+                                    </p>
+
+                                <% } %>
+
+                            </div>
+
+                        </a>
+
+                    <% }) %>
+
+                </section>
+
+            <% } %>
+
+
+            <% if (posts && posts.length) { %>
+
+                <section class="search-results">
+
+                    <div class="section-heading">
+                        <h2>posts</h2>
+                    </div>
+
+                    <% posts.forEach(post => { %>
+
+                        <a
+                            class="search-post"
+                            href="/posts/<%= post.id %>/comments"
+                        >
+
+                            <div class="search-post-header">
+
+                                <strong>
+                                    @<%= post.username %>
+                                </strong>
+
+                                <span>
+                                    <%= formatDate(post.created_at) %>
+                                </span>
+
+                            </div>
+
+                            <% if (post.community_name) { %>
+
+                                <div class="search-post-community">
+                                    c/<%= post.community_name %>
+                                </div>
+
+                            <% } %>
+
+                            <div class="search-post-content">
+                                <%= post.content %>
+                            </div>
+
+                        </a>
+
+                    <% }) %>
+
+                </section>
+
+            <% } %>
+
+
+            <% if (
+                (!users || !users.length) &&
+                (!communities || !communities.length) &&
+                (!posts || !posts.length)
+            ) { %>
+
+                <div class="empty">
+
                     <strong>
-                        #<%= community.name %>
-                    </strong>
-
-                    <span>
-                        <%= community.description %>
-                    </span>
-                </a>
-
-            <% }) %>
-
-        </section>
-
-    <% } %>
-
-    <% if (posts.length) { %>
-
-        <section class="search-section">
-
-            <h2>posts</h2>
-
-            <% posts.forEach(post => { %>
-
-                <a
-                    class="search-post"
-                    href="/posts/<%= post.id %>/comments"
-                >
-
-                    <strong>
-                        @<%= post.username %>
+                        nothing found.
                     </strong>
 
                     <p>
-                        <%= post.content %>
+                        try searching for something else.
                     </p>
 
-                    <small>
-                        <%= post.likes %> likes
-                        ·
-                        <%= post.comments %> comments
-                    </small>
+                </div>
 
-                </a>
+            <% } %>
 
-            <% }) %>
+        <% } else { %>
 
-        </section>
+            <div class="empty">
 
-    <% } %>
+                <strong>
+                    search helloworld.
+                </strong>
 
-</main>
+                <p>
+                    enter something above to get started.
+                </p>
 
-</body>
-</html>
+            </div>
+
+        <% } %>
+
+    </main>
+
 </body>
 </html>
