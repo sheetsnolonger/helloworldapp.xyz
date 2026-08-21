@@ -891,3 +891,55 @@ textarea:focus {
         padding: 14px;
     }
 }
+
+.communities {
+    margin-bottom: 30px;
+}
+
+.community-list {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 12px;
+
+    margin-top: 12px;
+}
+
+.community-card {
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+
+    padding: 15px;
+
+    border: 1px solid white;
+    border-radius: 16px;
+
+    background:
+        linear-gradient(
+            to bottom,
+            rgba(255,255,255,.96),
+            rgba(211,244,250,.92)
+        );
+
+    box-shadow:
+        inset 0 1px 0 white,
+        0 3px 8px rgba(0,80,110,.15);
+
+    color: #075d87;
+}
+
+.community-card:hover {
+    text-decoration: none;
+    transform: translateY(-1px);
+}
+
+.community-card span {
+    color: #628896;
+    font-size: 13px;
+}
+
+@media (max-width: 600px) {
+    .community-list {
+        grid-template-columns: 1fr;
+    }
+}
