@@ -338,97 +338,75 @@ app.get("/feed", requireLogin, async (req, res) => {
     try {
         const user = await currentUser(req);
 
-        if (!user) {
-            req.session.destroy(() => {});
-            return res.redirect("/login");
-        }
-
-        /*
-            show every post from every user.
-
-            this means users do not have to follow each
-            other before their posts appear in the feed.
-        */
-
-        const posts = await db
-            .prepare(
-                `
-                select
-                    posts.id,
-                    posts.user_id,
-                    posts.content,
-                    posts.created_at,
-                    users.username,
-
-                    (
-                        select count(*)
-                        from likes
-                        where likes.post_id = posts.id
-                    ) as likes,
-
-                    (
-                        select count(*)
-                        from comments
-                        where comments.post_id = posts.id
-                    ) as comments,
-
-                    exists (
-                        select 1
-                        from likes
-                        where likes.post_id = posts.id
-                        and likes.user_id = ?
-                    ) as liked
-
-                from posts
-
-                join users
-                    on users.id = posts.user_id
-
-                order by posts.created_at desc
-
-                limit 100
-                `
+        const posts = await db.prepare(`
+            select
+                posts.*,
+                users.username,
+                (
+                    select count(*)
+                    from likes
+                    where likes.post_id = posts.id
+                ) as likes,
+                (
+                    select count(*)
+                    from comments
+                    where comments.post_id = posts.id
+                ) as comments,
+                exists(
+                    select 1
+                    from likes
+                    where likes.post_id = posts.id
+                    and likes.user_id = ?
+                ) as liked
+            from posts
+            join users on users.id = posts.user_id
+            where posts.user_id = ?
+            or posts.user_id in (
+                select following_id
+                from follows
+                where follower_id = ?
             )
-            .all(user.id);
+            order by posts.created_at desc
+            limit 100
+        `).all(user.id, user.id, user.id);
 
-        const getComments = db.prepare(
-            `
+        const getComments = db.prepare(`
             select
                 comments.id,
                 comments.content,
                 comments.created_at,
-                comments.user_id,
                 users.username
-
             from comments
-
-            join users
-                on users.id = comments.user_id
-
+            join users on users.id = comments.user_id
             where comments.post_id = ?
-
             order by comments.created_at asc
-            `
-        );
+        `);
 
         for (const post of posts) {
-            post.comment_list =
-                await getComments.all(post.id);
+            post.comment_list = await getComments.all(post.id);
         }
+
+        const communities = await db.prepare(`
+            select
+                communities.id,
+                communities.name,
+                communities.description,
+                communities.created_at,
+                0 as members
+            from communities
+            order by communities.created_at desc
+        `).all();
 
         res.render("feed", {
             user,
-            posts
+            posts,
+            communities
         });
     } catch (error) {
         console.error("feed error:", error);
-
-        res.status(500).send(
-            "something went wrong loading the feed."
-        );
+        res.status(500).send("something went wrong.");
     }
 });
-
 
 /*
     create post
