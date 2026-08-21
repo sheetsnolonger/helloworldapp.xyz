@@ -1,106 +1,259 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
+
     <meta charset="UTF-8">
+
     <meta
         name="viewport"
         content="width=device-width, initial-scale=1.0"
     >
 
-    <title>comments - helloworld</title>
+    <title>
+        comments - helloworld
+    </title>
 
-    <link rel="stylesheet" href="/css/style.css">
+    <link
+        rel="stylesheet"
+        href="/css/style.css"
+    >
+
 </head>
+
 
 <body>
 
+
 <nav>
-    <a class="logo" href="/feed">helloworld</a>
+
+    <a
+        class="logo"
+        href="/feed"
+    >
+        helloworld
+    </a>
+
 
     <div class="nav-right">
-        <a href="/u/<%= user.username %>">
+
+        <a href="/search">
+            search
+        </a>
+
+        <a href="/communities">
+            communities
+        </a>
+
+        <a
+            href="/u/<%= user.username %>"
+        >
             @<%= user.username %>
         </a>
 
-        <form action="/logout" method="post">
-            <button class="logout" type="submit">
+
+        <form
+            action="/logout"
+            method="post"
+        >
+
+            <button
+                class="logout"
+                type="submit"
+            >
                 logout
             </button>
+
         </form>
+
     </div>
+
 </nav>
+
 
 <main class="container">
 
-    <div class="comments-page">
 
-        <a class="back-link" href="/feed">
-            ← back to feed
-        </a>
+    <a
+        class="back-link"
+        href="/feed"
+    >
+        ← back to feed
+    </a>
 
-        <article class="post">
 
-            <div class="post-header">
-                <a href="/u/<%= post.username %>">
+    <article class="post comments-post">
+
+
+        <div class="post-header">
+
+            <div>
+
+                <a
+                    href="/u/<%= post.username %>"
+                >
                     @<%= post.username %>
                 </a>
 
-                <span>
-                    <%= formatDate(post.created_at) %>
-                </span>
+
+                <% if (
+                    post.display_name
+                ) { %>
+
+                    <span class="display-name">
+                        <%= post.display_name %>
+                    </span>
+
+                <% } %>
+
             </div>
 
-            <div class="post-content">
-                <%= post.content %>
+
+            <span class="post-date">
+
+                <%= formatDate(
+                    post.created_at
+                ) %>
+
+            </span>
+
+        </div>
+
+
+        <% if (
+            post.community_name
+        ) { %>
+
+            <div class="post-community">
+
+                <a
+                    href="/c/<%= post.community_name %>"
+                >
+                    <%= post.community_name %>
+                </a>
+
             </div>
 
-        </article>
+        <% } %>
 
-        <section class="comments-section">
 
-            <h1>comments</h1>
+        <div class="post-content">
 
-            <% if (comments.length === 0) { %>
+            <%= post.content %>
 
-                <div class="no-comments">
-                    no comments yet.
-                </div>
+        </div>
 
-            <% } else { %>
+
+    </article>
+
+
+    <section class="comments-page">
+
+
+        <div class="comments-title">
+
+            <h1>
+                comments
+            </h1>
+
+            <span>
+                <%= comments.length %>
+            </span>
+
+        </div>
+
+
+        <% if (
+            !comments ||
+            comments.length === 0
+        ) { %>
+
+
+            <div class="no-comments">
+
+                no comments yet.
+
+            </div>
+
+
+        <% } else { %>
+
+
+            <div class="comment-list">
+
 
                 <% comments.forEach(comment => { %>
 
+
                     <article class="comment">
+
 
                         <div class="comment-header">
 
-                            <a href="/u/<%= comment.username %>">
+
+                            <a
+                                href="/u/<%= comment.username %>"
+                            >
+
                                 @<%= comment.username %>
+
                             </a>
 
-                            <span>
-                                <%= formatDate(comment.created_at) %>
-                            </span>
+
+                            <% if (
+                                comment.display_name
+                            ) { %>
+
+                                <span>
+                                    <%= comment.display_name %>
+                                </span>
+
+                            <% } %>
+
+
+                            <time>
+
+                                <%= formatDate(
+                                    comment.created_at
+                                ) %>
+
+                            </time>
+
 
                         </div>
+
 
                         <div class="comment-content">
+
                             <%= comment.content %>
+
                         </div>
+
 
                     </article>
 
+
                 <% }) %>
 
-            <% } %>
 
-        </section>
+            </div>
+
+
+        <% } %>
+
+
+    </section>
+
+
+    <section class="comment-composer">
+
 
         <form
             class="comment-form"
             action="/posts/<%= post.id %>/comments"
             method="post"
         >
+
 
             <input
                 type="text"
@@ -111,15 +264,23 @@
                 required
             >
 
-            <button type="submit">
+
+            <button
+                type="submit"
+            >
                 comment
             </button>
 
+
         </form>
 
-    </div>
+
+    </section>
+
 
 </main>
 
+
 </body>
+
 </html>
