@@ -348,28 +348,10 @@ app.get("/feed", requireLogin, async (req, res) => {
             left join communities
                 on communities.id = posts.community_id
 
-            where
-                posts.user_id = ?
-
-                or posts.user_id in (
-                    select following_id
-                    from follows
-                    where follower_id = ?
-                )
-
-                or posts.community_id in (
-                    select id
-                    from communities
-                )
-
             order by posts.created_at desc
 
             limit 100
-        `).all(
-            user.id,
-            user.id,
-            user.id
-        );
+        `).all(user.id);
 
         const getComments = db.prepare(`
             select
@@ -379,9 +361,12 @@ app.get("/feed", requireLogin, async (req, res) => {
                 users.username,
                 users.display_name
             from comments
+
             join users
                 on users.id = comments.user_id
+
             where comments.post_id = ?
+
             order by comments.created_at asc
         `);
 
@@ -401,7 +386,9 @@ app.get("/feed", requireLogin, async (req, res) => {
                 ) as post_count
 
             from communities
+
             order by communities.name asc
+
             limit 100
         `).all();
 
@@ -410,6 +397,7 @@ app.get("/feed", requireLogin, async (req, res) => {
             posts,
             communities
         });
+
     } catch (error) {
         console.error("feed error:", error);
 
@@ -418,7 +406,6 @@ app.get("/feed", requireLogin, async (req, res) => {
         );
     }
 });
-
 /* create post */
 
 app.post("/posts", requireLogin, async (req, res) => {
