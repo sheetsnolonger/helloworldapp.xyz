@@ -2,34 +2,49 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
+
     <meta
         name="viewport"
         content="width=device-width, initial-scale=1.0"
     >
 
-    <title>helloworld</title>
+    <title>feed - helloworld</title>
 
-    <link rel="stylesheet" href="/css/style.css">
+    <link
+        rel="stylesheet"
+        href="/css/style.css"
+    >
 </head>
 
 <body>
 
 <nav>
-    <a class="logo" href="/feed">
+
+    <a
+        class="logo"
+        href="/feed"
+    >
         helloworld
     </a>
 
     <div class="nav-right">
 
-        <a href="/feed">
-            feed
+        <a href="/search">
+            search
+        </a>
+
+        <a href="/communities">
+            communities
         </a>
 
         <a href="/u/<%= user.username %>">
             @<%= user.username %>
         </a>
 
-        <form action="/logout" method="post">
+        <form
+            action="/logout"
+            method="post"
+        >
             <button
                 class="logout"
                 type="submit"
@@ -39,9 +54,12 @@
         </form>
 
     </div>
+
 </nav>
 
+
 <main class="container">
+
 
     <header class="feed-header">
 
@@ -60,93 +78,6 @@
     </header>
 
 
-    <!-- communities -->
-
-    <section class="communities-section">
-
-        <div class="section-heading">
-
-            <div>
-                <div class="tiny">
-                    communities
-                </div>
-
-                <h2>
-                    explore
-                </h2>
-            </div>
-
-        </div>
-
-        <% if (
-            communities &&
-            communities.length > 0
-        ) { %>
-
-            <div class="communities-list">
-
-                <% communities.forEach(community => { %>
-
-                    <a
-                        class="community-card"
-                        href="/c/<%= community.name %>"
-                    >
-
-                        <div class="community-card-title">
-                            c/<%= community.name %>
-                        </div>
-
-                        <% if (community.description) { %>
-
-                            <div class="community-card-description">
-                                <%= community.description %>
-                            </div>
-
-                        <% } %>
-
-                        <div class="community-card-meta">
-
-                            <span>
-                                <%= community.post_count || 0 %>
-                                <%= community.post_count === 1
-                                    ? "post"
-                                    : "posts"
-                                %>
-                            </span>
-
-                            <span>
-                                enter →
-                            </span>
-
-                        </div>
-
-                    </a>
-
-                <% }) %>
-
-            </div>
-
-        <% } else { %>
-
-            <div class="empty communities-empty">
-
-                <p>
-                    there aren't any communities yet.
-                </p>
-
-                <p>
-                    check back later.
-                </p>
-
-            </div>
-
-        <% } %>
-
-    </section>
-
-
-    <!-- composer -->
-
     <section class="composer">
 
         <form
@@ -161,50 +92,48 @@
                 required
             ></textarea>
 
-            <div class="composer-bottom">
+
+            <% if (
+                communities &&
+                communities.length > 0
+            ) { %>
 
                 <select
                     name="community_id"
-                    aria-label="choose a community"
                 >
 
                     <option value="">
                         no community
                     </option>
 
-                    <% if (
-                        communities &&
-                        communities.length > 0
-                    ) { %>
+                    <% communities.forEach(community => { %>
 
-                        <% communities.forEach(community => { %>
+                        <option
+                            value="<%= community.id %>"
+                        >
+                            <%= community.name %>
+                        </option>
 
-                            <option
-                                value="<%= community.id %>"
-                            >
-                                c/<%= community.name %>
-                            </option>
-
-                        <% }) %>
-
-                    <% } %>
+                    <% }) %>
 
                 </select>
 
-                <button type="submit">
-                    post
-                </button>
+            <% } %>
 
-            </div>
+
+            <button type="submit">
+                post
+            </button>
 
         </form>
 
     </section>
 
 
-    <!-- posts -->
-
-    <% if (!posts || posts.length === 0) { %>
+    <% if (
+        !posts ||
+        posts.length === 0
+    ) { %>
 
         <div class="empty">
 
@@ -221,11 +150,12 @@
     <% } %>
 
 
-    <% if (posts && posts.length > 0) { %>
+    <section class="posts">
 
         <% posts.forEach(post => { %>
 
             <article class="post">
+
 
                 <div class="post-header">
 
@@ -237,37 +167,63 @@
                             @<%= post.username %>
                         </a>
 
-                        <% if (post.community_name) { %>
+                        <% if (
+                            post.display_name
+                        ) { %>
 
-                            <span class="post-community">
-                                in
-
-                                <a
-                                    href="/c/<%= post.community_name %>"
-                                >
-                                    c/<%= post.community_name %>
-                                </a>
+                            <span class="display-name">
+                                <%= post.display_name %>
                             </span>
 
                         <% } %>
 
                     </div>
 
-                    <span>
-                        <%= formatDate(post.created_at) %>
+
+                    <span class="post-date">
+
+                        <%= formatDate(
+                            post.created_at
+                        ) %>
+
                     </span>
 
                 </div>
 
 
-                <div class="post-content">
-                    <%= post.content %>
-                </div>
+                <% if (
+                    post.community_name
+                ) { %>
+
+                    <div class="post-community">
+
+                        <a
+                            href="/c/<%= post.community_name %>"
+                        >
+                            <%= post.community_name %>
+                        </a>
+
+                    </div>
+
+                <% } %>
+
+
+                <a
+                    class="post-body-link"
+                    href="/posts/<%= post.id %>/comments"
+                >
+
+                    <div class="post-content">
+
+                        <%= post.content %>
+
+                    </div>
+
+                </a>
 
 
                 <div class="post-actions">
 
-                    <!-- like -->
 
                     <form
                         action="/posts/<%= post.id %>/like"
@@ -278,33 +234,31 @@
                             type="submit"
                             class="<%= post.liked ? 'liked' : '' %>"
                         >
+
                             <%= post.liked
                                 ? "liked"
-                                : "like"
-                            %>
+                                : "like" %>
 
                             <%= post.likes || 0 %>
+
                         </button>
 
                     </form>
 
 
-                    <!-- comments -->
-
                     <a
-                        class="comment-link"
+                        class="comments-link"
                         href="/posts/<%= post.id %>/comments"
                     >
+
                         <%= post.comments || 0 %>
 
                         <%= post.comments === 1
                             ? "comment"
-                            : "comments"
-                        %>
+                            : "comments" %>
+
                     </a>
 
-
-                    <!-- delete own post -->
 
                     <% if (
                         Number(post.user_id) ===
@@ -318,8 +272,8 @@
                         >
 
                             <button
+                                class="delete-button"
                                 type="submit"
-                                class="delete-post"
                             >
                                 delete
                             </button>
@@ -328,13 +282,16 @@
 
                     <% } %>
 
+
                 </div>
+
 
             </article>
 
         <% }) %>
 
-    <% } %>
+    </section>
+
 
 </main>
 
