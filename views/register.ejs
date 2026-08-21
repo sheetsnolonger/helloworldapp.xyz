@@ -1,46 +1,141 @@
-<!doctype html>
-<html>
+<!DOCTYPE html>
+<html lang="en">
 <head>
     <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width,initial-scale=1">
-    <title>register — helloworld</title>
-    <link rel="stylesheet" href="/style.css">
+
+    <meta
+        name="viewport"
+        content="width=device-width, initial-scale=1"
+    >
+
+    <title>helloworld / register</title>
+
+    <link
+        rel="stylesheet"
+        href="/css/style.css"
+    >
 </head>
 
-<body>
+<body class="auth-body">
 
-<main class="auth-box">
-    <h1>helloworld</h1>
-    <h2>create account</h2>
+    <main class="auth-page">
 
-    <% if (error) { %>
-        <div class="error"><%= error %></div>
-    <% } %>
+        <section class="auth-card auth-card-register">
 
-    <form method="post" action="/register">
-        <input
-            name="username"
-            placeholder="username"
-            maxlength="30"
-            required
-        >
+            <div class="auth-logo">
+                helloworld
+            </div>
 
-        <input
-            type="password"
-            name="password"
-            placeholder="password"
-            minlength="8"
-            required
-        >
+            <div class="auth-label">
+                join the site
+            </div>
 
-        <button type="submit">register</button>
-    </form>
+            <h1>register</h1>
 
-    <p>
-        already have an account?
-        <a href="/login">login</a>
-    </p>
-</main>
+            <p class="auth-description">
+                make an account and join helloworld.
+            </p>
+
+            <% if (error) { %>
+                <div class="auth-error">
+                    <span class="auth-error-title">
+                        error
+                    </span>
+
+                    <%= error %>
+                </div>
+            <% } %>
+
+            <form
+                action="/register"
+                method="post"
+                class="auth-form"
+            >
+
+                <div class="auth-field">
+
+                    <label for="username">
+                        username
+                    </label>
+
+                    <input
+                        type="text"
+                        id="username"
+                        name="username"
+                        autocomplete="username"
+                        maxlength="32"
+                        minlength="3"
+                        pattern="[a-zA-Z0-9_]+"
+                        required
+                    >
+
+                    <span class="auth-hint">
+                        3-32 characters, letters, numbers, and underscores
+                    </span>
+
+                </div>
+
+                <div class="auth-field">
+
+                    <label for="email">
+                        email
+                    </label>
+
+                    <input
+                        type="email"
+                        id="email"
+                        name="email"
+                        autocomplete="email"
+                        required
+                    >
+
+                </div>
+
+                <div class="auth-field">
+
+                    <label for="password">
+                        password
+                    </label>
+
+                    <input
+                        type="password"
+                        id="password"
+                        name="password"
+                        autocomplete="new-password"
+                        minlength="6"
+                        required
+                    >
+
+                    <span class="auth-hint">
+                        at least 6 characters
+                    </span>
+
+                </div>
+
+                <button
+                    type="submit"
+                    class="auth-submit"
+                >
+                    create account
+                </button>
+
+            </form>
+
+            <div class="auth-footer">
+
+                <span>
+                    already have an account?
+                </span>
+
+                <a href="/login">
+                    login
+                </a>
+
+            </div>
+
+        </section>
+
+    </main>
 
 </body>
 </html>
