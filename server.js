@@ -3,94 +3,78 @@ require("dotenv").config();
 const express = require("express");
 const session = require("express-session");
 const pgSession = require("connect-pg-simple")(session);
+const { Pool } = require("pg");
 const bcrypt = require("bcrypt");
 const multer = require("multer");
 const path = require("path");
 const fs = require("fs");
-
-const db = require("./database");
+const { createClient } = require("@supabase/supabase-js");
 
 const app = express();
 
-const port = Number(process.env.PORT) || 3000;
-const isProduction =
-    process.env.NODE_ENV === "production";
+const port = process.env.PORT || 3000;
 
-const adminPath =
-    "/admin/m7qzv2k9x4p8n3r6";
 
-const adminPassword =
-    process.env.ADMIN_PASSWORD ||
-    "change-this-password";
+/* =========================================================
+   database
+   ========================================================= */
 
-const sessionSecret =
-    process.env.SESSION_SECRET;
+const pool = new Pool({
+    connectionString: process.env.DATABASE_URL,
 
-if (!sessionSecret) {
-    throw new Error(
-        "SESSION_SECRET must be set."
-    );
-}
+    ssl: process.env.DATABASE_URL
+        ? { rejectUnauthorized: false }
+        : false
+});
 
-if (
-    isProduction &&
-    adminPassword === "change-this-password"
-) {
-    throw new Error(
-        "ADMIN_PASSWORD must be set in production."
-    );
-}
 
-const uploadDirectory = path.join(
+/* =========================================================
+   supabase
+   ========================================================= */
+
+const supabase = createClient(
+    process.env.SUPABASE_URL,
+    process.env.SUPABASE_SERVICE_ROLE_KEY
+);
+
+const storage_bucket =
+    process.env.SUPABASE_STORAGE_BUCKET || "uploads";
+
+
+/* =========================================================
+   uploads
+   ========================================================= */
+
+const upload_directory = path.join(
     __dirname,
-    "public",
     "uploads"
 );
 
-fs.mkdirSync(
-    uploadDirectory,
-    {
+if (!fs.existsSync(upload_directory)) {
+    fs.mkdirSync(upload_directory, {
         recursive: true
-    }
-);
-
-const storage = multer.diskStorage({
-    destination: uploadDirectory,
-
-    filename(req, file, callback) {
-        const extension =
-            path.extname(file.originalname)
-                .toLowerCase();
-
-        const filename =
-            `${Date.now()}-${Math.random()
-                .toString(36)
-                .slice(2)}${extension}`;
-
-        callback(null, filename);
-    }
-});
+    });
+}
 
 const upload = multer({
-    storage,
+    storage: multer.memoryStorage(),
 
     limits: {
-        fileSize: 5 * 1024 * 1024
+        fileSize: 15 * 1024 * 1024
     },
 
-    fileFilter(req, file, callback) {
+    fileFilter: (req, file, callback) => {
+
         const allowed = [
             "image/jpeg",
             "image/png",
-            "image/webp",
-            "image/gif"
+            "image/gif",
+            "image/webp"
         ];
 
         if (!allowed.includes(file.mimetype)) {
             return callback(
-                new Error(
-                    "only image files are allowed."
-                )
+                new Error("only image files are allowed")
             );
         }
 
@@ -98,1026 +82,1252 @@ const upload = multer({
     }
 });
 
+
+/* =========================================================
+   middleware
+   ========================================================= */
+
 app.set("view engine", "ejs");
+
 app.set(
     "views",
     path.join(__dirname, "views")
 );
 
-app.set("trust proxy", 1);
+app.use(express.urlencoded({
+    extended: true
+}));
 
-app.locals.adminPath = adminPath;
+app.use(express.json());
 
-app.locals.formatDate = date =>
-    new Date(date).toLocaleString();
+app.use(express.static(
+    path.join(__dirname, "public")
+));
 
-app.use(
-    express.urlencoded({
-        extended: false,
-        limit: "20kb"
-    })
-);
+app.use("/uploads", express.static(upload_directory));
 
-app.use(
-    express.static(
-        path.join(
-            __dirname,
-            "public"
-        )
-    )
-);
+
+/* =========================================================
+   sessions
+   ========================================================= */
 
 app.use(
     session({
         store: new pgSession({
-            pool: db.pool,
-            tableName: "user_sessions"
+            pool: pool,
+
+            tableName: "user_sessions",
+
+            createTableIfMissing: true
         }),
 
-        secret: sessionSecret,
+        secret:
+            process.env.SESSION_SECRET ||
+            "change-this-session-secret",
 
         resave: false,
+
         saveUninitialized: false,
-        rolling: true,
 
         cookie: {
+            maxAge: 1000 * 60 * 60 * 24 * 30,
+
             httpOnly: true,
-            sameSite: "lax",
-            secure: isProduction,
-            maxAge:
-                1000 *
-                60 *
-                60 *
-                24 *
-                30
+
+            secure:
+                process.env.NODE_ENV === "production",
+
+            sameSite: "lax"
         }
     })
 );
 
-function requireLogin(
-    req,
-    res,
-    next
-) {
-    if (!req.session.userId) {
-        return res.redirect(
-            "/login"
+
+/* =========================================================
+   helpers
+   ========================================================= */
+
+function requireLogin(req, res, next) {
+
+    if (!req.session.user_id) {
+        return res.redirect("/login");
+    }
+
+    next();
+}
+
+
+function requireAdmin(req, res, next) {
+
+    if (!req.session.user_id) {
+        return res.redirect("/login");
+    }
+
+    if (!req.user || !req.user.is_admin) {
+        return res.status(403).send(
+            "you do not have permission to access this page"
         );
     }
 
     next();
 }
 
-function requireAdmin(
-    req,
-    res,
-    next
-) {
-    if (!req.session.admin) {
-        return res.redirect(
-            adminPath
-        );
+
+function formatDate(date) {
+
+    if (!date) {
+        return "";
     }
 
-    next();
-}
-
-async function currentUser(req) {
-    if (!req.session.userId) {
-        return null;
-    }
-
-    return db
-        .prepare(`
-            select
-                id,
-                username,
-                display_name,
-                bio,
-                profile_picture,
-                created_at
-            from users
-            where id = ?
-        `)
-        .get(
-            req.session.userId
-        );
-}
-
-function back(req, fallback = "/feed") {
-    return (
-        req.get("referer") ||
-        fallback
+    return new Date(date).toLocaleString(
+        "en-us",
+        {
+            month: "short",
+            day: "numeric",
+            year: "numeric",
+            hour: "numeric",
+            minute: "2-digit"
+        }
     );
 }
 
-/* health */
 
-app.get(
-    "/health",
-    async (req, res) => {
-        try {
-            await db.pool.query(
-                "select 1"
-            );
+async function uploadToSupabase(file, folder) {
 
-            res.json({
-                status: "ok"
-            });
-        } catch (error) {
-            console.error(error);
-
-            res.status(500).json({
-                status: "error"
-            });
-        }
+    if (!file) {
+        return null;
     }
-);
 
-/* home */
-
-app.get("/", (req, res) => {
-    if (req.session.userId) {
-        return res.redirect(
-            "/feed"
+    if (
+        !process.env.SUPABASE_URL ||
+        !process.env.SUPABASE_SERVICE_ROLE_KEY
+    ) {
+        throw new Error(
+            "supabase storage is not configured"
         );
     }
 
-    res.render("index");
+    const extension =
+        path.extname(file.originalname) ||
+        ".jpg";
+
+    const filename =
+        `${folder}/${Date.now()}-${Math.random()
+            .toString(36)
+            .slice(2)}${extension}`;
+
+    const result =
+        await supabase.storage
+            .from(storage_bucket)
+            .upload(
+                filename,
+                file.buffer,
+                {
+                    contentType: file.mimetype,
+                    upsert: false
+                }
+            );
+
+    if (result.error) {
+        throw result.error;
+    }
+
+    const public_url =
+        supabase.storage
+            .from(storage_bucket)
+            .getPublicUrl(filename)
+            .data
+            .publicUrl;
+
+    return public_url;
+}
+
+
+/* =========================================================
+   current user
+   ========================================================= */
+
+app.use(async (req, res, next) => {
+
+    req.user = null;
+
+    if (!req.session.user_id) {
+        res.locals.user = null;
+
+        return next();
+    }
+
+    try {
+
+        const result = await pool.query(
+            `
+            select
+                id,
+                username,
+                email,
+                display_name,
+                bio,
+                profile_picture,
+                is_admin,
+                created_at
+            from users
+            where id = $1
+            limit 1
+            `,
+            [req.session.user_id]
+        );
+
+        if (result.rows.length) {
+
+            req.user = result.rows[0];
+
+            res.locals.user = result.rows[0];
+
+        } else {
+
+            req.session.destroy(() => {});
+
+        }
+
+    } catch (error) {
+
+        console.error(
+            "user middleware error:",
+            error
+        );
+
+    }
+
+    next();
 });
 
-/* register */
 
-app.get(
-    "/register",
-    (req, res) => {
-        res.render(
-            "register",
-            {
-                error: null
-            }
-        );
+/* =========================================================
+   global template helpers
+   ========================================================= */
+
+app.use((req, res, next) => {
+
+    res.locals.formatDate = formatDate;
+
+    next();
+});
+
+
+/* =========================================================
+   database initialization
+   ========================================================= */
+
+async function initializeDatabase() {
+
+    await pool.query(`
+        create table if not exists users (
+            id serial primary key,
+
+            username varchar(32) unique not null,
+
+            email varchar(255) unique not null,
+
+            password_hash text not null,
+
+            display_name varchar(100),
+
+            bio text,
+
+            profile_picture text,
+
+            is_admin boolean default false,
+
+            created_at timestamptz default now()
+        )
+    `);
+
+
+    await pool.query(`
+        create table if not exists communities (
+            id serial primary key,
+
+            name varchar(50) unique not null,
+
+            description text,
+
+            creator_id integer
+                references users(id)
+                on delete set null,
+
+            created_at timestamptz default now()
+        )
+    `);
+
+
+    await pool.query(`
+        create table if not exists community_members (
+            id serial primary key,
+
+            community_id integer
+                references communities(id)
+                on delete cascade,
+
+            user_id integer
+                references users(id)
+                on delete cascade,
+
+            created_at timestamptz default now(),
+
+            unique(community_id, user_id)
+        )
+    `);
+
+
+    await pool.query(`
+        create table if not exists posts (
+            id serial primary key,
+
+            user_id integer
+                references users(id)
+                on delete cascade,
+
+            community_id integer
+                references communities(id)
+                on delete set null,
+
+            content text not null,
+
+            attachment_url text,
+
+            attachment_name text,
+
+            created_at timestamptz default now()
+        )
+    `);
+
+
+    await pool.query(`
+        create table if not exists likes (
+            id serial primary key,
+
+            user_id integer
+                references users(id)
+                on delete cascade,
+
+            post_id integer
+                references posts(id)
+                on delete cascade,
+
+            created_at timestamptz default now(),
+
+            unique(user_id, post_id)
+        )
+    `);
+
+
+    await pool.query(`
+        create table if not exists comments (
+            id serial primary key,
+
+            user_id integer
+                references users(id)
+                on delete cascade,
+
+            post_id integer
+                references posts(id)
+                on delete cascade,
+
+            content text not null,
+
+            created_at timestamptz default now()
+        )
+    `);
+
+
+    await pool.query(`
+        create table if not exists follows (
+            id serial primary key,
+
+            follower_id integer
+                references users(id)
+                on delete cascade,
+
+            following_id integer
+                references users(id)
+                on delete cascade,
+
+            created_at timestamptz default now(),
+
+            unique(follower_id, following_id)
+        )
+    `);
+
+
+    console.log("database initialized");
+}
+
+
+/* =========================================================
+   home
+   ========================================================= */
+
+app.get("/", (req, res) => {
+
+    if (req.user) {
+        return res.redirect("/feed");
     }
-);
 
-app.post(
-    "/register",
-    async (req, res) => {
-        try {
-            const username =
-                String(
-                    req.body.username ||
-                        ""
+    res.redirect("/login");
+});
+
+
+/* =========================================================
+   register
+   ========================================================= */
+
+app.get("/register", (req, res) => {
+
+    if (req.user) {
+        return res.redirect("/feed");
+    }
+
+    res.render("register", {
+        error: null
+    });
+});
+
+
+app.post("/register", async (req, res) => {
+
+    try {
+
+        const username =
+            String(req.body.username || "")
+                .trim()
+                .toLowerCase();
+
+        const email =
+            String(req.body.email || "")
+                .trim()
+                .toLowerCase();
+
+        const password =
+            String(req.body.password || "");
+
+        if (
+            !username ||
+            !email ||
+            !password
+        ) {
+            return res.render("register", {
+                error: "all fields are required"
+            });
+        }
+
+        if (!/^[a-z0-9_]{3,32}$/.test(username)) {
+            return res.render("register", {
+                error:
+                    "username must be 3-32 characters and use only letters, numbers, and underscores"
+            });
+        }
+
+        if (password.length < 6) {
+            return res.render("register", {
+                error:
+                    "password must be at least 6 characters"
+            });
+        }
+
+        const existing =
+            await pool.query(
+                `
+                select id
+                from users
+                where username = $1
+                   or email = $2
+                limit 1
+                `,
+                [username, email]
+            );
+
+        if (existing.rows.length) {
+            return res.render("register", {
+                error:
+                    "that username or email is already in use"
+            });
+        }
+
+        const password_hash =
+            await bcrypt.hash(password, 12);
+
+        const result =
+            await pool.query(
+                `
+                insert into users (
+                    username,
+                    email,
+                    password_hash,
+                    display_name
                 )
-                    .trim()
-                    .toLowerCase();
-
-            const password =
-                String(
-                    req.body.password ||
-                        ""
-                );
-
-            if (
-                !/^[a-z0-9_]{3,30}$/.test(
+                values ($1, $2, $3, $4)
+                returning id
+                `,
+                [
+                    username,
+                    email,
+                    password_hash,
                     username
-                )
-            ) {
-                return res.render(
-                    "register",
-                    {
-                        error:
-                            "invalid username."
-                    }
-                );
-            }
-
-            if (
-                password.length < 8
-            ) {
-                return res.render(
-                    "register",
-                    {
-                        error:
-                            "password must be at least 8 characters."
-                    }
-                );
-            }
-
-            const existing =
-                await db
-                    .prepare(`
-                        select id
-                        from users
-                        where username = ?
-                    `)
-                    .get(username);
-
-            if (existing) {
-                return res.render(
-                    "register",
-                    {
-                        error:
-                            "that username is already taken."
-                    }
-                );
-            }
-
-            const hash =
-                await bcrypt.hash(
-                    password,
-                    12
-                );
-
-            const result =
-                await db
-                    .prepare(`
-                        insert into users (
-                            username,
-                            password
-                        )
-                        values (?, ?)
-                        returning id
-                    `)
-                    .run(
-                        username,
-                        hash
-                    );
-
-            req.session.regenerate(
-                error => {
-                    if (error) {
-                        console.error(error);
-                        return res
-                            .status(500)
-                            .send(
-                                "something went wrong."
-                            );
-                    }
-
-                    req.session.userId =
-                        result.lastInsertRowid;
-
-                    req.session.save(
-                        error => {
-                            if (error) {
-                                console.error(error);
-                                return res
-                                    .status(500)
-                                    .send(
-                                        "something went wrong."
-                                    );
-                            }
-
-                            res.redirect(
-                                "/feed"
-                            );
-                        }
-                    );
-                }
-            );
-        } catch (error) {
-            console.error(
-                "register error:",
-                error
+                ]
             );
 
-            res.status(500).send(
-                "something went wrong while creating your account."
-            );
-        }
-    }
-);
+        req.session.user_id =
+            result.rows[0].id;
 
-/* login */
+        res.redirect("/feed");
 
-app.get(
-    "/login",
-    (req, res) => {
-        res.render(
-            "login",
-            {
-                error: null
-            }
+    } catch (error) {
+
+        console.error(
+            "register error:",
+            error
+        );
+
+        res.status(500).send(
+            "internal server error"
         );
     }
-);
+});
 
-app.post(
-    "/login",
-    async (req, res) => {
-        try {
-            const username =
-                String(
-                    req.body.username ||
-                        ""
-                )
-                    .trim()
-                    .toLowerCase();
 
-            const password =
-                String(
-                    req.body.password ||
-                        ""
-                );
+/* =========================================================
+   login
+   ========================================================= */
 
-            const user =
-                await db
-                    .prepare(`
-                        select *
-                        from users
-                        where username = ?
-                    `)
-                    .get(username);
+app.get("/login", (req, res) => {
 
-            if (!user) {
-                return res.render(
-                    "login",
-                    {
-                        error:
-                            "incorrect username or password."
-                    }
-                );
-            }
-
-            const valid =
-                await bcrypt.compare(
-                    password,
-                    user.password
-                );
-
-            if (!valid) {
-                return res.render(
-                    "login",
-                    {
-                        error:
-                            "incorrect username or password."
-                    }
-                );
-            }
-
-            req.session.regenerate(
-                error => {
-                    if (error) {
-                        console.error(error);
-                        return res
-                            .status(500)
-                            .send(
-                                "something went wrong."
-                            );
-                    }
-
-                    req.session.userId =
-                        user.id;
-
-                    req.session.save(
-                        error => {
-                            if (error) {
-                                console.error(error);
-                                return res
-                                    .status(500)
-                                    .send(
-                                        "something went wrong."
-                                    );
-                            }
-
-                            res.redirect(
-                                "/feed"
-                            );
-                        }
-                    );
-                }
-            );
-        } catch (error) {
-            console.error(
-                "login error:",
-                error
-            );
-
-            res.status(500).send(
-                "something went wrong while logging you in."
-            );
-        }
+    if (req.user) {
+        return res.redirect("/feed");
     }
-);
 
-/* logout */
+    res.render("login", {
+        error: null
+    });
+});
 
-app.post(
-    "/logout",
-    requireLogin,
-    (req, res) => {
-        req.session.destroy(
-            error => {
-                if (error) {
-                    console.error(error);
-                }
 
-                res.clearCookie(
-                    "connect.sid"
-                );
+app.post("/login", async (req, res) => {
 
-                res.redirect("/");
-            }
+    try {
+
+        const username =
+            String(req.body.username || "")
+                .trim()
+                .toLowerCase();
+
+        const password =
+            String(req.body.password || "");
+
+        const result =
+            await pool.query(
+                `
+                select *
+                from users
+                where username = $1
+                limit 1
+                `,
+                [username]
+            );
+
+        if (!result.rows.length) {
+            return res.render("login", {
+                error: "invalid username or password"
+            });
+        }
+
+        const user =
+            result.rows[0];
+
+        const valid =
+            await bcrypt.compare(
+                password,
+                user.password_hash
+            );
+
+        if (!valid) {
+            return res.render("login", {
+                error: "invalid username or password"
+            });
+        }
+
+        req.session.user_id =
+            user.id;
+
+        res.redirect("/feed");
+
+    } catch (error) {
+
+        console.error(
+            "login error:",
+            error
+        );
+
+        res.status(500).send(
+            "internal server error"
         );
     }
-);
+});
 
-/* feed */
 
-app.get(
-    "/feed",
-    requireLogin,
-    async (req, res) => {
-        try {
-            const user =
-                await currentUser(req);
+/* =========================================================
+   logout
+   ========================================================= */
 
-            const posts =
-                await db
-                    .prepare(`
-                        select
-                            posts.id,
-                            posts.content,
-                            posts.created_at,
+app.post("/logout", (req, res) => {
 
-                            users.username,
-                            users.display_name,
-                            users.profile_picture,
+    req.session.destroy(() => {
+        res.redirect("/login");
+    });
+});
 
-                            communities.name
-                                as community_name,
 
-                            (
-                                select count(*)
-                                from likes
-                                where likes.post_id =
-                                    posts.id
-                            ) as likes,
+/* =========================================================
+   feed
+   ========================================================= */
 
-                            (
-                                select count(*)
-                                from comments
-                                where comments.post_id =
-                                    posts.id
-                            ) as comments,
+app.get("/feed", requireLogin, async (req, res) => {
 
-                            exists (
-                                select 1
-                                from likes
-                                where likes.post_id =
-                                    posts.id
-                                and likes.user_id = ?
-                            ) as liked
+    try {
 
-                        from posts
+        const posts =
+            await pool.query(
+                `
+                select
+                    p.*,
 
-                        join users
-                            on users.id =
-                                posts.user_id
+                    u.username,
+                    u.display_name,
 
-                        left join communities
-                            on communities.id =
-                                posts.community_id
+                    c.name as community_name,
 
-                        order by
-                            posts.created_at desc
+                    (
+                        select count(*)
+                        from likes l
+                        where l.post_id = p.id
+                    ) as likes,
 
-                        limit 100
-                    `)
-                    .all(
-                        req.session.userId
-                    );
+                    (
+                        select count(*)
+                        from comments cm
+                        where cm.post_id = p.id
+                    ) as comments,
 
-            const communities =
-                await db
-                    .prepare(`
-                        select
-                            communities.*,
+                    exists (
+                        select 1
+                        from likes l2
+                        where l2.post_id = p.id
+                        and l2.user_id = $1
+                    ) as liked
 
-                            (
-                                select count(*)
-                                from posts
-                                where posts.community_id =
-                                    communities.id
-                            ) as post_count
+                from posts p
 
-                        from communities
+                join users u
+                    on u.id = p.user_id
 
-                        order by name
+                left join communities c
+                    on c.id = p.community_id
 
-                        limit 100
-                    `)
-                    .all();
+                order by p.created_at desc
 
-            res.render(
-                "feed",
-                {
-                    user,
-                    posts,
-                    communities
-                }
-            );
-        } catch (error) {
-            console.error(
-                "feed error:",
-                error
+                limit 100
+                `,
+                [req.user.id]
             );
 
-            res.status(500).send(
-                "something went wrong while loading the feed."
+
+        const community_result =
+            await pool.query(
+                `
+                select
+                    c.*,
+
+                    count(p.id)::integer
+                        as post_count
+
+                from communities c
+
+                left join posts p
+                    on p.community_id = c.id
+
+                group by c.id
+
+                order by c.name asc
+                `
             );
+
+
+        for (const post of posts.rows) {
+
+            const comments =
+                await pool.query(
+                    `
+                    select
+                        cm.id,
+                        cm.content,
+                        cm.created_at,
+                        u.username
+
+                    from comments cm
+
+                    join users u
+                        on u.id = cm.user_id
+
+                    where cm.post_id = $1
+
+                    order by cm.created_at desc
+
+                    limit 3
+                    `,
+                    [post.id]
+                );
+
+            post.comment_list =
+                comments.rows;
         }
-    }
-);
 
-/* create post */
+
+        res.render("feed", {
+            user: req.user,
+            posts: posts.rows,
+            communities:
+                community_result.rows
+        });
+
+    } catch (error) {
+
+        console.error(
+            "feed error:",
+            error
+        );
+
+        res.status(500).send(
+            "internal server error"
+        );
+    }
+});
+
+
+/* =========================================================
+   create post
+   ========================================================= */
 
 app.post(
     "/posts",
     requireLogin,
+    upload.single("attachment"),
     async (req, res) => {
-        try {
-            const content =
-                String(
-                    req.body.content ||
-                        ""
-                ).trim();
 
-            let communityId =
+        try {
+
+            const content =
+                String(req.body.content || "")
+                    .trim();
+
+            const community_id =
                 req.body.community_id
-                    ? Number(
-                          req.body
-                              .community_id
-                      )
+                    ? Number(req.body.community_id)
                     : null;
 
-            if (
-                !content ||
-                content.length > 500
-            ) {
-                return res.redirect(
-                    "/feed"
+            if (!content) {
+                return res.redirect("/feed");
+            }
+
+            if (content.length > 500) {
+                return res.status(400).send(
+                    "post is too long"
                 );
             }
 
-            if (
-                communityId !== null &&
-                !Number.isInteger(
-                    communityId
+            let attachment_url = null;
+
+            let attachment_name = null;
+
+            if (req.file) {
+
+                attachment_url =
+                    await uploadToSupabase(
+                        req.file,
+                        `posts/${req.user.id}`
+                    );
+
+                attachment_name =
+                    req.file.originalname;
+            }
+
+
+            await pool.query(
+                `
+                insert into posts (
+                    user_id,
+                    community_id,
+                    content,
+                    attachment_url,
+                    attachment_name
                 )
-            ) {
-                communityId = null;
-            }
-
-            await db
-                .prepare(`
-                    insert into posts (
-                        user_id,
-                        community_id,
-                        content
-                    )
-                    values (?, ?, ?)
-                `)
-                .run(
-                    req.session.userId,
-                    communityId,
-                    content
-                );
-
-            res.redirect(
-                "/feed"
+                values ($1, $2, $3, $4, $5)
+                `,
+                [
+                    req.user.id,
+                    community_id,
+                    content,
+                    attachment_url,
+                    attachment_name
+                ]
             );
+
+
+            res.redirect("/feed");
+
         } catch (error) {
+
             console.error(
-                "post error:",
+                "create post error:",
                 error
             );
 
             res.status(500).send(
-                "something went wrong."
+                "internal server error"
             );
         }
     }
 );
 
-/* delete own post */
 
-app.post(
-    "/posts/:id/delete",
-    requireLogin,
-    async (req, res) => {
-        const id =
-            Number(req.params.id);
-
-        if (!Number.isInteger(id)) {
-            return res.redirect(
-                back(req)
-            );
-        }
-
-        await db
-            .prepare(`
-                delete from posts
-                where id = ?
-                and user_id = ?
-            `)
-            .run(
-                id,
-                req.session.userId
-            );
-
-        res.redirect(
-            back(req)
-        );
-    }
-);
-
-/* like */
+/* =========================================================
+   like
+   ========================================================= */
 
 app.post(
     "/posts/:id/like",
     requireLogin,
     async (req, res) => {
+
         try {
-            const id =
+
+            const post_id =
                 Number(req.params.id);
 
             const existing =
-                await db
-                    .prepare(`
-                        select id
-                        from likes
-                        where user_id = ?
-                        and post_id = ?
-                    `)
-                    .get(
-                        req.session.userId,
-                        id
-                    );
+                await pool.query(
+                    `
+                    select id
+                    from likes
+                    where user_id = $1
+                    and post_id = $2
+                    limit 1
+                    `,
+                    [
+                        req.user.id,
+                        post_id
+                    ]
+                );
 
-            if (existing) {
-                await db
-                    .prepare(`
-                        delete from likes
-                        where id = ?
-                    `)
-                    .run(
-                        existing.id
-                    );
+
+            if (existing.rows.length) {
+
+                await pool.query(
+                    `
+                    delete from likes
+                    where user_id = $1
+                    and post_id = $2
+                    `,
+                    [
+                        req.user.id,
+                        post_id
+                    ]
+                );
+
             } else {
-                await db
-                    .prepare(`
-                        insert into likes (
-                            user_id,
-                            post_id
-                        )
-                        values (?, ?)
-                        on conflict do nothing
-                    `)
-                    .run(
-                        req.session.userId,
-                        id
-                    );
+
+                await pool.query(
+                    `
+                    insert into likes (
+                        user_id,
+                        post_id
+                    )
+                    values ($1, $2)
+                    on conflict do nothing
+                    `,
+                    [
+                        req.user.id,
+                        post_id
+                    ]
+                );
             }
 
+
             res.redirect(
-                back(req)
+                req.get("referer") ||
+                "/feed"
             );
+
         } catch (error) {
-            console.error(error);
+
+            console.error(
+                "like error:",
+                error
+            );
 
             res.status(500).send(
-                "something went wrong."
+                "internal server error"
             );
         }
     }
 );
 
-/* comments */
+
+/* =========================================================
+   comments
+   ========================================================= */
 
 app.get(
     "/posts/:id/comments",
     requireLogin,
     async (req, res) => {
+
         try {
-            const id =
-                Number(req.params.id);
 
             const post =
-                await db
-                    .prepare(`
-                        select
-                            posts.*,
+                await pool.query(
+                    `
+                    select
+                        p.*,
 
-                            users.username,
-                            users.display_name,
-                            users.profile_picture,
+                        u.username,
+                        u.display_name,
 
-                            communities.name
-                                as community_name
+                        c.name as community_name
 
-                        from posts
+                    from posts p
 
-                        join users
-                            on users.id =
-                                posts.user_id
+                    join users u
+                        on u.id = p.user_id
 
-                        left join communities
-                            on communities.id =
-                                posts.community_id
+                    left join communities c
+                        on c.id = p.community_id
 
-                        where posts.id = ?
-                    `)
-                    .get(id);
+                    where p.id = $1
 
-            if (!post) {
-                return res
-                    .status(404)
-                    .send(
-                        "post not found."
-                    );
+                    limit 1
+                    `,
+                    [req.params.id]
+                );
+
+
+            if (!post.rows.length) {
+                return res.status(404).send(
+                    "post not found"
+                );
             }
 
+
             const comments =
-                await db
-                    .prepare(`
-                        select
-                            comments.*,
+                await pool.query(
+                    `
+                    select
+                        cm.*,
 
-                            users.username,
-                            users.display_name,
-                            users.profile_picture
+                        u.username,
+                        u.display_name
 
-                        from comments
+                    from comments cm
 
-                        join users
-                            on users.id =
-                                comments.user_id
+                    join users u
+                        on u.id = cm.user_id
 
-                        where comments.post_id = ?
+                    where cm.post_id = $1
 
-                        order by
-                            comments.created_at asc
-                    `)
-                    .all(id);
+                    order by cm.created_at asc
+                    `,
+                    [req.params.id]
+                );
 
-            res.render(
-                "comments",
-                {
-                    user:
-                        await currentUser(
-                            req
-                        ),
-                    post,
-                    comments
-                }
-            );
+
+            res.render("comments", {
+                user: req.user,
+                post: post.rows[0],
+                comments: comments.rows
+            });
+
         } catch (error) {
+
             console.error(
-                "comments error:",
+                "comments page error:",
                 error
             );
 
             res.status(500).send(
-                "something went wrong."
+                "internal server error"
             );
         }
     }
 );
+
 
 app.post(
     "/posts/:id/comments",
     requireLogin,
     async (req, res) => {
+
         try {
-            const id =
-                Number(req.params.id);
 
             const content =
-                String(
-                    req.body.content ||
-                        ""
-                ).trim();
+                String(req.body.content || "")
+                    .trim();
 
-            if (
-                !content ||
-                content.length > 300
-            ) {
+            if (!content) {
                 return res.redirect(
-                    `/posts/${id}/comments`
+                    `/posts/${req.params.id}/comments`
                 );
             }
 
-            await db
-                .prepare(`
-                    insert into comments (
-                        user_id,
-                        post_id,
-                        content
-                    )
-                    values (?, ?, ?)
-                `)
-                .run(
-                    req.session.userId,
-                    id,
-                    content
+            if (content.length > 300) {
+                return res.status(400).send(
+                    "comment is too long"
                 );
+            }
+
+            await pool.query(
+                `
+                insert into comments (
+                    user_id,
+                    post_id,
+                    content
+                )
+                values ($1, $2, $3)
+                `,
+                [
+                    req.user.id,
+                    req.params.id,
+                    content
+                ]
+            );
+
 
             res.redirect(
-                `/posts/${id}/comments`
+                `/posts/${req.params.id}/comments`
             );
+
         } catch (error) {
-            console.error(error);
+
+            console.error(
+                "comment error:",
+                error
+            );
 
             res.status(500).send(
-                "something went wrong."
+                "internal server error"
             );
         }
     }
 );
 
-/* profile */
+
+/* =========================================================
+   delete post
+   ========================================================= */
+
+app.post(
+    "/posts/:id/delete",
+    requireLogin,
+    async (req, res) => {
+
+        try {
+
+            await pool.query(
+                `
+                delete from posts
+
+                where id = $1
+
+                and (
+                    user_id = $2
+
+                    or exists (
+                        select 1
+                        from users
+                        where id = $2
+                        and is_admin = true
+                    )
+                )
+                `,
+                [
+                    req.params.id,
+                    req.user.id
+                ]
+            );
+
+
+            res.redirect(
+                req.get("referer") ||
+                "/feed"
+            );
+
+        } catch (error) {
+
+            console.error(
+                "delete post error:",
+                error
+            );
+
+            res.status(500).send(
+                "internal server error"
+            );
+        }
+    }
+);
+
+
+/* =========================================================
+   profile
+   ========================================================= */
 
 app.get(
     "/u/:username",
     requireLogin,
     async (req, res) => {
+
         try {
+
             const username =
-                String(
-                    req.params.username
-                ).toLowerCase();
+                String(req.params.username)
+                    .trim()
+                    .toLowerCase();
+
+
+            const profile_result =
+                await pool.query(
+                    `
+                    select
+                        id,
+                        username,
+                        email,
+                        display_name,
+                        bio,
+                        profile_picture,
+                        is_admin,
+                        created_at
+
+                    from users
+
+                    where username = $1
+
+                    limit 1
+                    `,
+                    [username]
+                );
+
+
+            if (!profile_result.rows.length) {
+
+                return res.status(404).send(
+                    "user not found"
+                );
+            }
+
 
             const profile =
-                await db
-                    .prepare(`
-                        select
-                            id,
-                            username,
-                            display_name,
-                            bio,
-                            profile_picture,
-                            created_at
-                        from users
-                        where username = ?
-                    `)
-                    .get(username);
+                profile_result.rows[0];
 
-            if (!profile) {
-                return res
-                    .status(404)
-                    .send(
-                        "user not found."
-                    );
-            }
 
-            const posts =
-                await db
-                    .prepare(`
-                        select
-                            posts.*,
+            const posts_result =
+                await pool.query(
+                    `
+                    select
+                        p.*,
 
-                            communities.name
-                                as community_name,
+                        c.name as community_name,
 
-                            (
-                                select count(*)
-                                from likes
-                                where likes.post_id =
-                                    posts.id
-                            ) as likes,
+                        (
+                            select count(*)
+                            from comments cm
+                            where cm.post_id = p.id
+                        ) as comments,
 
-                            (
-                                select count(*)
-                                from comments
-                                where comments.post_id =
-                                    posts.id
-                            ) as comments
+                        (
+                            select count(*)
+                            from likes l
+                            where l.post_id = p.id
+                        ) as likes
 
-                        from posts
+                    from posts p
 
-                        left join communities
-                            on communities.id =
-                                posts.community_id
+                    left join communities c
+                        on c.id = p.community_id
 
-                        where posts.user_id = ?
+                    where p.user_id = $1
 
-                        order by
-                            posts.created_at desc
-                    `)
-                    .all(profile.id);
+                    order by p.created_at desc
 
-            const followerCount =
-                await db
-                    .prepare(`
-                        select count(*) as count
-                        from follows
-                        where following_id = ?
-                    `)
-                    .get(profile.id);
+                    limit 100
+                    `,
+                    [profile.id]
+                );
 
-            const followingCount =
-                await db
-                    .prepare(`
-                        select count(*) as count
-                        from follows
-                        where follower_id = ?
-                    `)
-                    .get(profile.id);
 
-            let following = false;
+            res.render("profile", {
+                user: req.user,
 
-            if (
-                profile.id !==
-                req.session.userId
-            ) {
-                following =
-                    !!await db
-                        .prepare(`
-                            select id
-                            from follows
-                            where follower_id = ?
-                            and following_id = ?
-                        `)
-                        .get(
-                            req.session.userId,
-                            profile.id
-                        );
-            }
+                profile: profile,
 
-            res.render(
-                "profile",
-                {
-                    user: profile,
-                    currentUser:
-                        await currentUser(
-                            req
-                        ),
-                    posts,
-                    followers:
-                        followerCount.count,
-                    following:
-                        followingCount.count,
-                    isFollowing:
-                        following
-                }
-            );
+                posts: posts_result.rows
+            });
+
         } catch (error) {
+
             console.error(
-                "profile error:",
-                error
+                "profile page error:"
             );
+
+            console.error(error);
 
             res.status(500).send(
-                "something went wrong."
+                "internal server error"
             );
         }
     }
 );
 
-/* profile settings */
+
+/* =========================================================
+   profile settings
+   ========================================================= */
 
 app.get(
     "/settings/profile",
     requireLogin,
-    async (req, res) => {
+    (req, res) => {
+
         res.render(
             "profile-settings",
             {
-                user:
-                    await currentUser(
-                        req
-                    ),
-                error: null
+                user: req.user,
+
+                error: null,
+
+                success: null
             }
         );
     }
 );
 
-app.get(
-    "/profile/settings",
-    requireLogin,
-    (req, res) => {
-        res.redirect(
-            "/settings/profile"
-        );
-    }
-);
 
 app.post(
     "/settings/profile",
     requireLogin,
-    upload.single(
-        "profile_picture"
-    ),
+    upload.single("profile_picture"),
     async (req, res) => {
+
         try {
-            const displayName =
+
+            const display_name =
                 String(
-                    req.body
-                        .display_name ||
-                        ""
+                    req.body.display_name || ""
                 ).trim();
 
             const bio =
@@ -1125,788 +1335,743 @@ app.post(
                     req.body.bio || ""
                 ).trim();
 
-            if (
-                displayName.length >
-                40
-            ) {
-                return res.render(
-                    "profile-settings",
-                    {
-                        user:
-                            await currentUser(
-                                req
-                            ),
-                        error:
-                            "display name is too long."
-                    }
-                );
-            }
 
-            if (
-                bio.length > 500
-            ) {
-                return res.render(
-                    "profile-settings",
-                    {
-                        user:
-                            await currentUser(
-                                req
-                            ),
-                        error:
-                            "bio is too long."
-                    }
-                );
-            }
+            let profile_picture =
+                req.user.profile_picture;
 
-            let picture;
 
             if (req.file) {
-                picture =
-                    "/uploads/" +
-                    req.file.filename;
-            }
 
-            if (picture) {
-                await db
-                    .prepare(`
-                        update users
-                        set
-                            display_name = ?,
-                            bio = ?,
-                            profile_picture = ?
-                        where id = ?
-                    `)
-                    .run(
-                        displayName,
-                        bio,
-                        picture,
-                        req.session.userId
-                    );
-            } else {
-                await db
-                    .prepare(`
-                        update users
-                        set
-                            display_name = ?,
-                            bio = ?
-                        where id = ?
-                    `)
-                    .run(
-                        displayName,
-                        bio,
-                        req.session.userId
+                profile_picture =
+                    await uploadToSupabase(
+                        req.file,
+                        `profiles/${req.user.id}`
                     );
             }
 
-            const updated =
-                await currentUser(
-                    req
-                );
+
+            await pool.query(
+                `
+                update users
+
+                set
+                    display_name = $1,
+                    bio = $2,
+                    profile_picture = $3
+
+                where id = $4
+                `,
+                [
+                    display_name || req.user.username,
+                    bio,
+                    profile_picture,
+                    req.user.id
+                ]
+            );
+
 
             res.redirect(
-                `/u/${updated.username}`
+                `/u/${req.user.username}`
             );
+
         } catch (error) {
+
             console.error(
-                "profile update error:",
+                "profile settings error:",
                 error
             );
 
-            res.status(500).send(
-                "something went wrong while updating your profile."
+            res.render(
+                "profile-settings",
+                {
+                    user: req.user,
+
+                    error:
+                        "could not update your profile",
+
+                    success: null
+                }
             );
         }
     }
 );
 
-/* follow */
 
-app.post(
-    "/u/:username/follow",
-    requireLogin,
-    async (req, res) => {
-        const username =
-            String(
-                req.params.username
-            ).toLowerCase();
-
-        const target =
-            await db
-                .prepare(`
-                    select id
-                    from users
-                    where username = ?
-                `)
-                .get(username);
-
-        if (
-            !target ||
-            target.id ===
-                req.session.userId
-        ) {
-            return res.redirect(
-                `/u/${username}`
-            );
-        }
-
-        const existing =
-            await db
-                .prepare(`
-                    select id
-                    from follows
-                    where follower_id = ?
-                    and following_id = ?
-                `)
-                .get(
-                    req.session.userId,
-                    target.id
-                );
-
-        if (existing) {
-            await db
-                .prepare(`
-                    delete from follows
-                    where id = ?
-                `)
-                .run(existing.id);
-        } else {
-            await db
-                .prepare(`
-                    insert into follows (
-                        follower_id,
-                        following_id
-                    )
-                    values (?, ?)
-                    on conflict do nothing
-                `)
-                .run(
-                    req.session.userId,
-                    target.id
-                );
-        }
-
-        res.redirect(
-            `/u/${username}`
-        );
-    }
-);
-
-/* communities */
+/* =========================================================
+   communities
+   ========================================================= */
 
 app.get(
     "/communities",
     requireLogin,
     async (req, res) => {
+
         try {
-            const communities =
-                await db
-                    .prepare(`
-                        select
-                            communities.*,
 
-                            (
-                                select count(*)
-                                from posts
-                                where posts.community_id =
-                                    communities.id
-                            ) as post_count
+            const result =
+                await pool.query(
+                    `
+                    select
+                        c.*,
 
-                        from communities
+                        u.username
+                            as creator_username,
 
-                        order by name
-                    `)
-                    .all();
+                        count(p.id)::integer
+                            as post_count
 
-            res.render(
-                "communities",
-                {
-                    user:
-                        await currentUser(
-                            req
-                        ),
-                    communities
-                }
-            );
+                    from communities c
+
+                    left join users u
+                        on u.id = c.creator_id
+
+                    left join posts p
+                        on p.community_id = c.id
+
+                    group by
+                        c.id,
+                        u.username
+
+                    order by c.name asc
+                    `
+                );
+
+
+            res.render("communities", {
+                user: req.user,
+
+                communities: result.rows
+            });
+
         } catch (error) {
+
             console.error(
                 "communities error:",
                 error
             );
 
             res.status(500).send(
-                "something went wrong while loading communities."
+                "internal server error"
             );
         }
     }
 );
 
-/* community */
+
+/* =========================================================
+   create community
+   ========================================================= */
+
+app.post(
+    "/communities",
+    requireLogin,
+    async (req, res) => {
+
+        try {
+
+            const name =
+                String(req.body.name || "")
+                    .trim()
+                    .toLowerCase();
+
+            const description =
+                String(
+                    req.body.description || ""
+                ).trim();
+
+
+            if (!/^[a-z0-9_]{2,50}$/.test(name)) {
+
+                return res.status(400).send(
+                    "community name must use only letters, numbers, and underscores"
+                );
+            }
+
+
+            await pool.query(
+                `
+                insert into communities (
+                    name,
+                    description,
+                    creator_id
+                )
+                values ($1, $2, $3)
+                `,
+                [
+                    name,
+                    description,
+                    req.user.id
+                ]
+            );
+
+
+            res.redirect("/communities");
+
+        } catch (error) {
+
+            console.error(
+                "create community error:",
+                error
+            );
+
+            if (
+                error.code === "23505"
+            ) {
+                return res.status(400).send(
+                    "that community already exists"
+                );
+            }
+
+            res.status(500).send(
+                "internal server error"
+            );
+        }
+    }
+);
+
+
+/* =========================================================
+   community page
+   ========================================================= */
 
 app.get(
     "/c/:name",
     requireLogin,
     async (req, res) => {
+
         try {
+
             const name =
-                String(
-                    req.params.name
-                ).toLowerCase();
+                String(req.params.name)
+                    .trim()
+                    .toLowerCase();
 
-            const community =
-                await db
-                    .prepare(`
-                        select *
-                        from communities
-                        where lower(name) = ?
-                    `)
-                    .get(name);
 
-            if (!community) {
-                return res
-                    .status(404)
-                    .send(
-                        "community not found."
-                    );
+            const community_result =
+                await pool.query(
+                    `
+                    select
+                        c.*,
+
+                        u.username
+                            as creator_username
+
+                    from communities c
+
+                    left join users u
+                        on u.id = c.creator_id
+
+                    where c.name = $1
+
+                    limit 1
+                    `,
+                    [name]
+                );
+
+
+            if (!community_result.rows.length) {
+                return res.status(404).send(
+                    "community not found"
+                );
             }
 
-            const posts =
-                await db
-                    .prepare(`
-                        select
-                            posts.*,
 
-                            users.username,
-                            users.display_name,
-                            users.profile_picture,
+            const community =
+                community_result.rows[0];
 
-                            (
-                                select count(*)
-                                from likes
-                                where likes.post_id =
-                                    posts.id
-                            ) as likes,
 
-                            (
-                                select count(*)
-                                from comments
-                                where comments.post_id =
-                                    posts.id
-                            ) as comments
+            const posts_result =
+                await pool.query(
+                    `
+                    select
+                        p.*,
 
-                        from posts
+                        u.username,
+                        u.display_name,
 
-                        join users
-                            on users.id =
-                                posts.user_id
+                        (
+                            select count(*)
+                            from likes l
+                            where l.post_id = p.id
+                        ) as likes,
 
-                        where posts.community_id = ?
+                        (
+                            select count(*)
+                            from comments cm
+                            where cm.post_id = p.id
+                        ) as comments
 
-                        order by
-                            posts.created_at desc
-                    `)
-                    .all(
-                        community.id
-                    );
+                    from posts p
 
-            res.render(
-                "community",
-                {
-                    user:
-                        await currentUser(
-                            req
-                        ),
-                    community,
-                    posts
-                }
-            );
+                    join users u
+                        on u.id = p.user_id
+
+                    where p.community_id = $1
+
+                    order by p.created_at desc
+
+                    limit 100
+                    `,
+                    [community.id]
+                );
+
+
+            res.render("community", {
+                user: req.user,
+
+                community: community,
+
+                posts: posts_result.rows
+            });
+
         } catch (error) {
+
             console.error(
-                "community error:",
+                "community page error:",
                 error
             );
 
             res.status(500).send(
-                "something went wrong while loading the community."
+                "internal server error"
             );
         }
     }
 );
 
-/* search */
+
+/* =========================================================
+   search
+   ========================================================= */
 
 app.get(
     "/search",
     requireLogin,
     async (req, res) => {
+
         try {
+
             const query =
-                String(
-                    req.query.q || ""
-                ).trim();
+                String(req.query.q || "")
+                    .trim();
+
 
             let users = [];
-            let posts = [];
+
             let communities = [];
 
+            let posts = [];
+
+
             if (query) {
-                const term =
+
+                const search =
                     `%${query}%`;
 
+
+                const users_result =
+                    await pool.query(
+                        `
+                        select
+                            id,
+                            username,
+                            display_name,
+                            profile_picture
+
+                        from users
+
+                        where username ilike $1
+
+                           or display_name ilike $1
+
+                        order by username
+
+                        limit 25
+                        `,
+                        [search]
+                    );
+
+
+                const communities_result =
+                    await pool.query(
+                        `
+                        select
+                            c.*,
+
+                            count(p.id)::integer
+                                as post_count
+
+                        from communities c
+
+                        left join posts p
+                            on p.community_id = c.id
+
+                        where c.name ilike $1
+
+                           or c.description ilike $1
+
+                        group by c.id
+
+                        order by c.name
+
+                        limit 25
+                        `,
+                        [search]
+                    );
+
+
+                const posts_result =
+                    await pool.query(
+                        `
+                        select
+                            p.id,
+                            p.content,
+                            p.created_at,
+
+                            u.username,
+
+                            c.name
+                                as community_name
+
+                        from posts p
+
+                        join users u
+                            on u.id = p.user_id
+
+                        left join communities c
+                            on c.id = p.community_id
+
+                        where p.content ilike $1
+
+                        order by p.created_at desc
+
+                        limit 50
+                        `,
+                        [search]
+                    );
+
+
                 users =
-                    await db
-                        .prepare(`
-                            select
-                                id,
-                                username,
-                                display_name,
-                                bio,
-                                profile_picture
-                            from users
-                            where
-                                username ilike ?
-                                or display_name ilike ?
-                            order by username
-                            limit 50
-                        `)
-                        .all(
-                            term,
-                            term
-                        );
-
-                posts =
-                    await db
-                        .prepare(`
-                            select
-                                posts.*,
-
-                                users.username,
-                                users.display_name,
-                                users.profile_picture,
-
-                                communities.name
-                                    as community_name,
-
-                                (
-                                    select count(*)
-                                    from likes
-                                    where likes.post_id =
-                                        posts.id
-                                ) as likes,
-
-                                (
-                                    select count(*)
-                                    from comments
-                                    where comments.post_id =
-                                        posts.id
-                                ) as comments
-
-                            from posts
-
-                            join users
-                                on users.id =
-                                    posts.user_id
-
-                            left join communities
-                                on communities.id =
-                                    posts.community_id
-
-                            where
-                                posts.content ilike ?
-                                or users.username ilike ?
-                                or users.display_name ilike ?
-                                or communities.name ilike ?
-
-                            order by
-                                posts.created_at desc
-
-                            limit 100
-                        `)
-                        .all(
-                            term,
-                            term,
-                            term,
-                            term
-                        );
+                    users_result.rows;
 
                 communities =
-                    await db
-                        .prepare(`
-                            select
-                                communities.*,
+                    communities_result.rows;
 
-                                (
-                                    select count(*)
-                                    from posts
-                                    where posts.community_id =
-                                        communities.id
-                                ) as post_count
-
-                            from communities
-
-                            where
-                                name ilike ?
-                                or description ilike ?
-
-                            order by name
-
-                            limit 50
-                        `)
-                        .all(
-                            term,
-                            term
-                        );
+                posts =
+                    posts_result.rows;
             }
 
-            res.render(
-                "search",
-                {
-                    user:
-                        await currentUser(
-                            req
-                        ),
-                    query,
-                    users,
-                    posts,
-                    communities
-                }
-            );
+
+            res.render("search", {
+                user: req.user,
+
+                query: query,
+
+                users: users,
+
+                communities: communities,
+
+                posts: posts
+            });
+
         } catch (error) {
+
             console.error(
                 "search error:",
                 error
             );
 
             res.status(500).send(
-                "something went wrong while searching."
+                "internal server error"
             );
         }
     }
 );
 
-/* admin login */
+
+/* =========================================================
+   admin
+   ========================================================= */
 
 app.get(
-    adminPath,
-    (req, res) => {
-        if (req.session.admin) {
-            return res.redirect(
-                `${adminPath}/dashboard`
-            );
-        }
-
-        res.render(
-            "admin-login",
-            {
-                error: null
-            }
-        );
-    }
-);
-
-app.post(
-    adminPath,
-    (req, res) => {
-        const password =
-            String(
-                req.body.password ||
-                    ""
-            );
-
-        if (
-            password !==
-            adminPassword
-        ) {
-            return res.render(
-                "admin-login",
-                {
-                    error:
-                        "incorrect password."
-                }
-            );
-        }
-
-        req.session.admin = true;
-
-        req.session.save(
-            error => {
-                if (error) {
-                    console.error(error);
-
-                    return res
-                        .status(500)
-                        .send(
-                            "something went wrong."
-                        );
-                }
-
-                res.redirect(
-                    `${adminPath}/dashboard`
-                );
-            }
-        );
-    }
-);
-
-/* admin dashboard */
-
-app.get(
-    `${adminPath}/dashboard`,
+    "/admin",
     requireAdmin,
     async (req, res) => {
+
         try {
+
             const users =
-                await db
-                    .prepare(`
-                        select
-                            id,
-                            username,
-                            display_name,
-                            bio,
-                            profile_picture,
-                            created_at
-                        from users
-                        order by created_at desc
-                        limit 500
-                    `)
-                    .all();
+                await pool.query(
+                    `
+                    select
+                        id,
+                        username,
+                        email,
+                        is_admin,
+                        created_at
+
+                    from users
+
+                    order by created_at desc
+
+                    limit 100
+                    `
+                );
+
 
             const posts =
-                await db
-                    .prepare(`
-                        select
-                            posts.id,
-                            posts.content,
-                            posts.created_at,
+                await pool.query(
+                    `
+                    select
+                        p.id,
+                        p.content,
+                        p.created_at,
 
-                            users.username,
+                        u.username
 
-                            communities.name
-                                as community_name
+                    from posts p
 
-                        from posts
+                    join users u
+                        on u.id = p.user_id
 
-                        join users
-                            on users.id =
-                                posts.user_id
+                    order by p.created_at desc
 
-                        left join communities
-                            on communities.id =
-                                posts.community_id
+                    limit 100
+                    `
+                );
 
-                        order by posts.created_at desc
-                        limit 500
-                    `)
-                    .all();
 
             const communities =
-                await db
-                    .prepare(`
-                        select
-                            communities.*,
+                await pool.query(
+                    `
+                    select
+                        c.id,
+                        c.name,
+                        c.description,
+                        c.created_at,
 
-                            (
-                                select count(*)
-                                from posts
-                                where posts.community_id =
-                                    communities.id
-                            ) as post_count
+                        u.username
+                            as creator_username
 
-                        from communities
+                    from communities c
 
-                        order by created_at desc
-                    `)
-                    .all();
+                    left join users u
+                        on u.id = c.creator_id
 
-            res.render(
-                "admin",
-                {
-                    users,
-                    posts,
-                    communities
-                }
-            );
+                    order by c.created_at desc
+
+                    limit 100
+                    `
+                );
+
+
+            res.render("admin", {
+                user: req.user,
+
+                users: users.rows,
+
+                posts: posts.rows,
+
+                communities:
+                    communities.rows
+            });
+
         } catch (error) {
+
             console.error(
                 "admin error:",
                 error
             );
 
             res.status(500).send(
-                "something went wrong while loading the admin panel."
+                "internal server error"
             );
         }
     }
 );
 
-/* admin logout */
+
+/* =========================================================
+   admin delete post
+   ========================================================= */
 
 app.post(
-    `${adminPath}/logout`,
+    "/admin/posts/:id/delete",
     requireAdmin,
-    (req, res) => {
-        req.session.admin = false;
+    async (req, res) => {
 
-        req.session.save(
-            error => {
-                if (error) {
-                    console.error(error);
-                }
+        try {
 
-                res.redirect(
-                    adminPath
+            await pool.query(
+                `
+                delete from posts
+                where id = $1
+                `,
+                [req.params.id]
+            );
+
+
+            res.redirect("/admin");
+
+        } catch (error) {
+
+            console.error(
+                "admin delete post error:",
+                error
+            );
+
+            res.status(500).send(
+                "internal server error"
+            );
+        }
+    }
+);
+
+
+/* =========================================================
+   admin delete user
+   ========================================================= */
+
+app.post(
+    "/admin/users/:id/delete",
+    requireAdmin,
+    async (req, res) => {
+
+        try {
+
+            const target_id =
+                Number(req.params.id);
+
+
+            if (
+                target_id ===
+                Number(req.user.id)
+            ) {
+                return res.status(400).send(
+                    "you cannot delete yourself"
                 );
             }
-        );
-    }
-);
 
-/* admin delete post */
 
-app.post(
-    `${adminPath}/posts/:id/delete`,
-    requireAdmin,
-    async (req, res) => {
-        await db
-            .prepare(`
-                delete from posts
-                where id = ?
-            `)
-            .run(
-                Number(req.params.id)
-            );
-
-        res.redirect(
-            `${adminPath}/dashboard`
-        );
-    }
-);
-
-/* admin delete user */
-
-app.post(
-    `${adminPath}/users/:id/delete`,
-    requireAdmin,
-    async (req, res) => {
-        await db
-            .prepare(`
+            await pool.query(
+                `
                 delete from users
-                where id = ?
-            `)
-            .run(
-                Number(req.params.id)
+                where id = $1
+                `,
+                [target_id]
             );
 
-        res.redirect(
-            `${adminPath}/dashboard`
-        );
+
+            res.redirect("/admin");
+
+        } catch (error) {
+
+            console.error(
+                "admin delete user error:",
+                error
+            );
+
+            res.status(500).send(
+                "internal server error"
+            );
+        }
     }
 );
 
-/* admin create community */
 
-app.post(
-    `${adminPath}/communities/create`,
-    requireAdmin,
-    async (req, res) => {
-        const name =
-            String(
-                req.body.name || ""
-            )
-                .trim()
-                .toLowerCase();
+/* =========================================================
+   health check
+   ========================================================= */
 
-        const description =
-            String(
-                req.body.description ||
-                    ""
-            ).trim();
+app.get("/health", async (req, res) => {
+
+    try {
+
+        await pool.query("select 1");
+
+        res.json({
+            status: "ok"
+        });
+
+    } catch (error) {
+
+        res.status(500).json({
+            status: "error"
+        });
+    }
+});
+
+
+/* =========================================================
+   upload error handler
+   ========================================================= */
+
+app.use((error, req, res, next) => {
+
+    console.error(
+        "server error:",
+        error
+    );
+
+
+    if (
+        error instanceof multer.MulterError
+    ) {
 
         if (
-            !/^[a-z0-9_-]{2,50}$/.test(
-                name
-            )
+            error.code ===
+            "LIMIT_FILE_SIZE"
         ) {
-            return res
-                .status(400)
-                .send(
-                    "invalid community name."
-                );
+
+            return res.status(400).send(
+                "file is too large. maximum size is 15mb"
+            );
         }
+    }
 
-        await db
-            .prepare(`
-                insert into communities (
-                    name,
-                    description
-                )
-                values (?, ?)
-                on conflict (name)
-                do nothing
-            `)
-            .run(
-                name,
-                description
-            );
 
-        res.redirect(
-            `${adminPath}/dashboard`
+    if (
+        error.message ===
+        "only image files are allowed"
+    ) {
+
+        return res.status(400).send(
+            "only png, jpeg, gif, and webp images are allowed"
         );
     }
-);
 
-/* admin delete community */
 
-app.post(
-    `${adminPath}/communities/:id/delete`,
-    requireAdmin,
-    async (req, res) => {
-        await db
-            .prepare(`
-                delete from communities
-                where id = ?
-            `)
-            .run(
-                Number(req.params.id)
-            );
+    res.status(500).send(
+        "internal server error"
+    );
+});
 
-        res.redirect(
-            `${adminPath}/dashboard`
-        );
-    }
-);
 
-/* 404 */
+/* =========================================================
+   start
+   ========================================================= */
 
-app.use(
-    (req, res) => {
-        res.status(404).send(
-            "page not found."
-        );
-    }
-);
-
-/* start */
-
-async function start() {
-    try {
-        await db.initializeDatabase();
+initializeDatabase()
+    .then(() => {
 
         app.listen(
             port,
+            "0.0.0.0",
             () => {
+
                 console.log(
-                    `helloworld is running on port ${port}`
+                    `helloworld running on port ${port}`
                 );
             }
         );
-    } catch (error) {
+
+    })
+    .catch(error => {
+
         console.error(
-            "failed to start server:",
-            error
+            "failed to initialize database:"
         );
 
-        process.exit(1);
-    }
-}
+        console.error(error);
 
-start();
+        process.exit(1);
+    });
