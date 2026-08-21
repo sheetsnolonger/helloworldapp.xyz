@@ -1084,6 +1084,195 @@ app.post(
     }
 );
 
+const ADMIN_PASSWORD = "SamanthaVT*374-SJpa";
+const ADMIN_URL = "/mavellorinthal";
+
+function requireAdmin(req, res, next) {
+    if (!req.session.admin) {
+        return res.redirect(ADMIN_URL);
+    }
+
+    next();
+}
+
+app.get(ADMIN_URL, (req, res) => {
+    if (req.session.admin) {
+        return res.redirect(ADMIN_URL + "/panel");
+    }
+
+    res.render("admin-login", {
+        error: null
+    });
+});
+
+app.post(ADMIN_URL, (req, res) => {
+    const password = String(req.body.password || "");
+
+    if (password !== ADMIN_PASSWORD) {
+        return res.status(401).render("admin-login", {
+            error: "incorrect password."
+        });
+    }
+
+    req.session.admin = true;
+
+    req.session.save(error => {
+        if (error) {
+            console.error(error);
+            return res.status(500).send("something went wrong.");
+        }
+
+        res.redirect(ADMIN_URL + "/panel");
+    });
+});
+
+app.post(ADMIN_URL + "/logout", requireAdmin, (req, res) => {
+    req.session.admin = false;
+
+    req.session.save(() => {
+        res.redirect(ADMIN_URL);
+    });
+});
+
+app.get(ADMIN_URL + "/panel", requireAdmin, async (req, res) => {
+    try {
+        const users = await db.prepare(`
+            select
+                users.id,
+                users.username,
+                users.bio,
+                users.created_at,
+                (
+                    select count(*)
+                    from posts
+                    where posts.user_id = users.id
+                ) as post_count
+            from users
+            order by users.created_at desc
+        `).all();
+
+        const posts = await db.prepare(`
+            select
+                posts.id,
+                posts.content,
+                posts.created_at,
+                users.username
+            from posts
+            join users on users.id = posts.user_id
+            order by posts.created_at desc
+            limit 100
+        `).all();
+
+        const communities = await db.prepare(`
+            select
+                communities.id,
+                communities.name,
+                communities.description,
+                communities.created_at
+            from communities
+            order by communities.created_at desc
+        `).all();
+
+        res.render("admin", {
+            users,
+            posts,
+            communities
+        });
+    } catch (error) {
+        console.error(error);
+        res.status(500).send("something went wrong.");
+    }
+});
+
+app.post(ADMIN_URL + "/posts/:id/delete", requireAdmin, async (req, res) => {
+    const postId = Number(req.params.id);
+
+    if (!Number.isInteger(postId)) {
+        return res.redirect(ADMIN_URL + "/panel");
+    }
+
+    try {
+        await db.prepare(
+            "delete from posts where id = ?"
+        ).run(postId);
+
+        res.redirect(ADMIN_URL + "/panel");
+    } catch (error) {
+        console.error(error);
+        res.status(500).send("something went wrong.");
+    }
+});
+
+app.post(ADMIN_URL + "/users/:id/delete", requireAdmin, async (req, res) => {
+    const userId = Number(req.params.id);
+
+    if (!Number.isInteger(userId)) {
+        return res.redirect(ADMIN_URL + "/panel");
+    }
+
+    try {
+        await db.prepare(
+            "delete from users where id = ?"
+        ).run(userId);
+
+        res.redirect(ADMIN_URL + "/panel");
+    } catch (error) {
+        console.error(error);
+        res.status(500).send("something went wrong.");
+    }
+});
+
+app.post(ADMIN_URL + "/communities", requireAdmin, async (req, res) => {
+    const name = String(req.body.name || "")
+        .trim()
+        .toLowerCase();
+
+    const description = String(req.body.description || "")
+        .trim();
+
+    if (
+        !/^[a-z0-9_-]{2,50}$/.test(name) ||
+        description.length > 300
+    ) {
+        return res.redirect(ADMIN_URL + "/panel");
+    }
+
+    try {
+        await db.prepare(`
+            insert into communities (name, description)
+            values (?, ?)
+            on conflict (name) do nothing
+        `).run(name, description);
+
+        res.redirect(ADMIN_URL + "/panel");
+    } catch (error) {
+        console.error(error);
+        res.status(500).send("something went wrong.");
+    }
+});
+
+app.post(
+    ADMIN_URL + "/communities/:id/delete",
+    requireAdmin,
+    async (req, res) => {
+        const communityId = Number(req.params.id);
+
+        if (!Number.isInteger(communityId)) {
+            return res.redirect(ADMIN_URL + "/panel");
+        }
+
+        try {
+            await db.prepare(
+                "delete from communities where id = ?"
+            ).run(communityId);
+
+            res.redirect(ADMIN_URL + "/panel");
+        } catch (error) {
+            console.error(error);
+            res.status(500).send("something went wrong.");
+        }
+    }
+);
 
 /*
     404
