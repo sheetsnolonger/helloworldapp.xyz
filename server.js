@@ -1455,6 +1455,142 @@ app.post(
     }
 );
 
+app.post("/profile/customize", requireLogin, async (req, res) => {
+    try {
+        const bio = String(req.body.bio || "").trim();
+        const displayName = String(req.body.display_name || "").trim();
+
+        if (bio.length > 300) {
+            return res.redirect(
+                req.get("referer") || "/feed"
+            );
+        }
+
+        if (displayName.length > 40) {
+            return res.redirect(
+                req.get("referer") || "/feed"
+            );
+        }
+
+        await db.prepare(`
+            update users
+            set
+                bio = ?,
+                display_name = ?
+            where id = ?
+        `).run(
+            bio,
+            displayName,
+            req.session.userId
+        );
+
+        res.redirect(
+            "/u/" + req.body.username
+        );
+
+    } catch (error) {
+        console.error(
+            "profile customization error:",
+            error
+        );
+
+        res.status(500).send(
+            "something went wrong."
+        );
+    }
+});
+
+app.get("/posts/:id", requireLogin, async (req, res) => {
+    try {
+        const postId = Number(req.params.id);
+
+        if (!Number.isInteger(postId)) {
+            return res.status(404).send(
+                "post not found."
+            );
+        }
+
+        const post = await db.prepare(`
+            select
+                posts.id,
+                posts.user_id,
+                posts.community_id,
+                posts.content,
+                posts.created_at,
+
+                users.username,
+                users.display_name,
+
+                communities.name as community_name,
+
+                (
+                    select count(*)
+                    from likes
+                    where likes.post_id = posts.id
+                ) as likes,
+
+                exists(
+                    select 1
+                    from likes
+                    where likes.post_id = posts.id
+                    and likes.user_id = ?
+                ) as liked
+
+            from posts
+
+            join users
+                on users.id = posts.user_id
+
+            left join communities
+                on communities.id = posts.community_id
+
+            where posts.id = ?
+        `).get(
+            req.session.userId,
+            postId
+        );
+
+        if (!post) {
+            return res.status(404).send(
+                "post not found."
+            );
+        }
+
+        const comments = await db.prepare(`
+            select
+                comments.id,
+                comments.content,
+                comments.created_at,
+                users.username,
+                users.display_name
+
+            from comments
+
+            join users
+                on users.id = comments.user_id
+
+            where comments.post_id = ?
+
+            order by comments.created_at asc
+        `).all(postId);
+
+        res.render("post", {
+            post,
+            comments,
+            user: await currentUser(req)
+        });
+
+    } catch (error) {
+        console.error(
+            "post page error:",
+            error
+        );
+
+        res.status(500).send(
+            "something went wrong."
+        );
+    }
+});
 
 /*
  * 404
