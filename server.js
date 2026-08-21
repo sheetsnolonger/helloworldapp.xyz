@@ -2406,6 +2406,10 @@ app.get(
     }
 );
 
+/* =========================================================
+   search
+   ========================================================= */
+
 app.get(
     "/search",
     requireLogin,
@@ -2416,16 +2420,23 @@ app.get(
             const query =
                 String(
                     req.query.q || ""
-                ).trim();
+                )
+                .trim()
+                .slice(0, 100);
 
             let users = [];
             let communities = [];
             let posts = [];
 
-            if (query) {
+            if (query.length > 0) {
 
                 const search =
                     `%${query}%`;
+
+
+                /* =================================================
+                   users
+                   ================================================= */
 
                 const usersResult =
                     await pool.query(
@@ -2434,14 +2445,16 @@ app.get(
                             id,
                             username,
                             display_name,
-                            profile_picture,
-                            profile_image_url
+                            profile_picture
 
                         from users
 
                         where
                             username ilike $1
-                            or display_name ilike $1
+                            or coalesce(
+                                display_name,
+                                ''
+                            ) ilike $1
 
                         order by username asc
 
@@ -2452,6 +2465,11 @@ app.get(
                         ]
                     );
 
+
+                /* =================================================
+                   communities
+                   ================================================= */
+
                 const communitiesResult =
                     await pool.query(
                         `
@@ -2461,13 +2479,15 @@ app.get(
                             c.description,
                             c.creator_id,
                             c.created_at,
-                            count(p.id)::integer
-                                as post_count
+
+                            (
+                                select count(*)
+                                from posts p
+                                where p.community_id = c.id
+                            )::integer
+                            as post_count
 
                         from communities c
-
-                        left join posts p
-                            on p.community_id = c.id
 
                         where
                             c.name ilike $1
@@ -2475,13 +2495,6 @@ app.get(
                                 c.description,
                                 ''
                             ) ilike $1
-
-                        group by
-                            c.id,
-                            c.name,
-                            c.description,
-                            c.creator_id,
-                            c.created_at
 
                         order by c.name asc
 
@@ -2491,6 +2504,11 @@ app.get(
                             search
                         ]
                     );
+
+
+                /* =================================================
+                   posts
+                   ================================================= */
 
                 const postsResult =
                     await pool.query(
@@ -2506,7 +2524,7 @@ app.get(
                             u.display_name,
 
                             c.name
-                                as community_name
+                            as community_name
 
                         from posts p
 
@@ -2529,6 +2547,7 @@ app.get(
                         ]
                     );
 
+
                 users =
                     usersResult.rows;
 
@@ -2539,29 +2558,35 @@ app.get(
                     postsResult.rows;
             }
 
+
             res.render(
                 "search",
                 {
                     user: req.user,
-
-                    query,
-
-                    users,
-
-                    communities,
-
-                    posts
+                    query: query,
+                    users: users,
+                    communities: communities,
+                    posts: posts
                 }
             );
+
 
         } catch (error) {
 
             console.error(
-                "search error:"
+                "================================"
+            );
+
+            console.error(
+                "search error"
             );
 
             console.error(
                 error
+            );
+
+            console.error(
+                "================================"
             );
 
             res.status(500).send(
