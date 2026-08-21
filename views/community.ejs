@@ -1,166 +1,123 @@
-<!DOCTYPE html>
-<html lang="en">
+<!doctype html>
+<html>
 <head>
-    <meta charset="UTF-8">
+    <meta charset="utf-8">
     <meta
         name="viewport"
-        content="width=device-width, initial-scale=1.0"
+        content="width=device-width,initial-scale=1"
     >
 
-    <title><%= community.name %> — helloworld</title>
+    <title>
+        #<%= community.name %> — helloworld
+    </title>
 
-    <link rel="stylesheet" href="/css/style.css">
+    <link rel="stylesheet" href="/style.css">
 </head>
 
 <body>
 
-<nav>
-    <a class="logo" href="/feed">
+<nav class="topbar">
+
+    <a class="brand" href="/feed">
         helloworld
     </a>
 
-    <div class="nav-right">
-        <a href="/feed">
-            feed
-        </a>
-
-        <a href="/u/<%= user.username %>">
-            @<%= user.username %>
-        </a>
-
-        <form action="/logout" method="post">
-            <button
-                class="logout"
-                type="submit"
-            >
-                logout
-            </button>
-        </form>
+    <div class="nav-links">
+        <a href="/feed">feed</a>
+        <a href="/communities">communities</a>
     </div>
+
 </nav>
 
-<main class="container">
+<main class="page">
 
     <header class="community-header">
 
-        <div class="tiny">
-            community
-        </div>
-
         <h1>
-            c/<%= community.name %>
+            #<%= community.name %>
         </h1>
 
-        <% if (community.description) { %>
-            <p>
-                <%= community.description %>
-            </p>
-        <% } %>
-
-        <a
-            class="button secondary"
-            href="/feed"
-        >
-            back to feed
-        </a>
+        <p>
+            <%= community.description || "no description." %>
+        </p>
 
     </header>
 
-    <section class="composer">
+    <section class="feed">
 
-        <form
-            action="/posts"
-            method="post"
-        >
+        <% if (!posts.length) { %>
 
-            <input
-                type="hidden"
-                name="community_id"
-                value="<%= community.id %>"
-            >
-
-            <textarea
-                name="content"
-                maxlength="500"
-                placeholder="post to c/<%= community.name %>..."
-                required
-            ></textarea>
-
-            <button type="submit">
-                post
-            </button>
-
-        </form>
-
-    </section>
-
-    <% if (!posts || posts.length === 0) { %>
-
-        <div class="empty">
-            <p>
-                there aren't any posts here yet.
-            </p>
-
-            <p>
-                make the first one.
-            </p>
-        </div>
-
-    <% } %>
-
-    <% posts.forEach(post => { %>
-
-        <article class="post">
-
-            <div class="post-header">
-
-                <a href="/u/<%= post.username %>">
-                    @<%= post.username %>
-                </a>
-
-                <span>
-                    <%= formatDate(post.created_at) %>
-                </span>
-
+            <div class="empty">
+                this community doesn't have any posts yet.
             </div>
 
-            <div class="post-content">
-                <%= post.content %>
-            </div>
+        <% } %>
 
-            <div class="post-actions">
+        <% posts.forEach(post => { %>
 
-                <form
-                    action="/posts/<%= post.id %>/like"
-                    method="post"
-                >
+            <article class="post">
 
-                    <button
-                        type="submit"
-                        class="<%= post.liked ? 'liked' : '' %>"
-                    >
-                        <%= post.liked ? 'liked' : 'like' %>
-                        <%= post.likes || 0 %>
-                    </button>
+                <div class="post-head">
 
-                </form>
+                    <% if (post.profile_picture) { %>
+
+                        <img
+                            class="avatar"
+                            src="<%= post.profile_picture %>"
+                            alt=""
+                        >
+
+                    <% } else { %>
+
+                        <div class="avatar placeholder">
+                            <%= post.username[0].toUpperCase() %>
+                        </div>
+
+                    <% } %>
+
+                    <div>
+                        <a
+                            class="username"
+                            href="/u/<%= post.username %>"
+                        >
+                            <%= post.display_name || post.username %>
+                        </a>
+
+                        <div class="post-meta">
+                            @<%= post.username %>
+                            ·
+                            <%= formatDate(post.created_at) %>
+                        </div>
+                    </div>
+
+                </div>
 
                 <a
-                    class="comment-link"
+                    class="post-body"
                     href="/posts/<%= post.id %>/comments"
                 >
-                    <%= post.comments || 0 %>
-                    <%= post.comments === 1
-                        ? 'comment'
-                        : 'comments'
-                    %>
+                    <%= post.content %>
                 </a>
 
-            </div>
+                <div class="post-actions">
 
-        </article>
+                    <span>
+                        <%= post.likes %> likes
+                    </span>
 
-    <% }) %>
+                    <a
+                        href="/posts/<%= post.id %>/comments"
+                    >
+                        <%= post.comments %> comments
+                    </a>
+
+                </div>
+
+            </article>
+
+        <% }) %>
+
+    </section>
 
 </main>
 
