@@ -391,23 +391,10 @@ app.get("/feed", requireLogin, async (req, res) => {
             left join communities
                 on communities.id = posts.community_id
 
-            where
-                posts.user_id = ?
-
-                or posts.user_id in (
-                    select following_id
-                    from follows
-                    where follower_id = ?
-                )
-
             order by posts.created_at desc
 
             limit 100
-        `).all(
-            user.id,
-            user.id,
-            user.id
-        );
+        `).all(user.id);
 
         const getComments = db.prepare(`
             select
@@ -441,8 +428,7 @@ app.get("/feed", requireLogin, async (req, res) => {
                 (
                     select count(*)
                     from posts
-                    where posts.community_id =
-                        communities.id
+                    where posts.community_id = communities.id
                 ) as post_count
 
             from communities
@@ -455,6 +441,7 @@ app.get("/feed", requireLogin, async (req, res) => {
             posts,
             communities
         });
+
     } catch (error) {
         console.error("feed error:", error);
 
