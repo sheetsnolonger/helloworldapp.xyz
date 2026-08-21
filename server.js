@@ -12,19 +12,100 @@ const { createClient } = require("@supabase/supabase-js");
 
 const app = express();
 
-const port = process.env.PORT || 3000;
+const port = Number(process.env.PORT) || 3000;
+
+
+/* =========================================================
+   environment
+   ========================================================= */
+
+const database_url =
+    process.env.DATABASE_URL || "";
+
+const session_secret =
+    process.env.SESSION_SECRET ||
+    "change-this-session-secret";
+
+const supabase_url =
+    process.env.SUPABASE_URL ||
+    "";
+
+const supabase_key =
+    process.env.SUPABASE_SECRET_KEY ||
+    process.env.SUPABASE_SERVICE_ROLE_KEY ||
+    "";
+
+const storage_bucket =
+    process.env.SUPABASE_STORAGE_BUCKET ||
+    "uploads";
+
+
+/* =========================================================
+   startup configuration
+   ========================================================= */
+
+console.log("");
+console.log("========================================");
+console.log("helloworld starting");
+console.log("========================================");
+
+console.log(
+    "database:",
+    database_url ? "configured" : "missing"
+);
+
+console.log(
+    "supabase url:",
+    supabase_url ? "configured" : "missing"
+);
+
+console.log(
+    "supabase key:",
+    supabase_key ? "configured" : "missing"
+);
+
+console.log(
+    "storage bucket:",
+    storage_bucket
+);
+
+console.log(
+    "environment:",
+    process.env.NODE_ENV || "development"
+);
+
+console.log("========================================");
+console.log("");
 
 
 /* =========================================================
    database
    ========================================================= */
 
-const pool = new Pool({
-    connectionString: process.env.DATABASE_URL,
+if (!database_url) {
 
-    ssl: process.env.DATABASE_URL
-        ? { rejectUnauthorized: false }
-        : false
+    console.error("");
+    console.error("DATABASE_URL is missing.");
+    console.error(
+        "add DATABASE_URL to your Render environment variables."
+    );
+    console.error("");
+
+    process.exit(1);
+}
+
+const pool = new Pool({
+    connectionString: database_url,
+
+    ssl: {
+        rejectUnauthorized: false
+    },
+
+    max: 10,
+
+    idleTimeoutMillis: 30000,
+
+    connectionTimeoutMillis: 10000
 });
 
 
@@ -32,38 +113,135 @@ const pool = new Pool({
    supabase
    ========================================================= */
 
-const supabase = createClient(
-    process.env.SUPABASE_URL,
-    process.env.SUPABASE_SERVICE_ROLE_KEY
-);
+let supabase = null;
 
-const storage_bucket =
-    process.env.SUPABASE_STORAGE_BUCKET || "uploads";
+if (supabase_url && supabase_key) {
+
+    try {
+
+        supabase = createClient(
+            supabase_url,
+            supabase_key,
+            {
+                auth: {
+                    autoRefreshToken: false,
+                    persistSession: false,
+                    detectSessionInUrl: false
+                }
+            }
+        );
+
+        console.log(
+            "supabase:",
+            "enabled"
+        );
+
+    } catch (error) {
+
+        console.error(
+            "supabase initialization failed:"
+        );
+
+        console.error(error);
+
+        supabase = null;
+    }
+
+} else {
+
+    console.warn("");
+    console.warn(
+        "supabase is not configured."
+    );
+
+    console.warn(
+        "image uploads will use local storage."
+    );
+
+    console.warn(
+        "for persistent uploads on Render, configure supabase."
+    );
+
+    console.warn("");
+}
 
 
 /* =========================================================
-   uploads
+   express
    ========================================================= */
 
-const upload_directory = path.join(
-    __dirname,
-    "uploads"
+app.set(
+    "view engine",
+    "ejs"
 );
 
+app.set(
+    "views",
+    path.join(__dirname, "views")
+);
+
+app.use(
+    express.urlencoded({
+        extended: true
+    })
+);
+
+app.use(
+    express.json()
+);
+
+app.use(
+    express.static(
+        path.join(__dirname, "public")
+    )
+);
+
+
+/* =========================================================
+   local uploads
+   ========================================================= */
+
+const upload_directory =
+    path.join(
+        __dirname,
+        "uploads"
+    );
+
 if (!fs.existsSync(upload_directory)) {
-    fs.mkdirSync(upload_directory, {
-        recursive: true
-    });
+
+    fs.mkdirSync(
+        upload_directory,
+        {
+            recursive: true
+        }
+    );
 }
 
+app.use(
+    "/uploads",
+    express.static(
+        upload_directory
+    )
+);
+
+
+/* =========================================================
+   multer
+   ========================================================= */
+
 const upload = multer({
+
     storage: multer.memoryStorage(),
 
     limits: {
         fileSize: 15 * 1024 * 1024
     },
 
-    fileFilter: (req, file, callback) => {
+    fileFilter: (
+        req,
+        file,
+        callback
+    ) => {
 
         const allowed = [
             "image/jpeg",
@@ -72,39 +250,25 @@ const upload = multer({
             "image/webp"
         ];
 
-        if (!allowed.includes(file.mimetype)) {
+        if (
+            !allowed.includes(
+                file.mimetype
+            )
+        ) {
+
             return callback(
-                new Error("only image files are allowed")
+                new Error(
+                    "only image files are allowed"
+                )
             );
         }
 
-        callback(null, true);
+        callback(
+            null,
+            true
+        );
     }
 });
-
-
-/* =========================================================
-   middleware
-   ========================================================= */
-
-app.set("view engine", "ejs");
-
-app.set(
-    "views",
-    path.join(__dirname, "views")
-);
-
-app.use(express.urlencoded({
-    extended: true
-}));
-
-app.use(express.json());
-
-app.use(express.static(
-    path.join(__dirname, "public")
-));
-
-app.use("/uploads", express.static(upload_directory));
 
 
 /* =========================================================
@@ -113,31 +277,45 @@ app.use("/uploads", express.static(upload_directory));
 
 app.use(
     session({
+
         store: new pgSession({
+
             pool: pool,
 
-            tableName: "user_sessions",
+            tableName:
+                "user_sessions",
 
-            createTableIfMissing: true
+            createTableIfMissing:
+                true
         }),
 
         secret:
-            process.env.SESSION_SECRET ||
-            "change-this-session-secret",
+            session_secret,
 
-        resave: false,
+        resave:
+            false,
 
-        saveUninitialized: false,
+        saveUninitialized:
+            false,
 
         cookie: {
-            maxAge: 1000 * 60 * 60 * 24 * 30,
 
-            httpOnly: true,
+            maxAge:
+                1000 *
+                60 *
+                60 *
+                24 *
+                30,
+
+            httpOnly:
+                true,
 
             secure:
-                process.env.NODE_ENV === "production",
+                process.env.NODE_ENV ===
+                "production",
 
-            sameSite: "lax"
+            sameSite:
+                "lax"
         }
     })
 );
@@ -147,23 +325,41 @@ app.use(
    helpers
    ========================================================= */
 
-function requireLogin(req, res, next) {
+function requireLogin(
+    req,
+    res,
+    next
+) {
 
     if (!req.session.user_id) {
-        return res.redirect("/login");
+
+        return res.redirect(
+            "/login"
+        );
     }
 
     next();
 }
 
 
-function requireAdmin(req, res, next) {
+function requireAdmin(
+    req,
+    res,
+    next
+) {
 
     if (!req.session.user_id) {
-        return res.redirect("/login");
+
+        return res.redirect(
+            "/login"
+        );
     }
 
-    if (!req.user || !req.user.is_admin) {
+    if (
+        !req.user ||
+        !req.user.is_admin
+    ) {
+
         return res.status(403).send(
             "you do not have permission to access this page"
         );
@@ -173,43 +369,76 @@ function requireAdmin(req, res, next) {
 }
 
 
-function formatDate(date) {
+function formatDate(
+    date
+) {
 
     if (!date) {
         return "";
     }
 
-    return new Date(date).toLocaleString(
+    return new Date(
+        date
+    ).toLocaleString(
         "en-us",
         {
-            month: "short",
-            day: "numeric",
-            year: "numeric",
-            hour: "numeric",
-            minute: "2-digit"
+            month:
+                "short",
+
+            day:
+                "numeric",
+
+            year:
+                "numeric",
+
+            hour:
+                "numeric",
+
+            minute:
+                "2-digit"
         }
     );
 }
 
 
-async function uploadToSupabase(file, folder) {
+function safeFilename(
+    filename
+) {
+
+    return String(
+        filename || "image"
+    )
+        .replace(
+            /[^a-zA-Z0-9._-]/g,
+            "_"
+        );
+}
+
+
+/* =========================================================
+   upload to supabase
+   ========================================================= */
+
+async function uploadToSupabase(
+    file,
+    folder
+) {
 
     if (!file) {
         return null;
     }
 
-    if (
-        !process.env.SUPABASE_URL ||
-        !process.env.SUPABASE_SERVICE_ROLE_KEY
-    ) {
+    if (!supabase) {
+
         throw new Error(
             "supabase storage is not configured"
         );
     }
 
     const extension =
-        path.extname(file.originalname) ||
-        ".jpg";
+        path.extname(
+            file.originalname
+        ) || ".jpg";
 
     const filename =
         `${folder}/${Date.now()}-${Math.random()
@@ -218,13 +447,18 @@ async function uploadToSupabase(file, folder) {
 
     const result =
         await supabase.storage
-            .from(storage_bucket)
+            .from(
+                storage_bucket
+            )
             .upload(
                 filename,
                 file.buffer,
                 {
-                    contentType: file.mimetype,
-                    upsert: false
+                    contentType:
+                        file.mimetype,
+
+                    upsert:
+                        false
                 }
             );
 
@@ -232,14 +466,116 @@ async function uploadToSupabase(file, folder) {
         throw result.error;
     }
 
-    const public_url =
+    const public_result =
         supabase.storage
-            .from(storage_bucket)
-            .getPublicUrl(filename)
-            .data
-            .publicUrl;
+            .from(
+                storage_bucket
+            )
+            .getPublicUrl(
+                filename
+            );
 
-    return public_url;
+    return (
+        public_result
+            .data
+            .publicUrl
+    );
+}
+
+
+/* =========================================================
+   local upload
+   ========================================================= */
+
+async function uploadLocal(
+    file,
+    folder
+) {
+
+    if (!file) {
+        return null;
+    }
+
+    const safe_folder =
+        String(folder)
+            .replace(
+                /[^a-zA-Z0-9_-]/g,
+                "_"
+            );
+
+    const folder_path =
+        path.join(
+            upload_directory,
+            safe_folder
+        );
+
+    if (!fs.existsSync(
+        folder_path
+    )) {
+
+        fs.mkdirSync(
+            folder_path,
+            {
+                recursive:
+                    true
+            }
+        );
+    }
+
+    const extension =
+        path.extname(
+            file.originalname
+        ) || ".jpg";
+
+    const filename =
+        `${Date.now()}-${Math.random()
+            .toString(36)
+            .slice(2)}${extension}`;
+
+    const file_path =
+        path.join(
+            folder_path,
+            safeFilename(
+                filename
+            )
+        );
+
+    await fs.promises.writeFile(
+        file_path,
+        file.buffer
+    );
+
+    return (
+        `/uploads/${safe_folder}/${filename}`
+    );
+}
+
+
+/* =========================================================
+   upload handler
+   ========================================================= */
+
+async function uploadImage(
+    file,
+    folder
+) {
+
+    if (!file) {
+        return null;
+    }
+
+    if (supabase) {
+
+        return await uploadToSupabase(
+            file,
+            folder
+        );
+    }
+
+    return await uploadLocal(
+        file,
+        folder
+    );
 }
 
 
@@ -247,71 +583,100 @@ async function uploadToSupabase(file, folder) {
    current user
    ========================================================= */
 
-app.use(async (req, res, next) => {
+app.use(
+    async (
+        req,
+        res,
+        next
+    ) => {
 
-    req.user = null;
+        req.user = null;
 
-    if (!req.session.user_id) {
         res.locals.user = null;
 
-        return next();
-    }
+        if (
+            !req.session.user_id
+        ) {
 
-    try {
-
-        const result = await pool.query(
-            `
-            select
-                id,
-                username,
-                email,
-                display_name,
-                bio,
-                profile_picture,
-                is_admin,
-                created_at
-            from users
-            where id = $1
-            limit 1
-            `,
-            [req.session.user_id]
-        );
-
-        if (result.rows.length) {
-
-            req.user = result.rows[0];
-
-            res.locals.user = result.rows[0];
-
-        } else {
-
-            req.session.destroy(() => {});
-
+            return next();
         }
 
-    } catch (error) {
+        try {
 
-        console.error(
-            "user middleware error:",
-            error
-        );
+            const result =
+                await pool.query(
+                    `
+                    select
+                        id,
+                        username,
+                        email,
+                        display_name,
+                        bio,
+                        profile_picture,
+                        is_admin,
+                        created_at
 
+                    from users
+
+                    where id = $1
+
+                    limit 1
+                    `,
+                    [
+                        req.session.user_id
+                    ]
+                );
+
+            if (
+                result.rows.length
+            ) {
+
+                req.user =
+                    result.rows[0];
+
+                res.locals.user =
+                    result.rows[0];
+
+            } else {
+
+                req.session.destroy(
+                    () => {}
+                );
+            }
+
+        } catch (error) {
+
+            console.error(
+                "user middleware error:",
+                error
+            );
+        }
+
+        next();
     }
-
-    next();
-});
+);
 
 
 /* =========================================================
-   global template helpers
+   template helpers
    ========================================================= */
 
-app.use((req, res, next) => {
+app.use(
+    (
+        req,
+        res,
+        next
+    ) => {
 
-    res.locals.formatDate = formatDate;
+        res.locals.formatDate =
+            formatDate;
 
-    next();
-});
+        res.locals.currentPath =
+            req.path;
+
+        next();
+    }
+);
 
 
 /* =========================================================
@@ -324,11 +689,14 @@ async function initializeDatabase() {
         create table if not exists users (
             id serial primary key,
 
-            username varchar(32) unique not null,
+            username varchar(32)
+                unique not null,
 
-            email varchar(255) unique not null,
+            email varchar(255)
+                unique not null,
 
-            password_hash text not null,
+            password_hash text
+                not null,
 
             display_name varchar(100),
 
@@ -336,9 +704,11 @@ async function initializeDatabase() {
 
             profile_picture text,
 
-            is_admin boolean default false,
+            is_admin boolean
+                default false,
 
-            created_at timestamptz default now()
+            created_at timestamptz
+                default now()
         )
     `);
 
@@ -347,7 +717,8 @@ async function initializeDatabase() {
         create table if not exists communities (
             id serial primary key,
 
-            name varchar(50) unique not null,
+            name varchar(50)
+                unique not null,
 
             description text,
 
@@ -355,7 +726,8 @@ async function initializeDatabase() {
                 references users(id)
                 on delete set null,
 
-            created_at timestamptz default now()
+            created_at timestamptz
+                default now()
         )
     `);
 
@@ -372,9 +744,13 @@ async function initializeDatabase() {
                 references users(id)
                 on delete cascade,
 
-            created_at timestamptz default now(),
+            created_at timestamptz
+                default now(),
 
-            unique(community_id, user_id)
+            unique(
+                community_id,
+                user_id
+            )
         )
     `);
 
@@ -391,13 +767,15 @@ async function initializeDatabase() {
                 references communities(id)
                 on delete set null,
 
-            content text not null,
+            content text
+                not null,
 
             attachment_url text,
 
             attachment_name text,
 
-            created_at timestamptz default now()
+            created_at timestamptz
+                default now()
         )
     `);
 
@@ -414,9 +792,13 @@ async function initializeDatabase() {
                 references posts(id)
                 on delete cascade,
 
-            created_at timestamptz default now(),
+            created_at timestamptz
+                default now(),
 
-            unique(user_id, post_id)
+            unique(
+                user_id,
+                post_id
+            )
         )
     `);
 
@@ -433,9 +815,11 @@ async function initializeDatabase() {
                 references posts(id)
                 on delete cascade,
 
-            content text not null,
+            content text
+                not null,
 
-            created_at timestamptz default now()
+            created_at timestamptz
+                default now()
         )
     `);
 
@@ -452,14 +836,20 @@ async function initializeDatabase() {
                 references users(id)
                 on delete cascade,
 
-            created_at timestamptz default now(),
+            created_at timestamptz
+                default now(),
 
-            unique(follower_id, following_id)
+            unique(
+                follower_id,
+                following_id
+            )
         )
     `);
 
 
-    console.log("database initialized");
+    console.log(
+        "database initialized"
+    );
 }
 
 
@@ -467,349 +857,545 @@ async function initializeDatabase() {
    home
    ========================================================= */
 
-app.get("/", (req, res) => {
+app.get(
+    "/",
+    (
+        req,
+        res
+    ) => {
 
-    if (req.user) {
-        return res.redirect("/feed");
+        if (req.user) {
+
+            return res.redirect(
+                "/feed"
+            );
+        }
+
+        res.redirect(
+            "/login"
+        );
     }
-
-    res.redirect("/login");
-});
+);
 
 
 /* =========================================================
    register
    ========================================================= */
 
-app.get("/register", (req, res) => {
+app.get(
+    "/register",
+    (
+        req,
+        res
+    ) => {
 
-    if (req.user) {
-        return res.redirect("/feed");
-    }
+        if (req.user) {
 
-    res.render("register", {
-        error: null
-    });
-});
-
-
-app.post("/register", async (req, res) => {
-
-    try {
-
-        const username =
-            String(req.body.username || "")
-                .trim()
-                .toLowerCase();
-
-        const email =
-            String(req.body.email || "")
-                .trim()
-                .toLowerCase();
-
-        const password =
-            String(req.body.password || "");
-
-        if (
-            !username ||
-            !email ||
-            !password
-        ) {
-            return res.render("register", {
-                error: "all fields are required"
-            });
-        }
-
-        if (!/^[a-z0-9_]{3,32}$/.test(username)) {
-            return res.render("register", {
-                error:
-                    "username must be 3-32 characters and use only letters, numbers, and underscores"
-            });
-        }
-
-        if (password.length < 6) {
-            return res.render("register", {
-                error:
-                    "password must be at least 6 characters"
-            });
-        }
-
-        const existing =
-            await pool.query(
-                `
-                select id
-                from users
-                where username = $1
-                   or email = $2
-                limit 1
-                `,
-                [username, email]
+            return res.redirect(
+                "/feed"
             );
-
-        if (existing.rows.length) {
-            return res.render("register", {
-                error:
-                    "that username or email is already in use"
-            });
         }
 
-        const password_hash =
-            await bcrypt.hash(password, 12);
+        res.render(
+            "register",
+            {
+                error:
+                    null
+            }
+        );
+    }
+);
 
-        const result =
-            await pool.query(
-                `
-                insert into users (
-                    username,
-                    email,
-                    password_hash,
-                    display_name
+
+app.post(
+    "/register",
+    async (
+        req,
+        res
+    ) => {
+
+        try {
+
+            const username =
+                String(
+                    req.body.username ||
+                    ""
                 )
-                values ($1, $2, $3, $4)
-                returning id
-                `,
-                [
-                    username,
-                    email,
-                    password_hash,
-                    username
-                ]
+                    .trim()
+                    .toLowerCase();
+
+            const email =
+                String(
+                    req.body.email ||
+                    ""
+                )
+                    .trim()
+                    .toLowerCase();
+
+            const password =
+                String(
+                    req.body.password ||
+                    ""
+                );
+
+
+            if (
+                !username ||
+                !email ||
+                !password
+            ) {
+
+                return res.render(
+                    "register",
+                    {
+                        error:
+                            "all fields are required"
+                    }
+                );
+            }
+
+
+            if (
+                !/^[a-z0-9_]{3,32}$/
+                    .test(username)
+            ) {
+
+                return res.render(
+                    "register",
+                    {
+                        error:
+                            "username must be 3-32 characters and use only letters, numbers, and underscores"
+                    }
+                );
+            }
+
+
+            if (
+                password.length < 6
+            ) {
+
+                return res.render(
+                    "register",
+                    {
+                        error:
+                            "password must be at least 6 characters"
+                    }
+                );
+            }
+
+
+            const existing =
+                await pool.query(
+                    `
+                    select id
+
+                    from users
+
+                    where username = $1
+                       or email = $2
+
+                    limit 1
+                    `,
+                    [
+                        username,
+                        email
+                    ]
+                );
+
+
+            if (
+                existing.rows.length
+            ) {
+
+                return res.render(
+                    "register",
+                    {
+                        error:
+                            "that username or email is already in use"
+                    }
+                );
+            }
+
+
+            const password_hash =
+                await bcrypt.hash(
+                    password,
+                    12
+                );
+
+
+            const result =
+                await pool.query(
+                    `
+                    insert into users (
+                        username,
+                        email,
+                        password_hash,
+                        display_name
+                    )
+
+                    values (
+                        $1,
+                        $2,
+                        $3,
+                        $4
+                    )
+
+                    returning id
+                    `,
+                    [
+                        username,
+                        email,
+                        password_hash,
+                        username
+                    ]
+                );
+
+
+            req.session.user_id =
+                result.rows[0].id;
+
+
+            res.redirect(
+                "/feed"
             );
 
-        req.session.user_id =
-            result.rows[0].id;
+        } catch (error) {
 
-        res.redirect("/feed");
+            console.error(
+                "register error:",
+                error
+            );
 
-    } catch (error) {
-
-        console.error(
-            "register error:",
-            error
-        );
-
-        res.status(500).send(
-            "internal server error"
-        );
+            res.status(500).send(
+                "internal server error"
+            );
+        }
     }
-});
+);
 
 
 /* =========================================================
    login
    ========================================================= */
 
-app.get("/login", (req, res) => {
+app.get(
+    "/login",
+    (
+        req,
+        res
+    ) => {
 
-    if (req.user) {
-        return res.redirect("/feed");
-    }
+        if (req.user) {
 
-    res.render("login", {
-        error: null
-    });
-});
-
-
-app.post("/login", async (req, res) => {
-
-    try {
-
-        const username =
-            String(req.body.username || "")
-                .trim()
-                .toLowerCase();
-
-        const password =
-            String(req.body.password || "");
-
-        const result =
-            await pool.query(
-                `
-                select *
-                from users
-                where username = $1
-                limit 1
-                `,
-                [username]
+            return res.redirect(
+                "/feed"
             );
-
-        if (!result.rows.length) {
-            return res.render("login", {
-                error: "invalid username or password"
-            });
         }
 
-        const user =
-            result.rows[0];
-
-        const valid =
-            await bcrypt.compare(
-                password,
-                user.password_hash
-            );
-
-        if (!valid) {
-            return res.render("login", {
-                error: "invalid username or password"
-            });
-        }
-
-        req.session.user_id =
-            user.id;
-
-        res.redirect("/feed");
-
-    } catch (error) {
-
-        console.error(
-            "login error:",
-            error
-        );
-
-        res.status(500).send(
-            "internal server error"
+        res.render(
+            "login",
+            {
+                error:
+                    null
+            }
         );
     }
-});
+);
+
+
+app.post(
+    "/login",
+    async (
+        req,
+        res
+    ) => {
+
+        try {
+
+            const username =
+                String(
+                    req.body.username ||
+                    ""
+                )
+                    .trim()
+                    .toLowerCase();
+
+            const password =
+                String(
+                    req.body.password ||
+                    ""
+                );
+
+
+            const result =
+                await pool.query(
+                    `
+                    select *
+
+                    from users
+
+                    where username = $1
+
+                    limit 1
+                    `,
+                    [
+                        username
+                    ]
+                );
+
+
+            if (
+                !result.rows.length
+            ) {
+
+                return res.render(
+                    "login",
+                    {
+                        error:
+                            "invalid username or password"
+                    }
+                );
+            }
+
+
+            const user =
+                result.rows[0];
+
+
+            const valid =
+                await bcrypt.compare(
+                    password,
+                    user.password_hash
+                );
+
+
+            if (!valid) {
+
+                return res.render(
+                    "login",
+                    {
+                        error:
+                            "invalid username or password"
+                    }
+                );
+            }
+
+
+            req.session.user_id =
+                user.id;
+
+
+            res.redirect(
+                "/feed"
+            );
+
+        } catch (error) {
+
+            console.error(
+                "login error:",
+                error
+            );
+
+            res.status(500).send(
+                "internal server error"
+            );
+        }
+    }
+);
 
 
 /* =========================================================
    logout
    ========================================================= */
 
-app.post("/logout", (req, res) => {
+app.post(
+    "/logout",
+    (
+        req,
+        res
+    ) => {
 
-    req.session.destroy(() => {
-        res.redirect("/login");
-    });
-});
+        req.session.destroy(
+            () => {
+
+                res.redirect(
+                    "/login"
+                );
+            }
+        );
+    }
+);
 
 
 /* =========================================================
    feed
    ========================================================= */
 
-app.get("/feed", requireLogin, async (req, res) => {
+app.get(
+    "/feed",
+    requireLogin,
+    async (
+        req,
+        res
+    ) => {
 
-    try {
+        try {
 
-        const posts =
-            await pool.query(
-                `
-                select
-                    p.*,
-
-                    u.username,
-                    u.display_name,
-
-                    c.name as community_name,
-
-                    (
-                        select count(*)
-                        from likes l
-                        where l.post_id = p.id
-                    ) as likes,
-
-                    (
-                        select count(*)
-                        from comments cm
-                        where cm.post_id = p.id
-                    ) as comments,
-
-                    exists (
-                        select 1
-                        from likes l2
-                        where l2.post_id = p.id
-                        and l2.user_id = $1
-                    ) as liked
-
-                from posts p
-
-                join users u
-                    on u.id = p.user_id
-
-                left join communities c
-                    on c.id = p.community_id
-
-                order by p.created_at desc
-
-                limit 100
-                `,
-                [req.user.id]
-            );
-
-
-        const community_result =
-            await pool.query(
-                `
-                select
-                    c.*,
-
-                    count(p.id)::integer
-                        as post_count
-
-                from communities c
-
-                left join posts p
-                    on p.community_id = c.id
-
-                group by c.id
-
-                order by c.name asc
-                `
-            );
-
-
-        for (const post of posts.rows) {
-
-            const comments =
+            const posts =
                 await pool.query(
                     `
                     select
-                        cm.id,
-                        cm.content,
-                        cm.created_at,
-                        u.username
+                        p.*,
 
-                    from comments cm
+                        u.username,
+
+                        u.display_name,
+
+                        c.name
+                            as community_name,
+
+                        (
+                            select count(*)
+
+                            from likes l
+
+                            where l.post_id =
+                                p.id
+                        ) as likes,
+
+                        (
+                            select count(*)
+
+                            from comments cm
+
+                            where cm.post_id =
+                                p.id
+                        ) as comments,
+
+                        exists (
+                            select 1
+
+                            from likes l2
+
+                            where
+                                l2.post_id =
+                                    p.id
+
+                            and
+                                l2.user_id =
+                                    $1
+                        ) as liked
+
+                    from posts p
 
                     join users u
-                        on u.id = cm.user_id
+                        on u.id =
+                            p.user_id
 
-                    where cm.post_id = $1
+                    left join communities c
+                        on c.id =
+                            p.community_id
 
-                    order by cm.created_at desc
+                    order by
+                        p.created_at desc
 
-                    limit 3
+                    limit 100
                     `,
-                    [post.id]
+                    [
+                        req.user.id
+                    ]
                 );
 
-            post.comment_list =
-                comments.rows;
+
+            const community_result =
+                await pool.query(
+                    `
+                    select
+                        c.*,
+
+                        count(p.id)::integer
+                            as post_count
+
+                    from communities c
+
+                    left join posts p
+                        on p.community_id =
+                            c.id
+
+                    group by c.id
+
+                    order by c.name asc
+                    `
+                );
+
+
+            for (
+                const post
+                of posts.rows
+            ) {
+
+                const comments =
+                    await pool.query(
+                        `
+                        select
+                            cm.id,
+                            cm.content,
+                            cm.created_at,
+                            u.username
+
+                        from comments cm
+
+                        join users u
+                            on u.id =
+                                cm.user_id
+
+                        where cm.post_id =
+                            $1
+
+                        order by
+                            cm.created_at desc
+
+                        limit 3
+                        `,
+                        [
+                            post.id
+                        ]
+                    );
+
+
+                post.comment_list =
+                    comments.rows;
+            }
+
+
+            res.render(
+                "feed",
+                {
+                    user:
+                        req.user,
+
+                    posts:
+                        posts.rows,
+
+                    communities:
+                        community_result.rows
+                }
+            );
+
+        } catch (error) {
+
+            console.error(
+                "feed error:",
+                error
+            );
+
+            res.status(500).send(
+                "internal server error"
+            );
         }
-
-
-        res.render("feed", {
-            user: req.user,
-            posts: posts.rows,
-            communities:
-                community_result.rows
-        });
-
-    } catch (error) {
-
-        console.error(
-            "feed error:",
-            error
-        );
-
-        res.status(500).send(
-            "internal server error"
-        );
     }
-});
+);
 
 
 /* =========================================================
@@ -819,38 +1405,62 @@ app.get("/feed", requireLogin, async (req, res) => {
 app.post(
     "/posts",
     requireLogin,
-    upload.single("attachment"),
-    async (req, res) => {
+    upload.single(
+        "attachment"
+    ),
+    async (
+        req,
+        res
+    ) => {
 
         try {
 
             const content =
-                String(req.body.content || "")
+                String(
+                    req.body.content ||
+                    ""
+                )
                     .trim();
 
             const community_id =
                 req.body.community_id
-                    ? Number(req.body.community_id)
+                    ? Number(
+                        req.body.community_id
+                    )
                     : null;
 
+
             if (!content) {
-                return res.redirect("/feed");
+
+                return res.redirect(
+                    "/feed"
+                );
             }
 
-            if (content.length > 500) {
-                return res.status(400).send(
+
+            if (
+                content.length > 500
+            ) {
+
+                return res.status(
+                    400
+                ).send(
                     "post is too long"
                 );
             }
 
-            let attachment_url = null;
 
-            let attachment_name = null;
+            let attachment_url =
+                null;
+
+            let attachment_name =
+                null;
+
 
             if (req.file) {
 
                 attachment_url =
-                    await uploadToSupabase(
+                    await uploadImage(
                         req.file,
                         `posts/${req.user.id}`
                     );
@@ -869,7 +1479,14 @@ app.post(
                     attachment_url,
                     attachment_name
                 )
-                values ($1, $2, $3, $4, $5)
+
+                values (
+                    $1,
+                    $2,
+                    $3,
+                    $4,
+                    $5
+                )
                 `,
                 [
                     req.user.id,
@@ -881,7 +1498,9 @@ app.post(
             );
 
 
-            res.redirect("/feed");
+            res.redirect(
+                "/feed"
+            );
 
         } catch (error) {
 
@@ -905,20 +1524,32 @@ app.post(
 app.post(
     "/posts/:id/like",
     requireLogin,
-    async (req, res) => {
+    async (
+        req,
+        res
+    ) => {
 
         try {
 
             const post_id =
-                Number(req.params.id);
+                Number(
+                    req.params.id
+                );
+
 
             const existing =
                 await pool.query(
                     `
                     select id
+
                     from likes
-                    where user_id = $1
-                    and post_id = $2
+
+                    where
+                        user_id = $1
+
+                    and
+                        post_id = $2
+
                     limit 1
                     `,
                     [
@@ -928,13 +1559,19 @@ app.post(
                 );
 
 
-            if (existing.rows.length) {
+            if (
+                existing.rows.length
+            ) {
 
                 await pool.query(
                     `
                     delete from likes
-                    where user_id = $1
-                    and post_id = $2
+
+                    where
+                        user_id = $1
+
+                    and
+                        post_id = $2
                     `,
                     [
                         req.user.id,
@@ -950,7 +1587,12 @@ app.post(
                         user_id,
                         post_id
                     )
-                    values ($1, $2)
+
+                    values (
+                        $1,
+                        $2
+                    )
+
                     on conflict do nothing
                     `,
                     [
@@ -982,13 +1624,16 @@ app.post(
 
 
 /* =========================================================
-   comments
+   comments page
    ========================================================= */
 
 app.get(
     "/posts/:id/comments",
     requireLogin,
-    async (req, res) => {
+    async (
+        req,
+        res
+    ) => {
 
         try {
 
@@ -999,28 +1644,40 @@ app.get(
                         p.*,
 
                         u.username,
+
                         u.display_name,
 
-                        c.name as community_name
+                        c.name
+                            as community_name
 
                     from posts p
 
                     join users u
-                        on u.id = p.user_id
+                        on u.id =
+                            p.user_id
 
                     left join communities c
-                        on c.id = p.community_id
+                        on c.id =
+                            p.community_id
 
-                    where p.id = $1
+                    where p.id =
+                        $1
 
                     limit 1
                     `,
-                    [req.params.id]
+                    [
+                        req.params.id
+                    ]
                 );
 
 
-            if (!post.rows.length) {
-                return res.status(404).send(
+            if (
+                !post.rows.length
+            ) {
+
+                return res.status(
+                    404
+                ).send(
                     "post not found"
                 );
             }
@@ -1033,26 +1690,40 @@ app.get(
                         cm.*,
 
                         u.username,
+
                         u.display_name
 
                     from comments cm
 
                     join users u
-                        on u.id = cm.user_id
+                        on u.id =
+                            cm.user_id
 
-                    where cm.post_id = $1
+                    where cm.post_id =
+                        $1
 
-                    order by cm.created_at asc
+                    order by
+                        cm.created_at asc
                     `,
-                    [req.params.id]
+                    [
+                        req.params.id
+                    ]
                 );
 
 
-            res.render("comments", {
-                user: req.user,
-                post: post.rows[0],
-                comments: comments.rows
-            });
+            res.render(
+                "comments",
+                {
+                    user:
+                        req.user,
+
+                    post:
+                        post.rows[0],
+
+                    comments:
+                        comments.rows
+                }
+            );
 
         } catch (error) {
 
@@ -1069,28 +1740,47 @@ app.get(
 );
 
 
+/* =========================================================
+   create comment
+   ========================================================= */
+
 app.post(
     "/posts/:id/comments",
     requireLogin,
-    async (req, res) => {
+    async (
+        req,
+        res
+    ) => {
 
         try {
 
             const content =
-                String(req.body.content || "")
+                String(
+                    req.body.content ||
+                    ""
+                )
                     .trim();
 
+
             if (!content) {
+
                 return res.redirect(
                     `/posts/${req.params.id}/comments`
                 );
             }
 
-            if (content.length > 300) {
-                return res.status(400).send(
+
+            if (
+                content.length > 300
+            ) {
+
+                return res.status(
+                    400
+                ).send(
                     "comment is too long"
                 );
             }
+
 
             await pool.query(
                 `
@@ -1099,7 +1789,12 @@ app.post(
                     post_id,
                     content
                 )
-                values ($1, $2, $3)
+
+                values (
+                    $1,
+                    $2,
+                    $3
+                )
                 `,
                 [
                     req.user.id,
@@ -1135,7 +1830,10 @@ app.post(
 app.post(
     "/posts/:id/delete",
     requireLogin,
-    async (req, res) => {
+    async (
+        req,
+        res
+    ) => {
 
         try {
 
@@ -1150,9 +1848,13 @@ app.post(
 
                     or exists (
                         select 1
+
                         from users
+
                         where id = $2
-                        and is_admin = true
+
+                        and is_admin =
+                            true
                     )
                 )
                 `,
@@ -1190,12 +1892,17 @@ app.post(
 app.get(
     "/u/:username",
     requireLogin,
-    async (req, res) => {
+    async (
+        req,
+        res
+    ) => {
 
         try {
 
             const username =
-                String(req.params.username)
+                String(
+                    req.params.username
+                )
                     .trim()
                     .toLowerCase();
 
@@ -1215,18 +1922,25 @@ app.get(
 
                     from users
 
-                    where username = $1
+                    where username =
+                        $1
 
                     limit 1
                     `,
-                    [username]
+                    [
+                        username
+                    ]
                 );
 
 
-            if (!profile_result.rows.length) {
+            if (
+                !profile_result.rows.length
+            ) {
 
-                return res.status(404).send(
-                    "user not found"
+                return res.status(
+                    404
+                ).render(
+                    "404"
                 );
             }
 
@@ -1241,50 +1955,67 @@ app.get(
                     select
                         p.*,
 
-                        c.name as community_name,
+                        c.name
+                            as community_name,
 
                         (
                             select count(*)
+
                             from comments cm
-                            where cm.post_id = p.id
+
+                            where cm.post_id =
+                                p.id
                         ) as comments,
 
                         (
                             select count(*)
+
                             from likes l
-                            where l.post_id = p.id
+
+                            where l.post_id =
+                                p.id
                         ) as likes
 
                     from posts p
 
                     left join communities c
-                        on c.id = p.community_id
+                        on c.id =
+                            p.community_id
 
-                    where p.user_id = $1
+                    where p.user_id =
+                        $1
 
-                    order by p.created_at desc
+                    order by
+                        p.created_at desc
 
                     limit 100
                     `,
-                    [profile.id]
+                    [
+                        profile.id
+                    ]
                 );
 
 
-            res.render("profile", {
-                user: req.user,
+            res.render(
+                "profile",
+                {
+                    user:
+                        req.user,
 
-                profile: profile,
+                    profile:
+                        profile,
 
-                posts: posts_result.rows
-            });
+                    posts:
+                        posts_result.rows
+                }
+            );
 
         } catch (error) {
 
             console.error(
-                "profile page error:"
+                "profile page error:",
+                error
             );
-
-            console.error(error);
 
             res.status(500).send(
                 "internal server error"
@@ -1295,22 +2026,28 @@ app.get(
 
 
 /* =========================================================
-   profile settings
+   settings
    ========================================================= */
 
 app.get(
     "/settings/profile",
     requireLogin,
-    (req, res) => {
+    (
+        req,
+        res
+    ) => {
 
         res.render(
             "profile-settings",
             {
-                user: req.user,
+                user:
+                    req.user,
 
-                error: null,
+                error:
+                    null,
 
-                success: null
+                success:
+                    null
             }
         );
     }
@@ -1320,20 +2057,29 @@ app.get(
 app.post(
     "/settings/profile",
     requireLogin,
-    upload.single("profile_picture"),
-    async (req, res) => {
+    upload.single(
+        "profile_picture"
+    ),
+    async (
+        req,
+        res
+    ) => {
 
         try {
 
             const display_name =
                 String(
-                    req.body.display_name || ""
-                ).trim();
+                    req.body.display_name ||
+                    ""
+                )
+                    .trim();
 
             const bio =
                 String(
-                    req.body.bio || ""
-                ).trim();
+                    req.body.bio ||
+                    ""
+                )
+                    .trim();
 
 
             let profile_picture =
@@ -1343,7 +2089,7 @@ app.post(
             if (req.file) {
 
                 profile_picture =
-                    await uploadToSupabase(
+                    await uploadImage(
                         req.file,
                         `profiles/${req.user.id}`
                     );
@@ -1356,15 +2102,21 @@ app.post(
 
                 set
                     display_name = $1,
+
                     bio = $2,
+
                     profile_picture = $3
 
                 where id = $4
                 `,
                 [
-                    display_name || req.user.username,
+                    display_name ||
+                        req.user.username,
+
                     bio,
+
                     profile_picture,
+
                     req.user.id
                 ]
             );
@@ -1381,15 +2133,18 @@ app.post(
                 error
             );
 
+
             res.render(
                 "profile-settings",
                 {
-                    user: req.user,
+                    user:
+                        req.user,
 
                     error:
                         "could not update your profile",
 
-                    success: null
+                    success:
+                        null
                 }
             );
         }
@@ -1404,7 +2159,10 @@ app.post(
 app.get(
     "/communities",
     requireLogin,
-    async (req, res) => {
+    async (
+        req,
+        res
+    ) => {
 
         try {
 
@@ -1423,25 +2181,33 @@ app.get(
                     from communities c
 
                     left join users u
-                        on u.id = c.creator_id
+                        on u.id =
+                            c.creator_id
 
                     left join posts p
-                        on p.community_id = c.id
+                        on p.community_id =
+                            c.id
 
                     group by
                         c.id,
                         u.username
 
-                    order by c.name asc
+                    order by
+                        c.name asc
                     `
                 );
 
 
-            res.render("communities", {
-                user: req.user,
+            res.render(
+                "communities",
+                {
+                    user:
+                        req.user,
 
-                communities: result.rows
-            });
+                    communities:
+                        result.rows
+                }
+            );
 
         } catch (error) {
 
@@ -1465,24 +2231,37 @@ app.get(
 app.post(
     "/communities",
     requireLogin,
-    async (req, res) => {
+    async (
+        req,
+        res
+    ) => {
 
         try {
 
             const name =
-                String(req.body.name || "")
+                String(
+                    req.body.name ||
+                    ""
+                )
                     .trim()
                     .toLowerCase();
 
             const description =
                 String(
-                    req.body.description || ""
-                ).trim();
+                    req.body.description ||
+                    ""
+                )
+                    .trim();
 
 
-            if (!/^[a-z0-9_]{2,50}$/.test(name)) {
+            if (
+                !/^[a-z0-9_]{2,50}$/
+                    .test(name)
+            ) {
 
-                return res.status(400).send(
+                return res.status(
+                    400
+                ).send(
                     "community name must use only letters, numbers, and underscores"
                 );
             }
@@ -1495,7 +2274,12 @@ app.post(
                     description,
                     creator_id
                 )
-                values ($1, $2, $3)
+
+                values (
+                    $1,
+                    $2,
+                    $3
+                )
                 `,
                 [
                     name,
@@ -1505,7 +2289,9 @@ app.post(
             );
 
 
-            res.redirect("/communities");
+            res.redirect(
+                "/communities"
+            );
 
         } catch (error) {
 
@@ -1514,13 +2300,19 @@ app.post(
                 error
             );
 
+
             if (
-                error.code === "23505"
+                error.code ===
+                "23505"
             ) {
-                return res.status(400).send(
+
+                return res.status(
+                    400
+                ).send(
                     "that community already exists"
                 );
             }
+
 
             res.status(500).send(
                 "internal server error"
@@ -1531,18 +2323,23 @@ app.post(
 
 
 /* =========================================================
-   community page
+   community
    ========================================================= */
 
 app.get(
     "/c/:name",
     requireLogin,
-    async (req, res) => {
+    async (
+        req,
+        res
+    ) => {
 
         try {
 
             const name =
-                String(req.params.name)
+                String(
+                    req.params.name
+                )
                     .trim()
                     .toLowerCase();
 
@@ -1559,19 +2356,28 @@ app.get(
                     from communities c
 
                     left join users u
-                        on u.id = c.creator_id
+                        on u.id =
+                            c.creator_id
 
-                    where c.name = $1
+                    where c.name =
+                        $1
 
                     limit 1
                     `,
-                    [name]
+                    [
+                        name
+                    ]
                 );
 
 
-            if (!community_result.rows.length) {
-                return res.status(404).send(
-                    "community not found"
+            if (
+                !community_result.rows.length
+            ) {
+
+                return res.status(
+                    404
+                ).render(
+                    "404"
                 );
             }
 
@@ -1587,42 +2393,60 @@ app.get(
                         p.*,
 
                         u.username,
+
                         u.display_name,
 
                         (
                             select count(*)
+
                             from likes l
-                            where l.post_id = p.id
+
+                            where l.post_id =
+                                p.id
                         ) as likes,
 
                         (
                             select count(*)
+
                             from comments cm
-                            where cm.post_id = p.id
+
+                            where cm.post_id =
+                                p.id
                         ) as comments
 
                     from posts p
 
                     join users u
-                        on u.id = p.user_id
+                        on u.id =
+                            p.user_id
 
-                    where p.community_id = $1
+                    where p.community_id =
+                        $1
 
-                    order by p.created_at desc
+                    order by
+                        p.created_at desc
 
                     limit 100
                     `,
-                    [community.id]
+                    [
+                        community.id
+                    ]
                 );
 
 
-            res.render("community", {
-                user: req.user,
+            res.render(
+                "community",
+                {
+                    user:
+                        req.user,
 
-                community: community,
+                    community:
+                        community,
 
-                posts: posts_result.rows
-            });
+                    posts:
+                        posts_result.rows
+                }
+            );
 
         } catch (error) {
 
@@ -1646,12 +2470,18 @@ app.get(
 app.get(
     "/search",
     requireLogin,
-    async (req, res) => {
+    async (
+        req,
+        res
+    ) => {
 
         try {
 
             const query =
-                String(req.query.q || "")
+                String(
+                    req.query.q ||
+                    ""
+                )
                     .trim();
 
 
@@ -1679,15 +2509,20 @@ app.get(
 
                         from users
 
-                        where username ilike $1
+                        where
+                            username ilike $1
 
-                           or display_name ilike $1
+                        or
+                            display_name ilike $1
 
-                        order by username
+                        order by
+                            username
 
                         limit 25
                         `,
-                        [search]
+                        [
+                            search
+                        ]
                     );
 
 
@@ -1703,19 +2538,25 @@ app.get(
                         from communities c
 
                         left join posts p
-                            on p.community_id = c.id
+                            on p.community_id =
+                                c.id
 
-                        where c.name ilike $1
+                        where
+                            c.name ilike $1
 
-                           or c.description ilike $1
+                        or
+                            c.description ilike $1
 
                         group by c.id
 
-                        order by c.name
+                        order by
+                            c.name
 
                         limit 25
                         `,
-                        [search]
+                        [
+                            search
+                        ]
                     );
 
 
@@ -1724,7 +2565,9 @@ app.get(
                         `
                         select
                             p.id,
+
                             p.content,
+
                             p.created_at,
 
                             u.username,
@@ -1735,18 +2578,23 @@ app.get(
                         from posts p
 
                         join users u
-                            on u.id = p.user_id
+                            on u.id =
+                                p.user_id
 
                         left join communities c
-                            on c.id = p.community_id
+                            on c.id =
+                                p.community_id
 
                         where p.content ilike $1
 
-                        order by p.created_at desc
+                        order by
+                            p.created_at desc
 
                         limit 50
                         `,
-                        [search]
+                        [
+                            search
+                        ]
                     );
 
 
@@ -1761,17 +2609,25 @@ app.get(
             }
 
 
-            res.render("search", {
-                user: req.user,
+            res.render(
+                "search",
+                {
+                    user:
+                        req.user,
 
-                query: query,
+                    query:
+                        query,
 
-                users: users,
+                    users:
+                        users,
 
-                communities: communities,
+                    communities:
+                        communities,
 
-                posts: posts
-            });
+                    posts:
+                        posts
+                }
+            );
 
         } catch (error) {
 
@@ -1795,7 +2651,10 @@ app.get(
 app.get(
     "/admin",
     requireAdmin,
-    async (req, res) => {
+    async (
+        req,
+        res
+    ) => {
 
         try {
 
@@ -1811,7 +2670,8 @@ app.get(
 
                     from users
 
-                    order by created_at desc
+                    order by
+                        created_at desc
 
                     limit 100
                     `
@@ -1823,7 +2683,9 @@ app.get(
                     `
                     select
                         p.id,
+
                         p.content,
+
                         p.created_at,
 
                         u.username
@@ -1831,9 +2693,11 @@ app.get(
                     from posts p
 
                     join users u
-                        on u.id = p.user_id
+                        on u.id =
+                            p.user_id
 
-                    order by p.created_at desc
+                    order by
+                        p.created_at desc
 
                     limit 100
                     `
@@ -1845,8 +2709,11 @@ app.get(
                     `
                     select
                         c.id,
+
                         c.name,
+
                         c.description,
+
                         c.created_at,
 
                         u.username
@@ -1855,25 +2722,33 @@ app.get(
                     from communities c
 
                     left join users u
-                        on u.id = c.creator_id
+                        on u.id =
+                            c.creator_id
 
-                    order by c.created_at desc
+                    order by
+                        c.created_at desc
 
                     limit 100
                     `
                 );
 
 
-            res.render("admin", {
-                user: req.user,
+            res.render(
+                "admin",
+                {
+                    user:
+                        req.user,
 
-                users: users.rows,
+                    users:
+                        users.rows,
 
-                posts: posts.rows,
+                    posts:
+                        posts.rows,
 
-                communities:
-                    communities.rows
-            });
+                    communities:
+                        communities.rows
+                }
+            );
 
         } catch (error) {
 
@@ -1897,20 +2772,28 @@ app.get(
 app.post(
     "/admin/posts/:id/delete",
     requireAdmin,
-    async (req, res) => {
+    async (
+        req,
+        res
+    ) => {
 
         try {
 
             await pool.query(
                 `
                 delete from posts
+
                 where id = $1
                 `,
-                [req.params.id]
+                [
+                    req.params.id
+                ]
             );
 
 
-            res.redirect("/admin");
+            res.redirect(
+                "/admin"
+            );
 
         } catch (error) {
 
@@ -1934,19 +2817,29 @@ app.post(
 app.post(
     "/admin/users/:id/delete",
     requireAdmin,
-    async (req, res) => {
+    async (
+        req,
+        res
+    ) => {
 
         try {
 
             const target_id =
-                Number(req.params.id);
+                Number(
+                    req.params.id
+                );
 
 
             if (
                 target_id ===
-                Number(req.user.id)
+                Number(
+                    req.user.id
+                )
             ) {
-                return res.status(400).send(
+
+                return res.status(
+                    400
+                ).send(
                     "you cannot delete yourself"
                 );
             }
@@ -1955,13 +2848,18 @@ app.post(
             await pool.query(
                 `
                 delete from users
+
                 where id = $1
                 `,
-                [target_id]
+                [
+                    target_id
+                ]
             );
 
 
-            res.redirect("/admin");
+            res.redirect(
+                "/admin"
+            );
 
         } catch (error) {
 
@@ -1979,107 +2877,187 @@ app.post(
 
 
 /* =========================================================
-   health check
+   health
    ========================================================= */
 
-app.get("/health", async (req, res) => {
+app.get(
+    "/health",
+    async (
+        req,
+        res
+    ) => {
 
-    try {
+        try {
 
-        await pool.query("select 1");
+            await pool.query(
+                "select 1"
+            );
 
-        res.json({
-            status: "ok"
-        });
 
-    } catch (error) {
+            res.json({
+                status:
+                    "ok",
 
-        res.status(500).json({
-            status: "error"
-        });
+                database:
+                    "ok",
+
+                supabase:
+                    supabase
+                        ? "configured"
+                        : "not configured"
+            });
+
+        } catch (error) {
+
+            res.status(
+                500
+            ).json({
+
+                status:
+                    "error",
+
+                database:
+                    "error",
+
+                supabase:
+                    supabase
+                        ? "configured"
+                        : "not configured"
+            });
+        }
     }
-});
+);
+
 
 /* =========================================================
    404
    ========================================================= */
 
-app.use((req, res) => {
+app.use(
+    (
+        req,
+        res
+    ) => {
 
-    res.status(404).render("404");
-});
-
-/* =========================================================
-   upload error handler
-   ========================================================= */
-
-app.use((error, req, res, next) => {
-
-    console.error(
-        "server error:",
-        error
-    );
-
-
-    if (
-        error instanceof multer.MulterError
-    ) {
-
-        if (
-            error.code ===
-            "LIMIT_FILE_SIZE"
-        ) {
-
-            return res.status(400).send(
-                "file is too large. maximum size is 15mb"
-            );
-        }
-    }
-
-
-    if (
-        error.message ===
-        "only image files are allowed"
-    ) {
-
-        return res.status(400).send(
-            "only png, jpeg, gif, and webp images are allowed"
+        res.status(
+            404
+        ).render(
+            "404"
         );
     }
+);
 
 
-    res.status(500).send(
-        "internal server error"
-    );
-});
+/* =========================================================
+   upload / server errors
+   ========================================================= */
+
+app.use(
+    (
+        error,
+        req,
+        res,
+        next
+    ) => {
+
+        console.error(
+            "server error:",
+            error
+        );
+
+
+        if (
+            error instanceof
+            multer.MulterError
+        ) {
+
+            if (
+                error.code ===
+                "LIMIT_FILE_SIZE"
+            ) {
+
+                return res.status(
+                    400
+                ).send(
+                    "file is too large. maximum size is 15mb"
+                );
+            }
+        }
+
+
+        if (
+            error.message ===
+            "only image files are allowed"
+        ) {
+
+            return res.status(
+                400
+            ).send(
+                "only png, jpeg, gif, and webp images are allowed"
+            );
+        }
+
+
+        res.status(
+            500
+        ).send(
+            "internal server error"
+        );
+    }
+);
 
 
 /* =========================================================
    start
    ========================================================= */
 
-initializeDatabase()
-    .then(() => {
+async function start() {
+
+    try {
+
+        await initializeDatabase();
+
 
         app.listen(
             port,
             "0.0.0.0",
             () => {
 
+                console.log("");
+                console.log(
+                    "========================================"
+                );
+
                 console.log(
                     `helloworld running on port ${port}`
                 );
+
+                console.log(
+                    `http://0.0.0.0:${port}`
+                );
+
+                console.log(
+                    "========================================"
+                );
+
+                console.log("");
             }
         );
 
-    })
-    .catch(error => {
+    } catch (error) {
 
+        console.error("");
         console.error(
             "failed to initialize database:"
         );
 
         console.error(error);
 
+        console.error("");
+
         process.exit(1);
-    });
+    }
+}
+
+
+start();
