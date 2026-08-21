@@ -1,160 +1,92 @@
 <!doctype html>
-<html lang="en">
+<html>
 <head>
     <meta charset="utf-8">
-
     <meta
         name="viewport"
-        content="width=device-width, initial-scale=1"
+        content="width=device-width,initial-scale=1"
     >
 
-    <title>profile settings - helloworld</title>
+    <title>edit profile — helloworld</title>
 
-    <link rel="stylesheet" href="/css/style.css">
+    <link rel="stylesheet" href="/style.css">
 </head>
 
 <body>
 
-<nav>
-    <a class="logo" href="/feed">helloworld</a>
+<nav class="topbar">
 
-    <div class="nav-right">
-        <a href="/feed">feed</a>
-        <a href="/communities">communities</a>
-        <a href="/search">search</a>
+    <a class="brand" href="/feed">
+        helloworld
+    </a>
 
+    <div class="nav-links">
         <a href="/u/<%= user.username %>">
-            @<%= user.username %>
+            profile
         </a>
 
-        <form action="/logout" method="post">
-            <button
-                class="logout"
-                type="submit"
-            >
-                logout
-            </button>
-        </form>
+        <a href="/feed">
+            feed
+        </a>
     </div>
+
 </nav>
 
-<main class="container">
+<main class="settings-page">
 
-    <header class="feed-header">
-        <div class="tiny">
-            make your profile yours
-        </div>
-
-        <h1>profile settings</h1>
-
-        <p>
-            change how your profile appears to other people.
-        </p>
-    </header>
+    <h1>edit profile</h1>
 
     <% if (error) { %>
-
         <div class="error">
             <%= error %>
         </div>
-
     <% } %>
 
-    <section class="settings-card">
+    <form
+        class="settings-form"
+        action="/settings/profile"
+        method="post"
+        enctype="multipart/form-data"
+    >
 
-        <form
-            action="/settings/profile"
-            method="post"
-        >
+        <label>
+            display name
 
-            <div class="form-group">
+            <input
+                name="display_name"
+                maxlength="40"
+                value="<%= user.display_name || '' %>"
+            >
+        </label>
 
-                <label for="display_name">
-                    display name
-                </label>
+        <label>
+            bio
 
-                <input
-                    id="display_name"
-                    type="text"
-                    name="display_name"
-                    value="<%= user.display_name || '' %>"
-                    maxlength="40"
-                    placeholder="your display name"
-                    autocomplete="off"
-                >
+            <textarea
+                name="bio"
+                maxlength="500"
+            ><%= user.bio || '' %></textarea>
+        </label>
 
-                <small>
-                    up to 40 characters.
-                </small>
+        <label>
+            profile picture
 
-            </div>
+            <input
+                type="file"
+                name="profile_picture"
+                accept="image/png,image/jpeg,image/webp,image/gif"
+            >
+        </label>
 
-            <div class="form-group">
+        <p class="muted">
+            maximum image size: 5mb.
+        </p>
 
-                <label for="bio">
-                    bio
-                </label>
+        <button type="submit">
+            save changes
+        </button>
 
-                <textarea
-                    id="bio"
-                    name="bio"
-                    maxlength="500"
-                    placeholder="tell people a little about yourself..."
-                ><%= user.bio || '' %></textarea>
-
-                <small>
-                    up to 500 characters.
-                </small>
-
-            </div>
-
-            <div class="settings-actions">
-
-                <button
-                    type="submit"
-                    class="primary-button"
-                >
-                    save changes
-                </button>
-
-                <a
-                    class="button"
-                    href="/u/<%= user.username %>"
-                >
-                    cancel
-                </a>
-
-            </div>
-
-        </form>
-
-    </section>
-
-    <section class="settings-card account-info">
-
-        <h2>account</h2>
-
-        <div class="account-row">
-
-            <span>username</span>
-
-            <strong>
-                @<%= user.username %>
-            </strong>
-
-        </div>
-
-        <div class="account-row">
-
-            <span>member since</span>
-
-            <strong>
-                <%= formatDate(user.created_at) %>
-            </strong>
-
-        </div>
-
-    </section>
+    </form>
 
 </main>
 
