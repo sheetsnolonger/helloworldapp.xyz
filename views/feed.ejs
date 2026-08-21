@@ -1,59 +1,182 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>helloWorld</title>
-    <link rel="stylesheet" href="/css/style.css">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>helloworld</title>
+
+    <link rel="stylesheet" href="/style.css">
 </head>
+
 <body>
+
 <nav>
-    <a href="/feed" class="logo">helloWorld</a>
+    <a class="logo" href="/feed">helloworld</a>
+
     <div class="nav-right">
-        <a href="/u/<%= user.username %>">@<%= user.username %></a>
-        <form method="post" action="/logout"><button class="logout">log out</button></form>
+        <a href="/u/<%= user.username %>">
+            @<%= user.username %>
+        </a>
+
+        <form action="/logout" method="post">
+            <button class="logout" type="submit">
+                logout
+            </button>
+        </form>
     </div>
 </nav>
+
 <main class="container">
+
     <header class="feed-header">
-        <p class="tiny">welcome back, @<%= user.username %></p>
-        <h1>what's happening?</h1>
-        <p>there's no pressure here. share something, say hi, or just look around.</p>
+        <div class="tiny">your little corner of the internet</div>
+
+        <h1>feed</h1>
+
+        <p>
+            see what people are saying.
+        </p>
     </header>
+
     <section class="composer">
-        <form method="post" action="/posts">
-            <textarea name="content" maxlength="500" placeholder="say something..." required></textarea>
-            <button type="submit">post</button>
+
+        <form action="/posts" method="post">
+
+            <textarea
+                name="content"
+                maxlength="500"
+                placeholder="what's on your mind?"
+                required
+            ></textarea>
+
+            <button type="submit">
+                post
+            </button>
+
         </form>
+
     </section>
-    <section class="feed">
-        <% if (posts.length === 0) { %>
-            <div class="empty">
-                <h2>your feed is quiet.</h2>
-                <p>follow some people or make the first post. there's no wrong way to start.</p>
+
+    <% if (!posts || posts.length === 0) { %>
+
+        <div class="empty">
+            <p>there aren't any posts yet.</p>
+            <p>make the first one.</p>
+        </div>
+
+    <% } %>
+
+    <% posts.forEach(post => { %>
+
+        <article class="post">
+
+            <div class="post-header">
+
+                <a href="/u/<%= post.username %>">
+                    @<%= post.username %>
+                </a>
+
+                <span>
+                    <%= formatDate(post.created_at) %>
+                </span>
+
             </div>
-        <% } %>
-        <% posts.forEach(post => { %>
-            <article class="post">
-                <div class="post-header">
-                    <a href="/u/<%= post.username %>">@<%= post.username %></a>
-                    <span><%= formatDate(post.created_at) %></span>
-                </div>
-                <p class="post-content"><%= post.content %></p>
-                <div class="post-actions">
-                    <form method="post" action="/posts/<%= post.id %>/like">
-                        <button class="<%= post.liked ? 'liked' : '' %>"><%= post.liked ? 'liked' : 'like' %> · <%= post.likes %></button>
-                    </form>
-                    <span>comments · <%= post.comments %></span>
-                </div>
-                <form class="comment-form" method="post" action="/posts/<%= post.id %>/comments">
-                    <input name="content" maxlength="300" placeholder="leave a kind comment..." required>
-                    <button type="submit">reply</button>
+
+            <div class="post-content">
+                <%= post.content %>
+            </div>
+
+            <div class="post-actions">
+
+                <form
+                    action="/posts/<%= post.id %>/like"
+                    method="post"
+                >
+                    <button
+                        type="submit"
+                        class="<%= post.liked ? 'liked' : '' %>"
+                    >
+                        <%= post.liked ? 'liked' : 'like' %>
+                        <%= post.likes || 0 %>
+                    </button>
                 </form>
-            </article>
-        <% }) %>
-    </section>
+
+                <span>
+                    <%= post.comments || 0 %>
+                    <%= post.comments === 1 ? 'comment' : 'comments' %>
+                </span>
+
+            </div>
+
+            <!-- comments -->
+
+            <div class="comments">
+
+                <% if (post.comment_list && post.comment_list.length > 0) { %>
+
+                    <% post.comment_list.forEach(comment => { %>
+
+                        <div class="comment">
+
+                            <div class="comment-header">
+
+                                <a href="/u/<%= comment.username %>">
+                                    @<%= comment.username %>
+                                </a>
+
+                                <span>
+                                    <%= formatDate(comment.created_at) %>
+                                </span>
+
+                            </div>
+
+                            <div class="comment-content">
+                                <%= comment.content %>
+                            </div>
+
+                        </div>
+
+                    <% }) %>
+
+                <% } else { %>
+
+                    <div class="no-comments">
+                        no comments yet.
+                    </div>
+
+                <% } %>
+
+            </div>
+
+            <!-- comment button/form -->
+
+            <form
+                class="comment-form"
+                action="/posts/<%= post.id %>/comments"
+                method="post"
+            >
+
+                <input
+                    type="text"
+                    name="content"
+                    maxlength="300"
+                    placeholder="write a comment..."
+                    autocomplete="off"
+                    required
+                >
+
+                <button type="submit">
+                    comment
+                </button>
+
+            </form>
+
+        </article>
+
+    <% }) %>
+
 </main>
-<script src="/js/app.js"></script>
+
 </body>
 </html>
