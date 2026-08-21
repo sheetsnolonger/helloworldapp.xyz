@@ -1,234 +1,425 @@
-<!doctype html>
-<html>
+<!DOCTYPE html>
+<html lang="en">
 <head>
-    <meta charset="utf-8">
+    <meta charset="UTF-8">
     <meta
         name="viewport"
-        content="width=device-width,initial-scale=1"
+        content="width=device-width, initial-scale=1.0"
     >
 
-    <title>feed — helloworld</title>
+    <title>helloworld</title>
 
-    <link rel="stylesheet" href="/style.css">
+    <link
+        rel="stylesheet"
+        href="/css/style.css"
+    >
 </head>
 
 <body>
 
-<nav class="topbar">
+<nav class="site-nav">
 
-    <a class="brand" href="/feed">
+    <a
+        class="logo"
+        href="/feed"
+    >
         helloworld
     </a>
 
-    <form
-        class="search"
-        action="/search"
-        method="get"
-    >
-        <input
-            name="q"
-            placeholder="search"
-        >
-    </form>
+    <div class="nav-right">
 
-    <div class="nav-links">
-        <a href="/communities">communities</a>
+        <a href="/search">
+            search
+        </a>
+
+        <a href="/communities">
+            communities
+        </a>
+
         <a href="/u/<%= user.username %>">
             @<%= user.username %>
         </a>
 
-        <form action="/logout" method="post">
-            <button class="text-button">
+        <form
+            action="/logout"
+            method="post"
+        >
+            <button
+                class="logout"
+                type="submit"
+            >
                 logout
             </button>
         </form>
+
     </div>
 
 </nav>
 
-<main class="layout">
 
-    <section class="feed">
+<main class="container">
 
-        <div class="page-title">
-            <h1>feed</h1>
-            <p>what's happening?</p>
+    <header class="feed-header">
+
+        <div class="tiny">
+            your little corner of the internet
         </div>
 
-        <section class="composer">
+        <h1>
+            feed
+        </h1>
 
-            <form action="/posts" method="post">
+        <p>
+            see what people are saying.
+        </p>
 
-                <textarea
-                    name="content"
-                    maxlength="500"
-                    placeholder="what's on your mind?"
-                    required
-                ></textarea>
+    </header>
 
-                <div class="composer-bottom">
 
-                    <select name="community_id">
-                        <option value="">
-                            no community
-                        </option>
+    <section class="composer">
+
+        <form
+            action="/posts"
+            method="post"
+            enctype="multipart/form-data"
+        >
+
+            <textarea
+                name="content"
+                maxlength="500"
+                placeholder="what's on your mind?"
+                required
+            ></textarea>
+
+
+            <div class="composer-options">
+
+                <label class="file-upload">
+
+                    <span>
+                        add image
+                    </span>
+
+                    <input
+                        type="file"
+                        name="attachment"
+                        accept="image/png,image/jpeg,image/gif,image/webp"
+                    >
+
+                </label>
+
+
+                <select
+                    name="community_id"
+                >
+
+                    <option value="">
+                        no community
+                    </option>
+
+                    <% if (communities && communities.length) { %>
 
                         <% communities.forEach(community => { %>
 
                             <option
                                 value="<%= community.id %>"
                             >
-                                <%= community.name %>
+                                c/<%= community.name %>
                             </option>
 
                         <% }) %>
-                    </select>
 
-                    <button type="submit">
-                        post
-                    </button>
+                    <% } %>
 
-                </div>
+                </select>
 
-            </form>
+
+                <button
+                    type="submit"
+                >
+                    post
+                </button>
+
+            </div>
+
+        </form>
+
+    </section>
+
+
+    <% if (communities && communities.length) { %>
+
+        <section class="community-list">
+
+            <div class="section-heading">
+
+                <h2>
+                    communities
+                </h2>
+
+                <a href="/communities">
+                    view all
+                </a>
+
+            </div>
+
+
+            <div class="community-links">
+
+                <% communities.slice(0, 8).forEach(community => { %>
+
+                    <a
+                        class="community-link"
+                        href="/c/<%= encodeURIComponent(community.name) %>"
+                    >
+
+                        <strong>
+                            c/<%= community.name %>
+                        </strong>
+
+                        <span>
+                            <%= community.post_count || 0 %>
+                            posts
+                        </span>
+
+                    </a>
+
+                <% }) %>
+
+            </div>
 
         </section>
 
-        <% if (!posts.length) { %>
+    <% } %>
+
+
+    <section class="posts">
+
+        <% if (!posts || posts.length === 0) { %>
 
             <div class="empty">
-                no posts yet.
+
+                <p>
+                    there aren't any posts yet.
+                </p>
+
+                <p>
+                    make the first one.
+                </p>
+
             </div>
 
         <% } %>
 
-        <% posts.forEach(post => { %>
 
-            <article class="post">
+        <% if (posts && posts.length) { %>
 
-                <div class="post-head">
+            <% posts.forEach(post => { %>
 
-                    <% if (post.profile_picture) { %>
+                <article
+                    class="post"
+                    id="post-<%= post.id %>"
+                >
 
-                        <img
-                            class="avatar"
-                            src="<%= post.profile_picture %>"
-                            alt=""
-                        >
+                    <div class="post-header">
 
-                    <% } else { %>
+                        <div class="post-user">
 
-                        <div class="avatar placeholder">
-                            <%= post.username[0].toUpperCase() %>
+                            <a
+                                href="/u/<%= post.username %>"
+                            >
+                                @<%= post.username %>
+                            </a>
+
+                            <% if (post.display_name) { %>
+
+                                <span class="display-name">
+                                    <%= post.display_name %>
+                                </span>
+
+                            <% } %>
+
                         </div>
 
-                    <% } %>
 
-                    <div>
-                        <a
-                            class="username"
-                            href="/u/<%= post.username %>"
-                        >
-                            <%= post.display_name || post.username %>
-                        </a>
-
-                        <div class="post-meta">
-                            @<%= post.username %>
-                            ·
+                        <span class="post-date">
                             <%= formatDate(post.created_at) %>
-                        </div>
+                        </span>
+
                     </div>
 
-                </div>
 
-                <% if (post.community_name) { %>
+                    <% if (post.community_name) { %>
 
-                    <a
-                        class="community-tag"
-                        href="/c/<%= post.community_name %>"
-                    >
-                        #<%= post.community_name %>
-                    </a>
+                        <div class="post-community">
 
-                <% } %>
+                            <a
+                                href="/c/<%= encodeURIComponent(post.community_name) %>"
+                            >
+                                c/<%= post.community_name %>
+                            </a>
 
-                <a
-                    class="post-body"
-                    href="/posts/<%= post.id %>/comments"
-                >
-                    <%= post.content %>
-                </a>
-
-                <div class="post-actions">
-
-                    <form
-                        action="/posts/<%= post.id %>/like"
-                        method="post"
-                    >
-                        <button class="<%= post.liked ? 'liked' : '' %>">
-                            like <%= post.likes || 0 %>
-                        </button>
-                    </form>
-
-                    <a
-                        href="/posts/<%= post.id %>/comments"
-                    >
-                        comments <%= post.comments || 0 %>
-                    </a>
-
-                    <% if (post.username === user.username) { %>
-
-                        <form
-                            action="/posts/<%= post.id %>/delete"
-                            method="post"
-                            onsubmit="return confirm('delete this post?')"
-                        >
-                            <button class="danger-button">
-                                delete
-                            </button>
-                        </form>
+                        </div>
 
                     <% } %>
 
-                </div>
 
-            </article>
+                    <a
+                        class="post-main-link"
+                        href="/posts/<%= post.id %>/comments"
+                    >
 
-        <% }) %>
+                        <div class="post-content">
+                            <%= post.content %>
+                        </div>
 
-    </section>
 
-    <aside class="sidebar">
+                        <% if (post.attachment_url) { %>
 
-        <div class="sidebar-box">
-            <h3>communities</h3>
+                            <div class="post-attachment">
 
-            <a
-                class="sidebar-link"
-                href="/communities"
-            >
-                view all
-            </a>
+                                <img
+                                    src="<%= post.attachment_url %>"
+                                    alt="<%= post.attachment_name || 'post image' %>"
+                                    loading="lazy"
+                                >
 
-            <% communities.slice(0, 10).forEach(community => { %>
+                            </div>
 
-                <a
-                    class="community-item"
-                    href="/c/<%= community.name %>"
-                >
-                    <strong>
-                        #<%= community.name %>
-                    </strong>
+                        <% } %>
 
-                    <span>
-                        <%= community.post_count %> posts
-                    </span>
-                </a>
+                    </a>
+
+
+                    <div class="post-actions">
+
+                        <form
+                            action="/posts/<%= post.id %>/like"
+                            method="post"
+                        >
+
+                            <button
+                                type="submit"
+                                class="<%= post.liked ? 'liked' : '' %>"
+                            >
+                                <%= post.liked ? 'liked' : 'like' %>
+                                <%= post.likes || 0 %>
+                            </button>
+
+                        </form>
+
+
+                        <a
+                            class="comments-link"
+                            href="/posts/<%= post.id %>/comments"
+                        >
+
+                            <%= post.comments || 0 %>
+
+                            <%= post.comments === 1
+                                ? 'comment'
+                                : 'comments'
+                            %>
+
+                        </a>
+
+
+                        <% if (user && user.id === post.user_id) { %>
+
+                            <form
+                                action="/posts/<%= post.id %>/delete"
+                                method="post"
+                                onsubmit="return confirm('delete this post?');"
+                            >
+
+                                <button
+                                    type="submit"
+                                    class="delete-post"
+                                >
+                                    delete
+                                </button>
+
+                            </form>
+
+                        <% } %>
+
+                    </div>
+
+
+                    <% if (
+                        post.comment_list &&
+                        post.comment_list.length
+                    ) { %>
+
+                        <div class="comment-preview">
+
+                            <% post.comment_list.slice(0, 2).forEach(comment => { %>
+
+                                <div class="comment-preview-item">
+
+                                    <a
+                                        href="/u/<%= comment.username %>"
+                                    >
+                                        @<%= comment.username %>
+                                    </a>
+
+                                    <span>
+                                        <%= comment.content %>
+                                    </span>
+
+                                </div>
+
+                            <% }) %>
+
+
+                            <% if (post.comments > 2) { %>
+
+                                <a
+                                    class="view-comments"
+                                    href="/posts/<%= post.id %>/comments"
+                                >
+                                    view all
+                                    <%= post.comments %>
+                                    comments
+                                </a>
+
+                            <% } %>
+
+                        </div>
+
+                    <% } %>
+
+
+                    <form
+                        class="comment-form"
+                        action="/posts/<%= post.id %>/comments"
+                        method="post"
+                    >
+
+                        <input
+                            type="text"
+                            name="content"
+                            maxlength="300"
+                            placeholder="write a comment..."
+                            autocomplete="off"
+                            required
+                        >
+
+                        <button
+                            type="submit"
+                        >
+                            comment
+                        </button>
+
+                    </form>
+
+                </article>
 
             <% }) %>
-        </div>
 
-    </aside>
+        <% } %>
+
+    </section>
 
 </main>
 
