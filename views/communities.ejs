@@ -18,153 +18,11 @@
 
 <body>
 
-    <!-- =====================================================
-         sidebar
-         ===================================================== -->
+    <%- include("partials/sidebar", { user: user }) %>
 
-    <nav class="site-nav">
+    <main class="container page communities-page">
 
-        <a
-            class="logo"
-            href="/feed"
-            aria-label="helloworld home"
-        >
-            helloworld
-        </a>
-
-        <div class="nav-right">
-
-            <a
-                href="/feed"
-                class="nav-item"
-                aria-label="home"
-                title="home"
-            >
-                <span class="nav-icon">
-                    <svg viewBox="0 0 24 24" aria-hidden="true">
-                        <path d="m3 10 9-7 9 7v10a1 1 0 0 1-1 1h-5v-6H9v6H4a1 1 0 0 1-1-1z"/>
-                    </svg>
-                </span>
-
-                <span class="nav-label">
-                    home
-                </span>
-            </a>
-
-
-            <a
-                href="/search"
-                class="nav-item"
-                aria-label="search"
-                title="search"
-            >
-                <span class="nav-icon">
-                    <svg viewBox="0 0 24 24" aria-hidden="true">
-                        <circle cx="11" cy="11" r="6.5"/>
-                        <path d="m16 16 5 5"/>
-                    </svg>
-                </span>
-
-                <span class="nav-label">
-                    search
-                </span>
-            </a>
-
-
-            <a
-                href="/communities"
-                class="nav-item active"
-                aria-label="communities"
-                title="communities"
-            >
-                <span class="nav-icon">
-                    <svg viewBox="0 0 24 24" aria-hidden="true">
-                        <path d="M4 5.5A2.5 2.5 0 0 1 6.5 3h11A2.5 2.5 0 0 1 20 5.5v8a2.5 2.5 0 0 1-2.5 2.5H11l-4.5 4v-4.2A2.5 2.5 0 0 1 4 13.5z"/>
-                        <path d="M8 8h8M8 11h5"/>
-                    </svg>
-                </span>
-
-                <span class="nav-label">
-                    communities
-                </span>
-            </a>
-
-
-            <a
-                href="/u/<%= user.username %>"
-                class="nav-item"
-                aria-label="profile"
-                title="profile"
-            >
-                <span class="nav-icon">
-                    <svg viewBox="0 0 24 24" aria-hidden="true">
-                        <circle cx="12" cy="8" r="3.5"/>
-                        <path d="M5 21c.8-4 3.2-6 7-6s6.2 2 7 6"/>
-                    </svg>
-                </span>
-
-                <span class="nav-label">
-                    @<%= user.username %>
-                </span>
-            </a>
-
-
-            <a
-                href="/settings/profile"
-                class="nav-item"
-                aria-label="settings"
-                title="settings"
-            >
-                <span class="nav-icon">
-                    <svg viewBox="0 0 24 24" aria-hidden="true">
-                        <circle cx="12" cy="12" r="3"/>
-                        <path d="M19.4 15a1.7 1.7 0 0 0 .3 1.9l.1.1-1.5 1.5-.1-.1a1.7 1.7 0 0 0-1.9-.3 1.7 1.7 0 0 0-1 1.6v.2h-2.1v-.2a1.7 1.7 0 0 0-1-1.6 1.7 1.7 0 0 0-1.9.3l-.1.1-1.5-1.5.1-.1A1.7 1.7 0 0 0 9 15a1.7 1.7 0 0 0-1.6-1H7.2v-2.1h.2A1.7 1.7 0 0 0 9 11a1.7 1.7 0 0 0-.3-1.9l-.1-.1 1.5-1.5.1.1a1.7 1.7 0 0 0 1.9.3 1.7 1.7 0 0 0 1-1.6v-.2h2.1v.2a1.7 1.7 0 0 0 1 1.6 1.7 1.7 0 0 0 1.9-.3l.1-.1 1.5 1.5-.1.1a1.7 1.7 0 0 0-.3 1.9 1.7 1.7 0 0 0 1.6 1h.2V14h-.2a1.7 1.7 0 0 0-1.5 1z"/>
-                    </svg>
-                </span>
-
-                <span class="nav-label">
-                    settings
-                </span>
-            </a>
-
-
-            <form
-                action="/logout"
-                method="post"
-            >
-                <button
-                    class="logout nav-item"
-                    type="submit"
-                    aria-label="logout"
-                    title="logout"
-                >
-                    <span class="nav-icon">
-                        <svg viewBox="0 0 24 24" aria-hidden="true">
-                            <path d="M10 5H6a2 2 0 0 0-2 2v10a2 2 0 0 0 2 2h4"/>
-                            <path d="M14 8l4 4-4 4"/>
-                            <path d="M9 12h9"/>
-                        </svg>
-                    </span>
-
-                    <span class="nav-label">
-                        logout
-                    </span>
-                </button>
-            </form>
-
-        </div>
-
-    </nav>
-
-
-    <!-- =====================================================
-         main content
-         ===================================================== -->
-
-    <main class="container communities-page">
-
-        <header class="feed-header">
-
+        <header class="page-header">
             <div class="tiny">
                 find your people
             </div>
@@ -174,198 +32,70 @@
             </h1>
 
             <p>
-                explore communities and find somewhere to belong.
+                discover communities and join conversations.
             </p>
-
         </header>
 
 
-        <!-- =================================================
-             create community
-             ================================================= -->
+        <% if (typeof error !== "undefined" && error) { %>
 
-        <% if (user) { %>
-
-            <section class="community-create">
-
-                <div class="section-heading">
-                    <div>
-                        <h2>
-                            create a community
-                        </h2>
-
-                        <p>
-                            start your own little corner of helloworld.
-                        </p>
-                    </div>
-                </div>
-
-                <form
-                    action="/communities"
-                    method="post"
-                    class="community-create-form"
-                >
-
-                    <div class="form-row">
-
-                        <div class="form-group">
-
-                            <label for="name">
-                                community name
-                            </label>
-
-                            <input
-                                id="name"
-                                type="text"
-                                name="name"
-                                maxlength="32"
-                                placeholder="example"
-                                required
-                            >
-
-                        </div>
-
-                        <div class="form-group">
-
-                            <label for="description">
-                                description
-                            </label>
-
-                            <input
-                                id="description"
-                                type="text"
-                                name="description"
-                                maxlength="160"
-                                placeholder="what is this community about?"
-                            >
-
-                        </div>
-
-                    </div>
-
-                    <div class="form-actions">
-
-                        <button type="submit">
-                            create community
-                        </button>
-
-                    </div>
-
-                </form>
-
-            </section>
+            <div class="error">
+                <%= error %>
+            </div>
 
         <% } %>
 
 
-        <!-- =================================================
-             community list
-             ================================================= -->
+        <% if (typeof success !== "undefined" && success) { %>
 
-        <section class="communities-section">
-
-            <div class="section-heading">
-
-                <div>
-                    <h2>
-                        all communities
-                    </h2>
-
-                    <p>
-                        places people are talking.
-                    </p>
-                </div>
-
+            <div class="success">
+                <%= success %>
             </div>
 
+        <% } %>
 
-            <% if (!communities || communities.length === 0) { %>
 
-                <div class="empty">
+        <% if (typeof userCommunities !== "undefined" && userCommunities && userCommunities.length) { %>
 
-                    <strong>
-                        there aren't any communities yet.
-                    </strong>
+            <section class="page-section">
 
-                    <p>
-                        create the first one.
-                    </p>
-
+                <div class="section-heading">
+                    <h2>
+                        your communities
+                    </h2>
                 </div>
 
-            <% } else { %>
+                <div class="community-grid">
 
-                <div class="communities-grid">
-
-                    <% communities.forEach(community => { %>
+                    <% userCommunities.forEach(community => { %>
 
                         <a
-                            class="community-card"
                             href="/c/<%= encodeURIComponent(community.name) %>"
+                            class="community-card"
                         >
 
-                            <div class="community-card-top">
-
-                                <div class="community-icon-large">
-
-                                    <svg
-                                        viewBox="0 0 24 24"
-                                        aria-hidden="true"
-                                    >
-                                        <circle
-                                            cx="12"
-                                            cy="12"
-                                            r="8"
-                                        />
-
-                                        <path
-                                            d="M12 8v8M8 12h8"
-                                        />
-
-                                    </svg>
-
-                                </div>
-
-                                <div class="community-card-title">
-
-                                    <h3>
-                                        c/<%= community.name %>
-                                    </h3>
-
-                                    <span>
-                                        <%= community.post_count || 0 %>
-                                        posts
-                                    </span>
-
-                                </div>
-
+                            <div class="community-card-icon">
+                                <svg
+                                    viewBox="0 0 24 24"
+                                    aria-hidden="true"
+                                >
+                                    <path d="M4 5.5A2.5 2.5 0 0 1 6.5 3h11A2.5 2.5 0 0 1 20 5.5v8a2.5 2.5 0 0 1-2.5 2.5H11l-4.5 4v-4.2A2.5 2.5 0 0 1 4 13.5z"/>
+                                </svg>
                             </div>
 
+                            <div class="community-card-content">
 
-                            <% if (community.description) { %>
+                                <strong>
+                                    c/<%= community.name %>
+                                </strong>
 
-                                <p class="community-description">
-                                    <%= community.description %>
-                                </p>
+                                <% if (community.description) { %>
 
-                            <% } else { %>
+                                    <span>
+                                        <%= community.description %>
+                                    </span>
 
-                                <p class="community-description muted">
-                                    no description provided.
-                                </p>
-
-                            <% } %>
-
-
-                            <div class="community-card-footer">
-
-                                <span>
-                                    view community
-                                </span>
-
-                                <span class="community-arrow">
-                                    →
-                                </span>
+                                <% } %>
 
                             </div>
 
@@ -375,305 +105,103 @@
 
                 </div>
 
+            </section>
+
+        <% } %>
+
+
+        <section class="page-section">
+
+            <div class="section-heading">
+
+                <div>
+                    <h2>
+                        all communities
+                    </h2>
+
+                    <p class="section-description">
+                        browse communities on helloworld.
+                    </p>
+                </div>
+
+            </div>
+
+
+            <% if (communities && communities.length) { %>
+
+                <div class="community-grid">
+
+                    <% communities.forEach(community => { %>
+
+                        <a
+                            href="/c/<%= encodeURIComponent(community.name) %>"
+                            class="community-card"
+                        >
+
+                            <div class="community-card-icon">
+
+                                <svg
+                                    viewBox="0 0 24 24"
+                                    aria-hidden="true"
+                                >
+                                    <path d="M4 5.5A2.5 2.5 0 0 1 6.5 3h11A2.5 2.5 0 0 1 20 5.5v8a2.5 2.5 0 0 1-2.5 2.5H11l-4.5 4v-4.2A2.5 2.5 0 0 1 4 13.5z"/>
+                                    <path d="M8 8h8M8 11h5"/>
+                                </svg>
+
+                            </div>
+
+
+                            <div class="community-card-content">
+
+                                <strong>
+                                    c/<%= community.name %>
+                                </strong>
+
+                                <% if (community.description) { %>
+
+                                    <span>
+                                        <%= community.description %>
+                                    </span>
+
+                                <% } %>
+
+                                <% if (
+                                    typeof community.member_count !== "undefined"
+                                ) { %>
+
+                                    <small>
+                                        <%= community.member_count %> members
+                                    </small>
+
+                                <% } %>
+
+                            </div>
+
+                        </a>
+
+                    <% }) %>
+
+                </div>
+
+            <% } else { %>
+
+                <div class="empty">
+
+                    <strong>
+                        no communities yet
+                    </strong>
+
+                    <p>
+                        there aren't any communities to show right now.
+                    </p>
+
+                </div>
+
             <% } %>
 
         </section>
 
     </main>
-
-
-    <!-- =====================================================
-         page-specific styling
-         ===================================================== -->
-
-    <style>
-
-        .communities-page {
-            width: min(820px, calc(100vw - 300px));
-        }
-
-
-        .community-create {
-            margin-bottom: 28px;
-
-            padding: 20px;
-
-            background: #0d0d0d;
-
-            border: 1px solid #222222;
-            border-radius: 4px;
-        }
-
-
-        .community-create .section-heading {
-            margin-bottom: 18px;
-        }
-
-
-        .section-heading {
-            display: flex;
-            align-items: flex-start;
-            justify-content: space-between;
-
-            gap: 15px;
-        }
-
-
-        .section-heading h2 {
-            margin: 0 0 5px;
-
-            color: #ffffff;
-
-            font-size: 17px;
-        }
-
-
-        .section-heading p {
-            margin: 0;
-
-            color: #666666;
-
-            font-size: 12px;
-        }
-
-
-        .community-create-form {
-            width: 100%;
-        }
-
-
-        .form-row {
-            display: grid;
-
-            grid-template-columns:
-                minmax(180px, 0.8fr)
-                minmax(240px, 1.2fr);
-
-            gap: 12px;
-        }
-
-
-        .form-group {
-            margin: 0;
-        }
-
-
-        .form-group label {
-            display: block;
-
-            margin-bottom: 6px;
-
-            color: #999999;
-
-            font-size: 11px;
-            font-weight: 600;
-
-            text-transform: lowercase;
-        }
-
-
-        .form-group input {
-            width: 100%;
-        }
-
-
-        .communities-section {
-            width: 100%;
-        }
-
-
-        .communities-section > .section-heading {
-            margin-bottom: 14px;
-
-            padding: 0 2px;
-        }
-
-
-        .communities-grid {
-            display: grid;
-
-            grid-template-columns:
-                repeat(2, minmax(0, 1fr));
-
-            gap: 12px;
-        }
-
-
-        .community-card {
-            display: block;
-
-            padding: 17px;
-
-            background: #0d0d0d;
-
-            border: 1px solid #222222;
-            border-radius: 4px;
-
-            color: #eeeeee;
-
-            transition:
-                border-color 0.15s ease,
-                background 0.15s ease;
-        }
-
-
-        .community-card:hover {
-            background: #101010;
-
-            border-color: #3a3a3a;
-
-            color: #eeeeee;
-        }
-
-
-        .community-card-top {
-            display: flex;
-            align-items: center;
-
-            gap: 12px;
-        }
-
-
-        .community-icon-large {
-            display: flex;
-            align-items: center;
-            justify-content: center;
-
-            width: 40px;
-            height: 40px;
-
-            flex: 0 0 40px;
-
-            background: #151515;
-
-            border: 1px solid #292929;
-            border-radius: 50%;
-
-            color: #999999;
-        }
-
-
-        .community-icon-large svg {
-            width: 19px;
-            height: 19px;
-
-            fill: none;
-
-            stroke: currentColor;
-
-            stroke-width: 1.6;
-
-            stroke-linecap: round;
-            stroke-linejoin: round;
-        }
-
-
-        .community-card-title {
-            min-width: 0;
-        }
-
-
-        .community-card-title h3 {
-            margin: 0 0 2px;
-
-            color: #ffffff;
-
-            font-size: 14px;
-
-            overflow-wrap: anywhere;
-        }
-
-
-        .community-card-title span {
-            color: #555555;
-
-            font-size: 11px;
-        }
-
-
-        .community-description {
-            margin: 14px 0;
-
-            color: #999999;
-
-            font-size: 12px;
-            line-height: 1.55;
-
-            overflow-wrap: anywhere;
-        }
-
-
-        .community-card-footer {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-
-            padding-top: 11px;
-
-            border-top: 1px solid #1d1d1d;
-
-            color: #666666;
-
-            font-size: 11px;
-        }
-
-
-        .community-card:hover .community-card-footer {
-            color: #aaaaaa;
-        }
-
-
-        .community-arrow {
-            color: #777777;
-
-            font-size: 14px;
-        }
-
-
-        .empty {
-            margin-top: 10px;
-        }
-
-
-        @media (max-width: 850px) {
-
-            .communities-page {
-                width: calc(100% - 24px);
-            }
-
-        }
-
-
-        @media (max-width: 650px) {
-
-            .form-row {
-                grid-template-columns: 1fr;
-            }
-
-            .communities-grid {
-                grid-template-columns: 1fr;
-            }
-
-        }
-
-
-        @media (max-width: 500px) {
-
-            .communities-page {
-                width: calc(100% - 16px);
-            }
-
-            .community-create {
-                padding: 15px;
-            }
-
-            .community-card {
-                padding: 15px;
-            }
-
-        }
-
-    </style>
 
 </body>
 </html>
