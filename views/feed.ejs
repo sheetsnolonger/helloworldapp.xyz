@@ -39,6 +39,45 @@
         </p>
     </header>
 
+<section class="communities">
+
+    <div class="tiny">
+        communities
+    </div>
+
+    <div class="community-list">
+
+        <% if (!communities || communities.length === 0) { %>
+
+            <p class="muted">
+                no communities have been created yet.
+            </p>
+
+        <% } %>
+
+        <% communities.forEach(community => { %>
+
+            <a
+                class="community-card"
+                href="/c/<%= community.name %>"
+            >
+
+                <strong>
+                    /<%= community.name %>
+                </strong>
+
+                <span>
+                    <%= community.description || "no description." %>
+                </span>
+
+            </a>
+
+        <% }) %>
+
+    </div>
+
+</section>
+
     <section class="composer">
 
         <form action="/posts" method="post">
