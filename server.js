@@ -866,82 +866,95 @@ app.post(
 |--------------------------------------------------------------------------
 */
 
-app.post(
-    "/posts/:id/comments",
-    requireLogin,
-    async (req, res) => {
-        try {
-            const postId =
-                Number(req.params.id);
+app.get("/posts/:id/comments", requireLogin, async (req, res) => {
+    try {
+        const postId = Number(req.params.id);
 
-            const content =
-                String(
-                    req.body.content || ""
-                ).trim();
-
-
-            if (
-                !Number.isInteger(
-                    postId
-                ) ||
-                !content ||
-                content.length > 300
-            ) {
-                return res.redirect(
-                    "/posts/" + postId
-                );
-            }
-
-
-            const post =
-                await db.prepare(`
-                    select id
-                    from posts
-                    where id = ?
-                `).get(postId);
-
-
-            if (!post) {
-                return res.status(404).send(
-                    "post not found."
-                );
-            }
-
-
-            await db.prepare(`
-                insert into comments
-                    (
-                        user_id,
-                        post_id,
-                        content
-                    )
-                values
-                    (?, ?, ?)
-            `).run(
-                req.session.userId,
-                postId,
-                content
-            );
-
-
-            res.redirect(
-                "/posts/" + postId
-            );
-
-        } catch (error) {
-            console.error(
-                "comment error:",
-                error
-            );
-
-            res.status(500).send(
-                "something went wrong."
-            );
+        if (!Number.isInteger(postId)) {
+            return res.status(404).send("post not found.");
         }
+
+        const post = await db.prepare(`
+            select
+                posts.*,
+                users.username,
+                (
+                    select count(*)
+                    from likes
+                    where likes.post_id = posts.id
+                ) as likes
+            from posts
+            join users on users.id = posts.user_id
+            where posts.id = ?
+        `).get(postId);
+
+        if (!post) {
+            return res.status(404).send("post not found.");
+        }
+
+        const comments = await db.prepare(`
+            select
+                comments.id,
+                comments.content,
+                comments.created_at,
+                users.username
+            from comments
+            join users on users.id = comments.user_id
+            where comments.post_id = ?
+            order by comments.created_at asc
+        `).all(postId);
+
+        const user = currentUser(req);
+
+        res.render("comments", {
+            user,
+            post,
+            comments
+        });
+    } catch (error) {
+        console.error("comments page error:", error);
+        res.status(500).send("internal server error.");
     }
-);
+});
 
+app.post("/posts/:id/comments", requireLogin, async (req, res) => {
+    try {
+        const postId = Number(req.params.id);
+        const content = String(req.body.content || "").trim();
 
+        if (
+            !Number.isInteger(postId) ||
+            !content ||
+            content.length > 300
+        ) {
+            return res.redirect(`/posts/${postId}/comments`);
+        }
+
+        const post = await db.prepare(
+            "select id from posts where id = ?"
+        ).get(postId);
+
+        if (!post) {
+            return res.status(404).send("post not found.");
+        }
+
+        await db.prepare(`
+            insert into comments
+                (user_id, post_id, content)
+            values
+                (?, ?, ?)
+        `).run(
+            req.session.userId,
+            postId,
+            content
+        );
+
+        res.redirect(`/posts/${postId}/comments`);
+    } catch (error) {
+        console.error("comment error:", error);
+        res.status(500).send("internal server error.");
+    }
+});
 /*
 |--------------------------------------------------------------------------
 | delete own post
