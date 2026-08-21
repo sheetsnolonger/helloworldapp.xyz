@@ -1079,130 +1079,117 @@ app.post(
    login
    ========================================================= */
 
-app.get(
-    "/login",
-    (
-        req,
-        res
-    ) => {
+app.get("/login", (req, res) => {
+    if (req.user) {
+        return res.redirect("/feed");
+    }
 
-        if (req.user) {
+    res.render("login", {
+        error: null
+    });
+});
 
-            return res.redirect(
-                "/feed"
-            );
-        }
 
-        res.render(
-            "login",
-            {
-                error:
-                    null
-            }
+app.post("/login", async (req, res) => {
+    try {
+        const username = String(
+            req.body.username || ""
+        )
+            .trim()
+            .toLowerCase();
+
+        const password = String(
+            req.body.password || ""
         );
-    }
-);
 
-
-app.post(
-    "/login",
-    async (
-        req,
-        res
-    ) => {
-
-        try {
-
-            const username =
-                String(
-                    req.body.username ||
-                    ""
-                )
-                    .trim()
-                    .toLowerCase();
-
-            const password =
-                String(
-                    req.body.password ||
-                    ""
-                );
-
-
-            const result =
-                await pool.query(
-                    `
-                    select *
-
-                    from users
-
-                    where username = $1
-
-                    limit 1
-                    `,
-                    [
-                        username
-                    ]
-                );
-
-
-            if (
-                !result.rows.length
-            ) {
-
-                return res.render(
-                    "login",
-                    {
-                        error:
-                            "invalid username or password"
-                    }
-                );
-            }
-
-
-            const user =
-                result.rows[0];
-
-
-            const valid =
-                await bcrypt.compare(
-                    password,
-                    user.password_hash
-                );
-
-
-            if (!valid) {
-
-                return res.render(
-                    "login",
-                    {
-                        error:
-                            "invalid username or password"
-                    }
-                );
-            }
-
-
-            req.session.user_id =
-                user.id;
-
-
-            res.redirect(
-                "/feed"
-            );
-
-        } catch (error) {
-
-            console.error(
-                "login error:",
-                error
-            );
-
-            res.status(500).send(
-                "internal server error"
-            );
+        if (!username || !password) {
+            return res.status(400).render("login", {
+                error: "username and password are required"
+            });
         }
+
+        const result = await pool.query(
+            `
+            select
+                id,
+                username,
+                email,
+                password_hash,
+                display_name,
+                bio,
+                profile_picture,
+                is_admin,
+                created_at
+            from users
+            where lower(username) = $1
+            limit 1
+            `,
+            [username]
+        );
+
+        if (!result.rows.length) {
+            return res.status(401).render("login", {
+                error: "invalid username or password"
+            });
+        }
+
+        const user = result.rows[0];
+
+        const valid = await bcrypt.compare(
+            password,
+            user.password_hash
+        );
+
+        if (!valid) {
+            return res.status(401).render("login", {
+                error: "invalid username or password"
+            });
+        }
+
+        /*
+         * regenerate the session after authentication.
+         * this also helps prevent session fixation.
+         */
+
+        req.session.regenerate((session_error) => {
+            if (session_error) {
+                console.error(
+                    "session regenerate error:",
+                    session_error
+                );
+
+                return res.status(500).render("login", {
+                    error: "could not create your login session"
+                });
+            }
+
+            req.session.user_id = user.id;
+
+            req.session.save((save_error) => {
+                if (save_error) {
+                    console.error(
+                        "session save error:",
+                        save_error
+                    );
+
+                    return res.status(500).render("login", {
+                        error: "could not save your login session"
+                    });
+                }
+
+                return res.redirect("/feed");
+            });
+        });
+
+    } catch (error) {
+        console.error("login error:");
+        console.error(error);
+
+        return res.status(500).render("login", {
+            error: "internal server error"
+        });
     }
-);
+});
 
 
 /* =========================================================
