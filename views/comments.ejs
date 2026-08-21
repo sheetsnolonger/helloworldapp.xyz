@@ -2,7 +2,10 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta
+        name="viewport"
+        content="width=device-width, initial-scale=1.0"
+    >
 
     <title>comments - helloworld</title>
 
@@ -27,58 +30,78 @@
     </div>
 </nav>
 
-<main class="container comments-page">
+<main class="container">
 
-    <a class="back-link" href="/feed">
-        back to feed
-    </a>
+    <div class="comments-page">
 
-    <article class="post">
+        <a class="back-link" href="/feed">
+            ← back to feed
+        </a>
 
-        <div class="post-header">
+        <article class="post">
 
-            <a href="/u/<%= post.username %>">
-                @<%= post.username %>
-            </a>
+            <div class="post-header">
+                <a href="/u/<%= post.username %>">
+                    @<%= post.username %>
+                </a>
 
-            <span>
-                <%= formatDate(post.created_at) %>
-            </span>
+                <span>
+                    <%= formatDate(post.created_at) %>
+                </span>
+            </div>
 
-        </div>
+            <div class="post-content">
+                <%= post.content %>
+            </div>
 
-        <div class="post-content">
-            <%= post.content %>
-        </div>
+        </article>
 
-        <div class="post-actions">
+        <section class="comments-section">
 
-            <form
-                action="/posts/<%= post.id %>/like"
-                method="post"
-            >
-                <button
-                    type="submit"
-                    class="<%= post.liked ? 'liked' : '' %>"
-                >
-                    <%= post.liked ? 'liked' : 'like' %>
-                    <%= post.likes || 0 %>
-                </button>
-            </form>
+            <h1>comments</h1>
 
-        </div>
+            <% if (comments.length === 0) { %>
 
-    </article>
+                <div class="no-comments">
+                    no comments yet.
+                </div>
 
-    <section class="comments-section">
+            <% } else { %>
 
-        <h1>comments</h1>
+                <% comments.forEach(comment => { %>
+
+                    <article class="comment">
+
+                        <div class="comment-header">
+
+                            <a href="/u/<%= comment.username %>">
+                                @<%= comment.username %>
+                            </a>
+
+                            <span>
+                                <%= formatDate(comment.created_at) %>
+                            </span>
+
+                        </div>
+
+                        <div class="comment-content">
+                            <%= comment.content %>
+                        </div>
+
+                    </article>
+
+                <% }) %>
+
+            <% } %>
+
+        </section>
 
         <form
             class="comment-form"
             action="/posts/<%= post.id %>/comments"
             method="post"
         >
+
             <input
                 type="text"
                 name="content"
@@ -91,45 +114,10 @@
             <button type="submit">
                 comment
             </button>
+
         </form>
 
-        <div class="comments">
-
-            <% if (comments.length === 0) { %>
-
-                <div class="no-comments">
-                    no comments yet.
-                </div>
-
-            <% } %>
-
-            <% comments.forEach(comment => { %>
-
-                <div class="comment">
-
-                    <div class="comment-header">
-
-                        <a href="/u/<%= comment.username %>">
-                            @<%= comment.username %>
-                        </a>
-
-                        <span>
-                            <%= formatDate(comment.created_at) %>
-                        </span>
-
-                    </div>
-
-                    <div class="comment-content">
-                        <%= comment.content %>
-                    </div>
-
-                </div>
-
-            <% }) %>
-
-        </div>
-
-    </section>
+    </div>
 
 </main>
 
