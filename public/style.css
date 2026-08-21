@@ -1911,3 +1911,311 @@ input[type="file"]::file-selector-button {
     }
 
 }
+
+/* =========================================================
+   settings page
+   ========================================================= */
+
+.settings-page {
+    min-height: 100vh;
+
+    width: calc(100% - 220px);
+
+    margin-left: 220px;
+
+    padding: 50px 40px 100px;
+}
+
+.settings-container {
+    width: min(700px, 100%);
+
+    margin: 0 auto;
+}
+
+.page-header {
+    margin-bottom: 28px;
+}
+
+.page-header h1 {
+    margin: 5px 0 6px;
+
+    font-size: 28px;
+    line-height: 1.15;
+}
+
+.page-header p {
+    margin: 0;
+
+    color: #666666;
+}
+
+.settings-section {
+    margin-bottom: 18px;
+
+    padding: 22px;
+
+    background: #0d0d0d;
+
+    border: 1px solid #222222;
+    border-radius: 4px;
+}
+
+.settings-heading {
+    display: flex;
+
+    align-items: flex-start;
+    justify-content: space-between;
+
+    margin-bottom: 22px;
+}
+
+.settings-heading h2 {
+    margin: 0 0 5px;
+
+    color: #ffffff;
+
+    font-size: 17px;
+}
+
+.settings-heading p {
+    margin: 0;
+
+    color: #666666;
+
+    font-size: 12px;
+}
+
+.settings-profile-preview {
+    display: flex;
+
+    align-items: center;
+
+    gap: 15px;
+
+    margin-bottom: 24px;
+
+    padding-bottom: 20px;
+
+    border-bottom: 1px solid #202020;
+}
+
+.settings-avatar,
+.settings-avatar-placeholder {
+    width: 64px;
+    height: 64px;
+
+    flex: 0 0 64px;
+
+    border-radius: 50%;
+
+    object-fit: cover;
+
+    background: #151515;
+
+    border: 1px solid #292929;
+}
+
+.settings-avatar-placeholder {
+    display: flex;
+
+    align-items: center;
+    justify-content: center;
+
+    color: #999999;
+
+    font-size: 22px;
+    font-weight: 600;
+}
+
+.settings-profile-info {
+    display: flex;
+
+    flex-direction: column;
+
+    gap: 3px;
+
+    min-width: 0;
+}
+
+.settings-profile-info strong {
+    color: #ffffff;
+
+    font-size: 14px;
+}
+
+.settings-profile-info span {
+    color: #666666;
+
+    font-size: 12px;
+}
+
+.settings-section .form-group {
+    margin-bottom: 19px;
+}
+
+.settings-section .form-group label {
+    display: block;
+
+    margin-bottom: 7px;
+
+    color: #cccccc;
+
+    font-size: 12px;
+    font-weight: 600;
+}
+
+.settings-section .form-group small {
+    display: block;
+
+    margin-top: 6px;
+
+    color: #555555;
+
+    font-size: 11px;
+}
+
+.settings-section input,
+.settings-section textarea {
+    width: 100%;
+}
+
+.settings-section textarea {
+    min-height: 110px;
+}
+
+.settings-account-info {
+    margin-top: 22px;
+
+    padding: 14px;
+
+    background: #090909;
+
+    border: 1px solid #1f1f1f;
+}
+
+.settings-account-info > div {
+    display: flex;
+
+    align-items: center;
+    justify-content: space-between;
+
+    gap: 15px;
+}
+
+.settings-label {
+    color: #666666;
+
+    font-size: 12px;
+}
+
+.settings-account-info strong {
+    color: #cccccc;
+
+    font-size: 12px;
+    font-weight: 500;
+}
+
+.account-row {
+    display: flex;
+
+    align-items: center;
+    justify-content: space-between;
+
+    gap: 20px;
+
+    padding: 13px 0;
+
+    border-bottom: 1px solid #1d1d1d;
+}
+
+.account-row:first-of-type {
+    padding-top: 0;
+}
+
+.account-row:last-child {
+    border-bottom: 0;
+
+    padding-bottom: 0;
+}
+
+.account-row span {
+    color: #666666;
+
+    font-size: 12px;
+}
+
+.account-row strong {
+    color: #dddddd;
+
+    font-size: 12px;
+    font-weight: 500;
+}
+
+.settings-back {
+    margin-top: 20px;
+}
+
+.settings-back a {
+    color: #777777;
+
+    font-size: 12px;
+}
+
+.settings-back a:hover {
+    color: #d00000;
+}
+
+
+/* =========================================================
+   settings mobile
+   ========================================================= */
+
+@media (max-width: 850px) {
+
+    .settings-page {
+        width: 100%;
+
+        margin-left: 0;
+
+        padding: 30px 20px 70px;
+    }
+
+}
+
+@media (max-width: 600px) {
+
+    .settings-page {
+        padding: 22px 12px 50px;
+    }
+
+    .settings-section {
+        padding: 16px;
+    }
+
+    .settings-profile-preview {
+        align-items: flex-start;
+    }
+
+    .settings-account-info > div,
+    .account-row {
+        align-items: flex-start;
+
+        flex-direction: column;
+
+        gap: 5px;
+    }
+
+    .form-actions {
+        flex-direction: column;
+
+        align-items: stretch;
+    }
+
+    .form-actions .button,
+    .form-actions button {
+        width: 100%;
+
+        text-align: center;
+    }
+
+}
