@@ -274,6 +274,14 @@ async function initializeDatabase() {
     `);
 
     await pool.query(`
+    alter table users
+    add column if not exists
+    display_name varchar(40)
+    not null
+    default '';
+`);
+
+    await pool.query(`
         create index if not exists
             posts_community_id_idx
         on posts(community_id);
