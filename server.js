@@ -14,7 +14,8 @@ const isProduction = process.env.NODE_ENV === "production";
 
 if (
     isProduction &&
-    (!process.env.SESSION_SECRET || process.env.SESSION_SECRET.length < 32)
+    (!process.env.SESSION_SECRET ||
+        process.env.SESSION_SECRET.length < 32)
 ) {
     throw new Error(
         "SESSION_SECRET must be set to a long random value in production."
@@ -23,7 +24,9 @@ if (
 
 const sessionDir = path.resolve("./sessions");
 
-fs.mkdirSync(sessionDir, { recursive: true });
+fs.mkdirSync(sessionDir, {
+    recursive: true
+});
 
 app.set("view engine", "ejs");
 app.set("trust proxy", 1);
@@ -42,12 +45,15 @@ app.use(
             dir: sessionDir,
             concurrentDB: true
         }),
+
         secret:
             process.env.SESSION_SECRET ||
             "local-development-secret-change-me",
+
         resave: false,
         saveUninitialized: false,
         rolling: true,
+
         cookie: {
             httpOnly: true,
             sameSite: "lax",
@@ -75,32 +81,48 @@ function requireLogin(req, res, next) {
     next();
 }
 
-function currentUser(req) {
+async function currentUser(req) {
     if (!req.session.userId) {
         return null;
     }
 
-    return db
+    return await db
         .prepare(
-            "select id, username, bio from users where id = ?"
+            `
+            select
+                id,
+                username,
+                bio
+            from users
+            where id = ?
+            `
         )
         .get(req.session.userId);
 }
 
-/*
- * health check
- */
+/* health */
 
-app.get("/health", (req, res) => {
-    res.status(200).json({
-        status: "ok",
-        service: "helloworld"
-    });
+app.get("/health", async (req, res) => {
+    try {
+        await db.pool.query("select 1");
+
+        res.status(200).json({
+            status: "ok",
+            service: "helloworld",
+            database: "connected"
+        });
+    } catch (error) {
+        console.error("health check database error:", error);
+
+        res.status(500).json({
+            status: "error",
+            service: "helloworld",
+            database: "disconnected"
+        });
+    }
 });
 
-/*
- * home
- */
+/* home */
 
 app.get("/", (req, res) => {
     if (req.session.userId) {
@@ -110,9 +132,7 @@ app.get("/", (req, res) => {
     res.render("index");
 });
 
-/*
- * register
- */
+/* register */
 
 app.get("/register", (req, res) => {
     if (req.session.userId) {
@@ -125,55 +145,83 @@ app.get("/register", (req, res) => {
 });
 
 app.post("/register", async (req, res) => {
-    const username = String(req.body.username || "")
-        .trim()
-        .toLowerCase();
-
-    const password = String(req.body.password || "");
-
-    if (!/^[a-z0-9_]{3,30}$/.test(username)) {
-        return res.render("register", {
-            error:
-                "usernames can only use lowercase letters, numbers, and underscores."
-        });
-    }
-
-    if (password.length < 8) {
-        return res.render("register", {
-            error: "your password needs at least 8 characters."
-        });
-    }
-
-    const existing = db
-        .prepare("select id from users where username = ?")
-        .get(username);
-
-    if (existing) {
-        return res.render("register", {
-            error: "that username is already taken."
-        });
-    }
-
     try {
+        const username = String(
+            req.body.username || ""
+        )
+            .trim()
+            .toLowerCase();
+
+        const password = String(
+            req.body.password || ""
+        );
+
+        if (!/^[a-z0-9_]{3,30}$/.test(username)) {
+            return res.render("register", {
+                error:
+                    "usernames can only use lowercase letters, numbers, and underscores."
+            });
+        }
+
+        if (password.length < 8) {
+            return res.render("register", {
+                error:
+                    "your password needs at least 8 characters."
+            });
+        }
+
+        const existing = await db
+            .prepare(
+                `
+                select id
+                from users
+                where username = ?
+                `
+            )
+            .get(username);
+
+        if (existing) {
+            return res.render("register", {
+                error:
+                    "that username is already taken."
+            });
+        }
+
         const hash = await bcrypt.hash(password, 12);
 
-        const result = db
+        const result = await db
             .prepare(
-                "insert into users (username, password) values (?, ?)"
+                `
+                insert into users
+                    (username, password)
+                values
+                    (?, ?)
+                returning id
+                `
             )
-            .run(username, hash);
+            .get(username, hash);
 
-        req.session.regenerate(err => {
-            if (err) {
-                console.error(err);
-                return res.status(500).send("something went wrong.");
+        req.session.regenerate(error => {
+            if (error) {
+                console.error(
+                    "session regeneration error:",
+                    error
+                );
+
+                return res
+                    .status(500)
+                    .send("something went wrong.");
             }
 
-            req.session.userId = Number(result.lastInsertRowid);
+            req.session.userId = result.id;
 
-            req.session.save(err => {
-                if (err) {
-                    console.error(err);
+            req.session.save(error => {
+                if (error) {
+                    console.error(
+                        "session save error:",
+                        error
+                    );
+
                     return res
                         .status(500)
                         .send("something went wrong.");
@@ -183,17 +231,15 @@ app.post("/register", async (req, res) => {
             });
         });
     } catch (error) {
-        console.error(error);
+        console.error("registration error:", error);
 
-        res.status(500).render("register", {
-            error: "something went wrong while creating your account."
-        });
+        res.status(500).send(
+            "something went wrong while creating your account."
+        );
     }
 });
 
-/*
- * login
- */
+/* login */
 
 app.get("/login", (req, res) => {
     if (req.session.userId) {
@@ -206,65 +252,107 @@ app.get("/login", (req, res) => {
 });
 
 app.post("/login", async (req, res) => {
-    const username = String(req.body.username || "")
-        .trim()
-        .toLowerCase();
-
-    const password = String(req.body.password || "");
-
-    const user = db
-        .prepare("select * from users where username = ?")
-        .get(username);
-
-    if (!user) {
-        return res.render("login", {
-            error: "we couldn't find that account."
-        });
-    }
-
     try {
-        const valid = await bcrypt.compare(password, user.password);
+        const username = String(
+            req.body.username || ""
+        )
+            .trim()
+            .toLowerCase();
+
+        const password = String(
+            req.body.password || ""
+        );
+
+        const user = await db
+            .prepare(
+                `
+                select
+                    id,
+                    username,
+                    password,
+                    bio
+                from users
+                where username = ?
+                `
+            )
+            .get(username);
+
+        if (!user) {
+            return res.render("login", {
+                error:
+                    "we couldn't find that account."
+            });
+        }
+
+        const valid = await bcrypt.compare(
+            password,
+            user.password
+        );
 
         if (!valid) {
             return res.render("login", {
-                error: "that password isn't correct."
+                error:
+                    "that password isn't correct."
             });
         }
-    } catch (error) {
-        console.error(error);
 
-        return res.render("login", {
-            error: "something went wrong while logging you in."
-        });
-    }
+        req.session.regenerate(error => {
+            if (error) {
+                console.error(
+                    "session regeneration error:",
+                    error
+                );
 
-    req.session.regenerate(err => {
-        if (err) {
-            console.error(err);
-            return res.status(500).send("something went wrong.");
-        }
-
-        req.session.userId = user.id;
-
-        req.session.save(err => {
-            if (err) {
-                console.error(err);
-                return res.status(500).send("something went wrong.");
+                return res.render("login", {
+                    error:
+                        "something went wrong while logging you in."
+                });
             }
 
-            res.redirect("/feed");
+            req.session.userId = user.id;
+
+            req.session.save(error => {
+                if (error) {
+                    console.error(
+                        "session save error:",
+                        error
+                    );
+
+                    return res.render("login", {
+                        error:
+                            "something went wrong while logging you in."
+                    });
+                }
+
+                console.log(
+                    "logged in:",
+                    user.username,
+                    "user id:",
+                    user.id
+                );
+
+                res.redirect("/feed");
+            });
         });
-    });
+    } catch (error) {
+        console.error("login error:", error);
+
+        res.render("login", {
+            error:
+                "something went wrong while logging you in."
+        });
+    }
 });
 
-/*
- * logout
- */
+/* logout */
 
 app.post("/logout", requireLogin, (req, res) => {
-    req.session.destroy(err => {
-        if (err) {
-            console.error(err);
+    req.session.destroy(error => {
+        if (error) {
+            console.error(
+                "logout session error:",
+                error
+            );
         }
 
         res.clearCookie("connect.sid");
@@ -272,426 +360,559 @@ app.post("/logout", requireLogin, (req, res) => {
     });
 });
 
-/*
- * feed
- *
- * this loads:
- * - posts
- * - post authors
- * - like counts
- * - comment counts
- * - whether the current user liked the post
- * - the actual comments for every post
- */
+/* feed */
 
-app.get("/feed", requireLogin, (req, res) => {
-    const user = currentUser(req);
+app.get("/feed", requireLogin, async (req, res) => {
+    try {
+        const user = await currentUser(req);
 
-    if (!user) {
-        return req.session.destroy(() => {
-            res.redirect("/login");
-        });
-    }
+        if (!user) {
+            req.session.destroy(() => {
+                res.redirect("/login");
+            });
 
-    const posts = db
-        .prepare(`
-            select
-                posts.*,
-                users.username,
+            return;
+        }
 
-                (
-                    select count(*)
-                    from likes
-                    where likes.post_id = posts.id
-                ) as likes,
-
-                (
-                    select count(*)
-                    from comments
-                    where comments.post_id = posts.id
-                ) as comments,
-
-                exists(
-                    select 1
-                    from likes
-                    where likes.post_id = posts.id
-                    and likes.user_id = ?
-                ) as liked
-
-            from posts
-
-            join users
-                on users.id = posts.user_id
-
-            where posts.user_id = ?
-
-            or posts.user_id in (
-                select following_id
-                from follows
-                where follower_id = ?
-            )
-
-            order by posts.created_at desc
-
-            limit 100
-        `)
-        .all(
-            user.id,
-            user.id,
-            user.id
-        );
-
-    /*
-     * get the actual comments belonging to each post
-     */
-
-    const getComments = db.prepare(`
-        select
-            comments.id,
-            comments.content,
-            comments.created_at,
-            comments.user_id,
-            users.username
-
-        from comments
-
-        join users
-            on users.id = comments.user_id
-
-        where comments.post_id = ?
-
-        order by comments.created_at asc
-    `);
-
-    for (const post of posts) {
-        post.comment_list = getComments.all(post.id);
-    }
-
-    res.render("feed", {
-        user,
-        posts
-    });
-});
-
-/*
- * create post
- */
-
-app.post("/posts", requireLogin, (req, res) => {
-    const content = String(req.body.content || "").trim();
-
-    if (!content || content.length > 500) {
-        return res.redirect("/feed");
-    }
-
-    db.prepare(
-        "insert into posts (user_id, content) values (?, ?)"
-    ).run(req.session.userId, content);
-
-    res.redirect("/feed");
-});
-
-/*
- * like / unlike post
- */
-
-app.post("/posts/:id/like", requireLogin, (req, res) => {
-    const postId = Number(req.params.id);
-
-    if (!Number.isInteger(postId) || postId <= 0) {
-        return res.redirect("/feed");
-    }
-
-    const post = db
-        .prepare("select id from posts where id = ?")
-        .get(postId);
-
-    if (!post) {
-        return res.redirect("/feed");
-    }
-
-    const existing = db
-        .prepare(
-            "select id from likes where user_id = ? and post_id = ?"
-        )
-        .get(req.session.userId, postId);
-
-    if (existing) {
-        db.prepare("delete from likes where id = ?").run(
-            existing.id
-        );
-    } else {
-        db.prepare(
-            "insert or ignore into likes (user_id, post_id) values (?, ?)"
-        ).run(req.session.userId, postId);
-    }
-
-    res.redirect(req.get("referer") || "/feed");
-});
-
-/*
- * add comment
- */
-
-app.post("/posts/:id/comments", requireLogin, (req, res) => {
-    const postId = Number(req.params.id);
-
-    const content = String(req.body.content || "").trim();
-
-    if (
-        !Number.isInteger(postId) ||
-        postId <= 0 ||
-        !content ||
-        content.length > 300
-    ) {
-        return res.redirect(req.get("referer") || "/feed");
-    }
-
-    const post = db
-        .prepare("select id from posts where id = ?")
-        .get(postId);
-
-    if (!post) {
-        return res.redirect(req.get("referer") || "/feed");
-    }
-
-    db.prepare(
-        `
-        insert into comments (
-            user_id,
-            post_id,
-            content
-        )
-        values (?, ?, ?)
-        `
-    ).run(
-        req.session.userId,
-        postId,
-        content
-    );
-
-    res.redirect(req.get("referer") || "/feed");
-});
-
-/*
- * profile
- */
-
-app.get("/u/:username", requireLogin, (req, res) => {
-    const username = String(req.params.username)
-        .trim()
-        .toLowerCase();
-
-    const user = db
-        .prepare(
-            `
-            select
-                id,
-                username,
-                bio,
-                created_at
-
-            from users
-
-            where username = ?
-            `
-        )
-        .get(username);
-
-    if (!user) {
-        return res.status(404).send("user not found.");
-    }
-
-    const posts = db
-        .prepare(
-            `
-            select
-                posts.*,
-
-                (
-                    select count(*)
-                    from likes
-                    where likes.post_id = posts.id
-                ) as likes,
-
-                (
-                    select count(*)
-                    from comments
-                    where comments.post_id = posts.id
-                ) as comments
-
-            from posts
-
-            where posts.user_id = ?
-
-            order by posts.created_at desc
-            `
-        )
-        .all(user.id);
-
-    /*
-     * load comments for profile posts too
-     */
-
-    const getComments = db.prepare(`
-        select
-            comments.id,
-            comments.content,
-            comments.created_at,
-            comments.user_id,
-            users.username
-
-        from comments
-
-        join users
-            on users.id = comments.user_id
-
-        where comments.post_id = ?
-
-        order by comments.created_at asc
-    `);
-
-    for (const post of posts) {
-        post.comment_list = getComments.all(post.id);
-    }
-
-    const followers = db
-        .prepare(
-            `
-            select count(*) as count
-
-            from follows
-
-            where following_id = ?
-            `
-        )
-        .get(user.id).count;
-
-    const following = db
-        .prepare(
-            `
-            select count(*) as count
-
-            from follows
-
-            where follower_id = ?
-            `
-        )
-        .get(user.id).count;
-
-    const isFollowing =
-        user.id !== req.session.userId &&
-        !!db
+        const posts = await db
             .prepare(
                 `
-                select id
+                select
+                    posts.*,
+                    users.username,
 
-                from follows
+                    (
+                        select count(*)
+                        from likes
+                        where likes.post_id = posts.id
+                    ) as likes,
 
-                where follower_id = ?
-                and following_id = ?
+                    (
+                        select count(*)
+                        from comments
+                        where comments.post_id = posts.id
+                    ) as comments,
+
+                    exists (
+                        select 1
+                        from likes
+                        where likes.post_id = posts.id
+                        and likes.user_id = ?
+                    ) as liked
+
+                from posts
+
+                join users
+                    on users.id = posts.user_id
+
+                where
+                    posts.user_id = ?
+
+                    or posts.user_id in (
+                        select following_id
+                        from follows
+                        where follower_id = ?
+                    )
+
+                order by posts.created_at desc
+
+                limit 100
                 `
             )
-            .get(
-                req.session.userId,
+            .all(
+                user.id,
+                user.id,
                 user.id
             );
 
-    res.render("profile", {
-        user,
-        posts,
-        followers,
-        following,
-        isFollowing,
-        currentUser: currentUser(req)
-    });
-});
-
-/*
- * follow / unfollow
- */
-
-app.post("/u/:username/follow", requireLogin, (req, res) => {
-    const username = String(req.params.username)
-        .trim()
-        .toLowerCase();
-
-    const target = db
-        .prepare(
-            "select id from users where username = ?"
-        )
-        .get(username);
-
-    if (!target || target.id === req.session.userId) {
-        return res.redirect("/u/" + username);
-    }
-
-    const existing = db
-        .prepare(
+        const getComments = db.prepare(
             `
-            select id
+            select
+                comments.id,
+                comments.content,
+                comments.created_at,
+                users.username
 
-            from follows
+            from comments
 
-            where follower_id = ?
-            and following_id = ?
+            join users
+                on users.id = comments.user_id
+
+            where comments.post_id = ?
+
+            order by comments.created_at asc
             `
-        )
-        .get(
-            req.session.userId,
-            target.id
         );
 
-    if (existing) {
-        db.prepare(
-            "delete from follows where id = ?"
-        ).run(existing.id);
-    } else {
-        db.prepare(
-            `
-            insert or ignore into follows (
-                follower_id,
-                following_id
+        for (const post of posts) {
+            post.comment_list =
+                await getComments.all(post.id);
+        }
+
+        res.render("feed", {
+            user,
+            posts
+        });
+    } catch (error) {
+        console.error("feed error:", error);
+
+        res.status(500).send(
+            "something went wrong loading the feed."
+        );
+    }
+});
+
+/* create post */
+
+app.post("/posts", requireLogin, async (req, res) => {
+    try {
+        const content = String(
+            req.body.content || ""
+        ).trim();
+
+        if (
+            !content ||
+            content.length > 500
+        ) {
+            return res.redirect("/feed");
+        }
+
+        await db
+            .prepare(
+                `
+                insert into posts
+                    (user_id, content)
+                values
+                    (?, ?)
+                `
             )
-            values (?, ?)
-            `
-        ).run(
-            req.session.userId,
-            target.id
+            .run(
+                req.session.userId,
+                content
+            );
+
+        res.redirect("/feed");
+    } catch (error) {
+        console.error(
+            "create post error:",
+            error
+        );
+
+        res.status(500).send(
+            "something went wrong creating your post."
         );
     }
-
-    res.redirect("/u/" + username);
 });
 
-/*
- * 404
- */
+/* like */
+
+app.post(
+    "/posts/:id/like",
+    requireLogin,
+    async (req, res) => {
+        try {
+            const postId = Number(
+                req.params.id
+            );
+
+            if (!Number.isInteger(postId)) {
+                return res.redirect("/feed");
+            }
+
+            const existing = await db
+                .prepare(
+                    `
+                    select id
+                    from likes
+                    where user_id = ?
+                    and post_id = ?
+                    `
+                )
+                .get(
+                    req.session.userId,
+                    postId
+                );
+
+            if (existing) {
+                await db
+                    .prepare(
+                        `
+                        delete from likes
+                        where id = ?
+                        `
+                    )
+                    .run(existing.id);
+            } else {
+                await db
+                    .prepare(
+                        `
+                        insert into likes
+                            (user_id, post_id)
+                        values
+                            (?, ?)
+                        on conflict (user_id, post_id)
+                        do nothing
+                        `
+                    )
+                    .run(
+                        req.session.userId,
+                        postId
+                    );
+            }
+
+            res.redirect(
+                req.get("referer") || "/feed"
+            );
+        } catch (error) {
+            console.error(
+                "like error:",
+                error
+            );
+
+            res.redirect("/feed");
+        }
+    }
+);
+
+/* comments */
+
+app.post(
+    "/posts/:id/comments",
+    requireLogin,
+    async (req, res) => {
+        try {
+            const postId = Number(
+                req.params.id
+            );
+
+            const content = String(
+                req.body.content || ""
+            ).trim();
+
+            if (
+                !Number.isInteger(postId) ||
+                !content ||
+                content.length > 300
+            ) {
+                return res.redirect(
+                    req.get("referer") || "/feed"
+                );
+            }
+
+            const post = await db
+                .prepare(
+                    `
+                    select id
+                    from posts
+                    where id = ?
+                    `
+                )
+                .get(postId);
+
+            if (!post) {
+                return res.redirect(
+                    req.get("referer") || "/feed"
+                );
+            }
+
+            await db
+                .prepare(
+                    `
+                    insert into comments
+                        (user_id, post_id, content)
+                    values
+                        (?, ?, ?)
+                    `
+                )
+                .run(
+                    req.session.userId,
+                    postId,
+                    content
+                );
+
+            res.redirect(
+                req.get("referer") || "/feed"
+            );
+        } catch (error) {
+            console.error(
+                "comment error:",
+                error
+            );
+
+            res.redirect(
+                req.get("referer") || "/feed"
+            );
+        }
+    }
+);
+
+/* profile */
+
+app.get(
+    "/u/:username",
+    requireLogin,
+    async (req, res) => {
+        try {
+            const username = String(
+                req.params.username
+            ).toLowerCase();
+
+            const user = await db
+                .prepare(
+                    `
+                    select
+                        id,
+                        username,
+                        bio,
+                        created_at
+                    from users
+                    where username = ?
+                    `
+                )
+                .get(username);
+
+            if (!user) {
+                return res
+                    .status(404)
+                    .send("user not found.");
+            }
+
+            const posts = await db
+                .prepare(
+                    `
+                    select
+                        posts.*,
+                        users.username,
+
+                        (
+                            select count(*)
+                            from likes
+                            where likes.post_id = posts.id
+                        ) as likes,
+
+                        (
+                            select count(*)
+                            from comments
+                            where comments.post_id = posts.id
+                        ) as comments
+
+                    from posts
+
+                    join users
+                        on users.id = posts.user_id
+
+                    where posts.user_id = ?
+
+                    order by posts.created_at desc
+                    `
+                )
+                .all(user.id);
+
+            const getComments = db.prepare(
+                `
+                select
+                    comments.id,
+                    comments.content,
+                    comments.created_at,
+                    users.username
+
+                from comments
+
+                join users
+                    on users.id = comments.user_id
+
+                where comments.post_id = ?
+
+                order by comments.created_at asc
+                `
+            );
+
+            for (const post of posts) {
+                post.comment_list =
+                    await getComments.all(post.id);
+            }
+
+            const followers = await db
+                .prepare(
+                    `
+                    select count(*) as count
+                    from follows
+                    where following_id = ?
+                    `
+                )
+                .get(user.id);
+
+            const following = await db
+                .prepare(
+                    `
+                    select count(*) as count
+                    from follows
+                    where follower_id = ?
+                    `
+                )
+                .get(user.id);
+
+            const isFollowing =
+                user.id !== req.session.userId &&
+                !!(await db
+                    .prepare(
+                        `
+                        select id
+                        from follows
+                        where follower_id = ?
+                        and following_id = ?
+                        `
+                    )
+                    .get(
+                        req.session.userId,
+                        user.id
+                    ));
+
+            res.render("profile", {
+                user,
+                posts,
+                followers: Number(
+                    followers.count
+                ),
+                following: Number(
+                    following.count
+                ),
+                isFollowing,
+                currentUser:
+                    await currentUser(req)
+            });
+        } catch (error) {
+            console.error(
+                "profile error:",
+                error
+            );
+
+            res.status(500).send(
+                "something went wrong loading this profile."
+            );
+        }
+    }
+);
+
+/* follow */
+
+app.post(
+    "/u/:username/follow",
+    requireLogin,
+    async (req, res) => {
+        try {
+            const username = String(
+                req.params.username
+            ).toLowerCase();
+
+            const target = await db
+                .prepare(
+                    `
+                    select id
+                    from users
+                    where username = ?
+                    `
+                )
+                .get(username);
+
+            if (
+                !target ||
+                target.id === req.session.userId
+            ) {
+                return res.redirect(
+                    "/u/" + username
+                );
+            }
+
+            const existing = await db
+                .prepare(
+                    `
+                    select id
+                    from follows
+                    where follower_id = ?
+                    and following_id = ?
+                    `
+                )
+                .get(
+                    req.session.userId,
+                    target.id
+                );
+
+            if (existing) {
+                await db
+                    .prepare(
+                        `
+                        delete from follows
+                        where id = ?
+                        `
+                    )
+                    .run(existing.id);
+            } else {
+                await db
+                    .prepare(
+                        `
+                        insert into follows
+                            (follower_id, following_id)
+                        values
+                            (?, ?)
+                        on conflict
+                            (follower_id, following_id)
+                        do nothing
+                        `
+                    )
+                    .run(
+                        req.session.userId,
+                        target.id
+                    );
+            }
+
+            res.redirect(
+                "/u/" + username
+            );
+        } catch (error) {
+            console.error(
+                "follow error:",
+                error
+            );
+
+            res.redirect(
+                "/u/" +
+                    String(
+                        req.params.username
+                    ).toLowerCase()
+            );
+        }
+    }
+);
+
+/* 404 */
 
 app.use((req, res) => {
-    res.status(404).send("page not found.");
-});
-
-/*
- * error handler
- */
-
-app.use((err, req, res, next) => {
-    console.error(err);
-
-    if (res.headersSent) {
-        return next(err);
-    }
-
-    res.status(500).send("something went wrong.");
-});
-
-/*
- * start server
- */
-
-app.listen(port, () => {
-    console.log(
-        "helloworld is running on port " + port
+    res.status(404).send(
+        "page not found."
     );
 });
+
+/* startup */
+
+async function startServer() {
+    try {
+        await db.initializeDatabase();
+
+        app.listen(port, () => {
+            console.log(
+                "helloworld is running on port " +
+                    port
+            );
+        });
+    } catch (error) {
+        console.error(
+            "failed to start server:",
+            error
+        );
+
+        process.exit(1);
+    }
+}
+
+startServer();
