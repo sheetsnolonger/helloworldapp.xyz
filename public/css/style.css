@@ -1247,3 +1247,31 @@ textarea:focus {
     }
 
 }
+
+.profile-picture,
+.profile-picture-preview {
+    width: 120px;
+    height: 120px;
+    object-fit: cover;
+    border-radius: 50%;
+    display: block;
+    border: 1px solid #333;
+}
+
+.profile-picture-placeholder {
+    width: 120px;
+    height: 120px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+    background: #111;
+    border: 1px solid #333;
+    font-size: 13px;
+    text-align: center;
+}
+
+.profile-picture-settings {
+    margin-bottom: 20px;
+}
