@@ -5,46 +5,111 @@ const session = require("express-session");
 const pgSession = require("connect-pg-simple")(session);
 const bcrypt = require("bcrypt");
 const multer = require("multer");
-const fs = require("fs");
 const path = require("path");
+const fs = require("fs");
 
 const db = require("./database");
 
 const app = express();
 
 const port = Number(process.env.PORT) || 3000;
-const isProduction = process.env.NODE_ENV === "production";
+const isProduction =
+    process.env.NODE_ENV === "production";
 
-const adminPath = "/admin/m7qzv2k9x4p8n3r6";
+const adminPath =
+    "/admin/m7qzv2k9x4p8n3r6";
 
 const adminPassword =
     process.env.ADMIN_PASSWORD ||
-    "SamanthaVT*374-SJpa";
+    "change-this-password";
 
 const sessionSecret =
-    process.env.SESSION_SECRET ||
-    "local-development-secret-change-me";
+    process.env.SESSION_SECRET;
 
-if (
-    isProduction &&
-    sessionSecret ===
-        "local-development-secret-change-me"
-) {
+if (!sessionSecret) {
     throw new Error(
-        "SESSION_SECRET must be set in production."
+        "SESSION_SECRET must be set."
     );
 }
 
+if (
+    isProduction &&
+    adminPassword === "change-this-password"
+) {
+    throw new Error(
+        "ADMIN_PASSWORD must be set in production."
+    );
+}
+
+const uploadDirectory = path.join(
+    __dirname,
+    "public",
+    "uploads"
+);
+
+fs.mkdirSync(
+    uploadDirectory,
+    {
+        recursive: true
+    }
+);
+
+const storage = multer.diskStorage({
+    destination: uploadDirectory,
+
+    filename(req, file, callback) {
+        const extension =
+            path.extname(file.originalname)
+                .toLowerCase();
+
+        const filename =
+            `${Date.now()}-${Math.random()
+                .toString(36)
+                .slice(2)}${extension}`;
+
+        callback(null, filename);
+    }
+});
+
+const upload = multer({
+    storage,
+
+    limits: {
+        fileSize: 5 * 1024 * 1024
+    },
+
+    fileFilter(req, file, callback) {
+        const allowed = [
+            "image/jpeg",
+            "image/png",
+            "image/webp",
+            "image/gif"
+        ];
+
+        if (!allowed.includes(file.mimetype)) {
+            return callback(
+                new Error(
+                    "only image files are allowed."
+                )
+            );
+        }
+
+        callback(null, true);
+    }
+});
+
 app.set("view engine", "ejs");
+app.set(
+    "views",
+    path.join(__dirname, "views")
+);
+
 app.set("trust proxy", 1);
 
 app.locals.adminPath = adminPath;
 
-app.locals.formatDate = date => {
-    return new Date(date)
-        .toLocaleString()
-        .toLowerCase();
-};
+app.locals.formatDate = date =>
+    new Date(date).toLocaleString();
 
 app.use(
     express.urlencoded({
@@ -55,102 +120,18 @@ app.use(
 
 app.use(
     express.static(
-        path.join(__dirname, "public"),
-        {
-            maxAge: isProduction ? "7d" : 0
-        }
+        path.join(
+            __dirname,
+            "public"
+        )
     )
 );
-
-/*
- * profile picture uploads
- */
-
-const profileUploadDir = path.join(
-    __dirname,
-    "public",
-    "uploads",
-    "profiles"
-);
-
-fs.mkdirSync(profileUploadDir, {
-    recursive: true
-});
-
-const profileStorage =
-    multer.diskStorage({
-        destination: (req, file, cb) => {
-            cb(null, profileUploadDir);
-        },
-
-        filename: (req, file, cb) => {
-            const extension = path
-                .extname(file.originalname)
-                .toLowerCase();
-
-            const safeExtension =
-                [
-                    ".jpg",
-                    ".jpeg",
-                    ".png",
-                    ".gif",
-                    ".webp"
-                ].includes(extension)
-                    ? extension
-                    : ".jpg";
-
-            cb(
-                null,
-                `${req.session.userId}-${Date.now()}${safeExtension}`
-            );
-        }
-    });
-
-const profileUpload = multer({
-    storage: profileStorage,
-
-    limits: {
-        fileSize: 5 * 1024 * 1024
-    },
-
-    fileFilter: (
-        req,
-        file,
-        cb
-    ) => {
-        const allowed = [
-            "image/jpeg",
-            "image/png",
-            "image/gif",
-            "image/webp"
-        ];
-
-        if (
-            !allowed.includes(
-                file.mimetype
-            )
-        ) {
-            return cb(
-                new Error(
-                    "only jpg, jpeg, png, gif, and webp images are allowed."
-                )
-            );
-        }
-
-        cb(null, true);
-    }
-});
-
-/*
- * sessions
- */
 
 app.use(
     session({
         store: new pgSession({
             pool: db.pool,
-            tableName: "user_sessions",
-            createTableIfMissing: false
+            tableName: "user_sessions"
         }),
 
         secret: sessionSecret,
@@ -172,10 +153,6 @@ app.use(
         }
     })
 );
-
-/*
- * helpers
- */
 
 function requireLogin(
     req,
@@ -205,24 +182,12 @@ function requireAdmin(
     next();
 }
 
-function redirectBack(
-    req,
-    fallback = "/feed"
-) {
-    return (
-        req.get("referer") ||
-        fallback
-    );
-}
-
-async function currentUser(
-    req
-) {
+async function currentUser(req) {
     if (!req.session.userId) {
         return null;
     }
 
-    return await db
+    return db
         .prepare(`
             select
                 id,
@@ -239,9 +204,14 @@ async function currentUser(
         );
 }
 
-/*
- * health
- */
+function back(req, fallback = "/feed") {
+    return (
+        req.get("referer") ||
+        fallback
+    );
+}
+
+/* health */
 
 app.get(
     "/health",
@@ -251,15 +221,11 @@ app.get(
                 "select 1"
             );
 
-            res.status(200).json({
-                status: "ok",
-                service: "helloworld"
+            res.json({
+                status: "ok"
             });
         } catch (error) {
-            console.error(
-                "health error:",
-                error
-            );
+            console.error(error);
 
             res.status(500).json({
                 status: "error"
@@ -268,9 +234,7 @@ app.get(
     }
 );
 
-/*
- * home
- */
+/* home */
 
 app.get("/", (req, res) => {
     if (req.session.userId) {
@@ -282,19 +246,11 @@ app.get("/", (req, res) => {
     res.render("index");
 });
 
-/*
- * register
- */
+/* register */
 
 app.get(
     "/register",
     (req, res) => {
-        if (req.session.userId) {
-            return res.redirect(
-                "/feed"
-            );
-        }
-
         res.render(
             "register",
             {
@@ -331,7 +287,7 @@ app.post(
                     "register",
                     {
                         error:
-                            "usernames can only use lowercase letters, numbers, and underscores."
+                            "invalid username."
                     }
                 );
             }
@@ -343,7 +299,7 @@ app.post(
                     "register",
                     {
                         error:
-                            "your password needs at least 8 characters."
+                            "password must be at least 8 characters."
                     }
                 );
             }
@@ -355,9 +311,7 @@ app.post(
                         from users
                         where username = ?
                     `)
-                    .get(
-                        username
-                    );
+                    .get(username);
 
             if (existing) {
                 return res.render(
@@ -393,14 +347,9 @@ app.post(
             req.session.regenerate(
                 error => {
                     if (error) {
-                        console.error(
-                            error
-                        );
-
+                        console.error(error);
                         return res
-                            .status(
-                                500
-                            )
+                            .status(500)
                             .send(
                                 "something went wrong."
                             );
@@ -411,17 +360,10 @@ app.post(
 
                     req.session.save(
                         error => {
-                            if (
-                                error
-                            ) {
-                                console.error(
-                                    error
-                                );
-
+                            if (error) {
+                                console.error(error);
                                 return res
-                                    .status(
-                                        500
-                                    )
+                                    .status(500)
                                     .send(
                                         "something went wrong."
                                     );
@@ -436,7 +378,7 @@ app.post(
             );
         } catch (error) {
             console.error(
-                "registration error:",
+                "register error:",
                 error
             );
 
@@ -447,19 +389,11 @@ app.post(
     }
 );
 
-/*
- * login
- */
+/* login */
 
 app.get(
     "/login",
     (req, res) => {
-        if (req.session.userId) {
-            return res.redirect(
-                "/feed"
-            );
-        }
-
         res.render(
             "login",
             {
@@ -494,16 +428,14 @@ app.post(
                         from users
                         where username = ?
                     `)
-                    .get(
-                        username
-                    );
+                    .get(username);
 
             if (!user) {
                 return res.render(
                     "login",
                     {
                         error:
-                            "we couldn't find that account."
+                            "incorrect username or password."
                     }
                 );
             }
@@ -519,7 +451,7 @@ app.post(
                     "login",
                     {
                         error:
-                            "that password isn't correct."
+                            "incorrect username or password."
                     }
                 );
             }
@@ -527,14 +459,9 @@ app.post(
             req.session.regenerate(
                 error => {
                     if (error) {
-                        console.error(
-                            error
-                        );
-
+                        console.error(error);
                         return res
-                            .status(
-                                500
-                            )
+                            .status(500)
                             .send(
                                 "something went wrong."
                             );
@@ -545,17 +472,10 @@ app.post(
 
                     req.session.save(
                         error => {
-                            if (
-                                error
-                            ) {
-                                console.error(
-                                    error
-                                );
-
+                            if (error) {
+                                console.error(error);
                                 return res
-                                    .status(
-                                        500
-                                    )
+                                    .status(500)
                                     .send(
                                         "something went wrong."
                                     );
@@ -581,9 +501,7 @@ app.post(
     }
 );
 
-/*
- * logout
- */
+/* logout */
 
 app.post(
     "/logout",
@@ -592,10 +510,7 @@ app.post(
         req.session.destroy(
             error => {
                 if (error) {
-                    console.error(
-                        "logout error:",
-                        error
-                    );
+                    console.error(error);
                 }
 
                 res.clearCookie(
@@ -608,9 +523,7 @@ app.post(
     }
 );
 
-/*
- * feed
- */
+/* feed */
 
 app.get(
     "/feed",
@@ -618,21 +531,15 @@ app.get(
     async (req, res) => {
         try {
             const user =
-                await currentUser(
-                    req
-                );
-
-            if (!user) {
-                return res.redirect(
-                    "/login"
-                );
-            }
+                await currentUser(req);
 
             const posts =
                 await db
                     .prepare(`
                         select
-                            posts.*,
+                            posts.id,
+                            posts.content,
+                            posts.created_at,
 
                             users.username,
                             users.display_name,
@@ -679,40 +586,8 @@ app.get(
                         limit 100
                     `)
                     .all(
-                        user.id
+                        req.session.userId
                     );
-
-            const getComments =
-                db.prepare(`
-                    select
-                        comments.id,
-                        comments.content,
-                        comments.created_at,
-
-                        users.username,
-                        users.display_name,
-                        users.profile_picture
-
-                    from comments
-
-                    join users
-                        on users.id =
-                            comments.user_id
-
-                    where comments.post_id = ?
-
-                    order by
-                        comments.created_at asc
-                `);
-
-            for (
-                const post of posts
-            ) {
-                post.comment_list =
-                    await getComments.all(
-                        post.id
-                    );
-            }
 
             const communities =
                 await db
@@ -729,8 +604,7 @@ app.get(
 
                         from communities
 
-                        order by
-                            communities.name
+                        order by name
 
                         limit 100
                     `)
@@ -757,9 +631,7 @@ app.get(
     }
 );
 
-/*
- * create post
- */
+/* create post */
 
 app.post(
     "/posts",
@@ -773,16 +645,12 @@ app.post(
                 ).trim();
 
             let communityId =
-                null;
-
-            if (
                 req.body.community_id
-            ) {
-                communityId =
-                    Number(
-                        req.body.community_id
-                    );
-            }
+                    ? Number(
+                          req.body
+                              .community_id
+                      )
+                    : null;
 
             if (
                 !content ||
@@ -794,33 +662,12 @@ app.post(
             }
 
             if (
-                communityId !==
-                    null &&
+                communityId !== null &&
                 !Number.isInteger(
                     communityId
                 )
             ) {
                 communityId = null;
-            }
-
-            if (
-                communityId !== null
-            ) {
-                const community =
-                    await db
-                        .prepare(`
-                            select id
-                            from communities
-                            where id = ?
-                        `)
-                        .get(
-                            communityId
-                        );
-
-                if (!community) {
-                    communityId =
-                        null;
-                }
             }
 
             await db
@@ -843,58 +690,7 @@ app.post(
             );
         } catch (error) {
             console.error(
-                "post creation error:",
-                error
-            );
-
-            res.status(500).send(
-                "something went wrong while creating your post."
-            );
-        }
-    }
-);
-
-/*
- * delete own post
- */
-
-app.post(
-    "/posts/:id/delete",
-    requireLogin,
-    async (req, res) => {
-        try {
-            const postId =
-                Number(
-                    req.params.id
-                );
-
-            if (
-                !Number.isInteger(
-                    postId
-                )
-            ) {
-                return res.redirect(
-                    redirectBack(req)
-                );
-            }
-
-            await db
-                .prepare(`
-                    delete from posts
-                    where id = ?
-                    and user_id = ?
-                `)
-                .run(
-                    postId,
-                    req.session.userId
-                );
-
-            res.redirect(
-                redirectBack(req)
-            );
-        } catch (error) {
-            console.error(
-                "post delete error:",
+                "post error:",
                 error
             );
 
@@ -905,29 +701,47 @@ app.post(
     }
 );
 
-/*
- * like
- */
+/* delete own post */
+
+app.post(
+    "/posts/:id/delete",
+    requireLogin,
+    async (req, res) => {
+        const id =
+            Number(req.params.id);
+
+        if (!Number.isInteger(id)) {
+            return res.redirect(
+                back(req)
+            );
+        }
+
+        await db
+            .prepare(`
+                delete from posts
+                where id = ?
+                and user_id = ?
+            `)
+            .run(
+                id,
+                req.session.userId
+            );
+
+        res.redirect(
+            back(req)
+        );
+    }
+);
+
+/* like */
 
 app.post(
     "/posts/:id/like",
     requireLogin,
     async (req, res) => {
         try {
-            const postId =
-                Number(
-                    req.params.id
-                );
-
-            if (
-                !Number.isInteger(
-                    postId
-                )
-            ) {
-                return res.redirect(
-                    redirectBack(req)
-                );
-            }
+            const id =
+                Number(req.params.id);
 
             const existing =
                 await db
@@ -939,7 +753,7 @@ app.post(
                     `)
                     .get(
                         req.session.userId,
-                        postId
+                        id
                     );
 
             if (existing) {
@@ -959,26 +773,19 @@ app.post(
                             post_id
                         )
                         values (?, ?)
-                        on conflict (
-                            user_id,
-                            post_id
-                        )
-                        do nothing
+                        on conflict do nothing
                     `)
                     .run(
                         req.session.userId,
-                        postId
+                        id
                     );
             }
 
             res.redirect(
-                redirectBack(req)
+                back(req)
             );
         } catch (error) {
-            console.error(
-                "like error:",
-                error
-            );
+            console.error(error);
 
             res.status(500).send(
                 "something went wrong."
@@ -987,31 +794,15 @@ app.post(
     }
 );
 
-/*
- * comments page
- */
+/* comments */
 
 app.get(
     "/posts/:id/comments",
     requireLogin,
     async (req, res) => {
         try {
-            const postId =
-                Number(
-                    req.params.id
-                );
-
-            if (
-                !Number.isInteger(
-                    postId
-                )
-            ) {
-                return res
-                    .status(404)
-                    .send(
-                        "post not found."
-                    );
-            }
+            const id =
+                Number(req.params.id);
 
             const post =
                 await db
@@ -1038,9 +829,7 @@ app.get(
 
                         where posts.id = ?
                     `)
-                    .get(
-                        postId
-                    );
+                    .get(id);
 
             if (!post) {
                 return res
@@ -1071,9 +860,7 @@ app.get(
                         order by
                             comments.created_at asc
                     `)
-                    .all(
-                        postId
-                    );
+                    .all(id);
 
             res.render(
                 "comments",
@@ -1093,25 +880,19 @@ app.get(
             );
 
             res.status(500).send(
-                "something went wrong while loading comments."
+                "something went wrong."
             );
         }
     }
 );
-
-/*
- * add comment
- */
 
 app.post(
     "/posts/:id/comments",
     requireLogin,
     async (req, res) => {
         try {
-            const postId =
-                Number(
-                    req.params.id
-                );
+            const id =
+                Number(req.params.id);
 
             const content =
                 String(
@@ -1120,36 +901,12 @@ app.post(
                 ).trim();
 
             if (
-                !Number.isInteger(
-                    postId
-                ) ||
                 !content ||
                 content.length > 300
             ) {
                 return res.redirect(
-                    "/posts/" +
-                        postId +
-                        "/comments"
+                    `/posts/${id}/comments`
                 );
-            }
-
-            const post =
-                await db
-                    .prepare(`
-                        select id
-                        from posts
-                        where id = ?
-                    `)
-                    .get(
-                        postId
-                    );
-
-            if (!post) {
-                return res
-                    .status(404)
-                    .send(
-                        "post not found."
-                    );
             }
 
             await db
@@ -1163,20 +920,15 @@ app.post(
                 `)
                 .run(
                     req.session.userId,
-                    postId,
+                    id,
                     content
                 );
 
             res.redirect(
-                "/posts/" +
-                    postId +
-                    "/comments"
+                `/posts/${id}/comments`
             );
         } catch (error) {
-            console.error(
-                "comment error:",
-                error
-            );
+            console.error(error);
 
             res.status(500).send(
                 "something went wrong."
@@ -1185,9 +937,7 @@ app.post(
     }
 );
 
-/*
- * profile
- */
+/* profile */
 
 app.get(
     "/u/:username",
@@ -1196,11 +946,10 @@ app.get(
         try {
             const username =
                 String(
-                    req.params.username ||
-                        ""
+                    req.params.username
                 ).toLowerCase();
 
-            const user =
+            const profile =
                 await db
                     .prepare(`
                         select
@@ -1213,11 +962,9 @@ app.get(
                         from users
                         where username = ?
                     `)
-                    .get(
-                        username
-                    );
+                    .get(username);
 
-            if (!user) {
+            if (!profile) {
                 return res
                     .status(404)
                     .send(
@@ -1236,17 +983,17 @@ app.get(
 
                             (
                                 select count(*)
-                                from comments
-                                where comments.post_id =
-                                    posts.id
-                            ) as comments,
-
-                            (
-                                select count(*)
                                 from likes
                                 where likes.post_id =
                                     posts.id
-                            ) as likes
+                            ) as likes,
+
+                            (
+                                select count(*)
+                                from comments
+                                where comments.post_id =
+                                    posts.id
+                            ) as comments
 
                         from posts
 
@@ -1259,61 +1006,61 @@ app.get(
                         order by
                             posts.created_at desc
                     `)
-                    .all(
-                        user.id
-                    );
+                    .all(profile.id);
 
-            const followers =
+            const followerCount =
                 await db
                     .prepare(`
                         select count(*) as count
                         from follows
                         where following_id = ?
                     `)
-                    .get(
-                        user.id
-                    );
+                    .get(profile.id);
 
-            const following =
+            const followingCount =
                 await db
                     .prepare(`
                         select count(*) as count
                         from follows
                         where follower_id = ?
                     `)
-                    .get(
-                        user.id
-                    );
+                    .get(profile.id);
 
-            const isFollowing =
-                user.id !==
-                    req.session.userId &&
-                !!(await db
-                    .prepare(`
-                        select id
-                        from follows
-                        where follower_id = ?
-                        and following_id = ?
-                    `)
-                    .get(
-                        req.session.userId,
-                        user.id
-                    ));
+            let following = false;
+
+            if (
+                profile.id !==
+                req.session.userId
+            ) {
+                following =
+                    !!await db
+                        .prepare(`
+                            select id
+                            from follows
+                            where follower_id = ?
+                            and following_id = ?
+                        `)
+                        .get(
+                            req.session.userId,
+                            profile.id
+                        );
+            }
 
             res.render(
                 "profile",
                 {
-                    user,
-                    posts,
-                    followers:
-                        followers.count,
-                    following:
-                        following.count,
-                    isFollowing,
+                    user: profile,
                     currentUser:
                         await currentUser(
                             req
-                        )
+                        ),
+                    posts,
+                    followers:
+                        followerCount.count,
+                    following:
+                        followingCount.count,
+                    isFollowing:
+                        following
                 }
             );
         } catch (error) {
@@ -1323,43 +1070,28 @@ app.get(
             );
 
             res.status(500).send(
-                "something went wrong while loading the profile."
+                "something went wrong."
             );
         }
     }
 );
 
-/*
- * profile settings
- */
+/* profile settings */
 
 app.get(
     "/settings/profile",
     requireLogin,
     async (req, res) => {
-        try {
-            const user =
-                await currentUser(
-                    req
-                );
-
-            res.render(
-                "profile-settings",
-                {
-                    user,
-                    error: null
-                }
-            );
-        } catch (error) {
-            console.error(
-                "profile settings error:",
-                error
-            );
-
-            res.status(500).send(
-                "something went wrong."
-            );
-        }
+        res.render(
+            "profile-settings",
+            {
+                user:
+                    await currentUser(
+                        req
+                    ),
+                error: null
+            }
+        );
     }
 );
 
@@ -1373,62 +1105,25 @@ app.get(
     }
 );
 
-/*
- * save profile
- */
-
 app.post(
     "/settings/profile",
     requireLogin,
-    (req, res, next) => {
-        profileUpload.single(
-            "profile_picture"
-        )(req, res, error => {
-            if (error) {
-                console.error(
-                    "profile upload error:",
-                    error
-                );
-
-                return res.render(
-                    "profile-settings",
-                    {
-                        user:
-                            null,
-                        error:
-                            error.message ||
-                            "unable to upload that image."
-                    }
-                );
-            }
-
-            next();
-        });
-    },
+    upload.single(
+        "profile_picture"
+    ),
     async (req, res) => {
         try {
             const displayName =
                 String(
-                    req.body.display_name ||
+                    req.body
+                        .display_name ||
                         ""
                 ).trim();
 
             const bio =
                 String(
-                    req.body.bio ||
-                        ""
+                    req.body.bio || ""
                 ).trim();
-
-            const user =
-                await currentUser(
-                    req
-                );
-
-            if (!user) {
-                return res.redirect(
-                    "/login"
-                );
-            }
 
             if (
                 displayName.length >
@@ -1437,89 +1132,71 @@ app.post(
                 return res.render(
                     "profile-settings",
                     {
-                        user,
+                        user:
+                            await currentUser(
+                                req
+                            ),
                         error:
-                            "your display name is too long."
+                            "display name is too long."
                     }
                 );
             }
 
             if (
-                bio.length >
-                500
+                bio.length > 500
             ) {
                 return res.render(
                     "profile-settings",
                     {
-                        user,
+                        user:
+                            await currentUser(
+                                req
+                            ),
                         error:
-                            "your bio is too long."
+                            "bio is too long."
                     }
                 );
             }
 
-            let profilePicture =
-                user.profile_picture ||
-                null;
+            let picture;
 
             if (req.file) {
-                profilePicture =
-                    "/uploads/profiles/" +
+                picture =
+                    "/uploads/" +
                     req.file.filename;
-
-                if (
-                    user.profile_picture
-                ) {
-                    const oldPath =
-                        path.join(
-                            __dirname,
-                            "public",
-                            user.profile_picture
-                                .replace(
-                                    /^\//,
-                                    ""
-                                )
-                        );
-
-                    if (
-                        oldPath.startsWith(
-                            profileUploadDir
-                        ) &&
-                        fs.existsSync(
-                            oldPath
-                        )
-                    ) {
-                        try {
-                            fs.unlinkSync(
-                                oldPath
-                            );
-                        } catch (
-                            deleteError
-                        ) {
-                            console.error(
-                                "old profile picture delete error:",
-                                deleteError
-                            );
-                        }
-                    }
-                }
             }
 
-            await db
-                .prepare(`
-                    update users
-                    set
-                        display_name = ?,
-                        bio = ?,
-                        profile_picture = ?
-                    where id = ?
-                `)
-                .run(
-                    displayName,
-                    bio,
-                    profilePicture,
-                    req.session.userId
-                );
+            if (picture) {
+                await db
+                    .prepare(`
+                        update users
+                        set
+                            display_name = ?,
+                            bio = ?,
+                            profile_picture = ?
+                        where id = ?
+                    `)
+                    .run(
+                        displayName,
+                        bio,
+                        picture,
+                        req.session.userId
+                    );
+            } else {
+                await db
+                    .prepare(`
+                        update users
+                        set
+                            display_name = ?,
+                            bio = ?
+                        where id = ?
+                    `)
+                    .run(
+                        displayName,
+                        bio,
+                        req.session.userId
+                    );
+            }
 
             const updated =
                 await currentUser(
@@ -1527,146 +1204,105 @@ app.post(
                 );
 
             res.redirect(
-                "/u/" +
-                    updated.username
+                `/u/${updated.username}`
             );
         } catch (error) {
             console.error(
-                "profile save error:",
+                "profile update error:",
                 error
             );
 
             res.status(500).send(
-                "something went wrong while saving your profile."
+                "something went wrong while updating your profile."
             );
         }
     }
 );
 
-/*
- * follow
- */
+/* follow */
 
 app.post(
     "/u/:username/follow",
     requireLogin,
     async (req, res) => {
-        try {
-            const username =
-                String(
-                    req.params.username ||
-                        ""
-                ).toLowerCase();
+        const username =
+            String(
+                req.params.username
+            ).toLowerCase();
 
-            const target =
-                await db
-                    .prepare(`
-                        select id
-                        from users
-                        where username = ?
-                    `)
-                    .get(
-                        username
-                    );
+        const target =
+            await db
+                .prepare(`
+                    select id
+                    from users
+                    where username = ?
+                `)
+                .get(username);
 
-            if (
-                !target ||
-                target.id ===
-                    req.session.userId
-            ) {
-                return res.redirect(
-                    "/u/" +
-                        username
-                );
-            }
-
-            const existing =
-                await db
-                    .prepare(`
-                        select id
-                        from follows
-                        where follower_id = ?
-                        and following_id = ?
-                    `)
-                    .get(
-                        req.session.userId,
-                        target.id
-                    );
-
-            if (existing) {
-                await db
-                    .prepare(`
-                        delete from follows
-                        where id = ?
-                    `)
-                    .run(
-                        existing.id
-                    );
-            } else {
-                await db
-                    .prepare(`
-                        insert into follows (
-                            follower_id,
-                            following_id
-                        )
-                        values (?, ?)
-                        on conflict (
-                            follower_id,
-                            following_id
-                        )
-                        do nothing
-                    `)
-                    .run(
-                        req.session.userId,
-                        target.id
-                    );
-            }
-
-            res.redirect(
-                "/u/" +
-                    username
-            );
-        } catch (error) {
-            console.error(
-                "follow error:",
-                error
-            );
-
-            res.status(500).send(
-                "something went wrong."
+        if (
+            !target ||
+            target.id ===
+                req.session.userId
+        ) {
+            return res.redirect(
+                `/u/${username}`
             );
         }
+
+        const existing =
+            await db
+                .prepare(`
+                    select id
+                    from follows
+                    where follower_id = ?
+                    and following_id = ?
+                `)
+                .get(
+                    req.session.userId,
+                    target.id
+                );
+
+        if (existing) {
+            await db
+                .prepare(`
+                    delete from follows
+                    where id = ?
+                `)
+                .run(existing.id);
+        } else {
+            await db
+                .prepare(`
+                    insert into follows (
+                        follower_id,
+                        following_id
+                    )
+                    values (?, ?)
+                    on conflict do nothing
+                `)
+                .run(
+                    req.session.userId,
+                    target.id
+                );
+        }
+
+        res.redirect(
+            `/u/${username}`
+        );
     }
 );
 
-/*
- * communities
- */
+/* communities */
 
 app.get(
     "/communities",
     requireLogin,
     async (req, res) => {
         try {
-            const user =
-                await currentUser(
-                    req
-                );
-
-            if (!user) {
-                return res.redirect(
-                    "/login"
-                );
-            }
-
             const communities =
                 await db
                     .prepare(`
                         select
-                            communities.id,
-                            communities.name,
-                            communities.description,
-                            communities.created_at,
+                            communities.*,
 
                             (
                                 select count(*)
@@ -1677,15 +1313,17 @@ app.get(
 
                         from communities
 
-                        order by
-                            communities.name asc
+                        order by name
                     `)
                     .all();
 
             res.render(
                 "communities",
                 {
-                    user,
+                    user:
+                        await currentUser(
+                            req
+                        ),
                     communities
                 }
             );
@@ -1702,9 +1340,7 @@ app.get(
     }
 );
 
-/*
- * community page
- */
+/* community */
 
 app.get(
     "/c/:name",
@@ -1713,8 +1349,7 @@ app.get(
         try {
             const name =
                 String(
-                    req.params.name ||
-                        ""
+                    req.params.name
                 ).toLowerCase();
 
             const community =
@@ -1724,9 +1359,7 @@ app.get(
                         from communities
                         where lower(name) = ?
                     `)
-                    .get(
-                        name
-                    );
+                    .get(name);
 
             if (!community) {
                 return res
@@ -1748,17 +1381,17 @@ app.get(
 
                             (
                                 select count(*)
-                                from comments
-                                where comments.post_id =
-                                    posts.id
-                            ) as comments,
-
-                            (
-                                select count(*)
                                 from likes
                                 where likes.post_id =
                                     posts.id
-                            ) as likes
+                            ) as likes,
+
+                            (
+                                select count(*)
+                                from comments
+                                where comments.post_id =
+                                    posts.id
+                            ) as comments
 
                         from posts
 
@@ -1799,9 +1432,7 @@ app.get(
     }
 );
 
-/*
- * search
- */
+/* search */
 
 app.get(
     "/search",
@@ -1817,8 +1448,8 @@ app.get(
             let posts = [];
             let communities = [];
 
-            if (query.length > 0) {
-                const search =
+            if (query) {
+                const term =
                     `%${query}%`;
 
                 users =
@@ -1838,8 +1469,8 @@ app.get(
                             limit 50
                         `)
                         .all(
-                            search,
-                            search
+                            term,
+                            term
                         );
 
                 posts =
@@ -1857,17 +1488,17 @@ app.get(
 
                                 (
                                     select count(*)
-                                    from comments
-                                    where comments.post_id =
-                                        posts.id
-                                ) as comments,
-
-                                (
-                                    select count(*)
                                     from likes
                                     where likes.post_id =
                                         posts.id
-                                ) as likes
+                                ) as likes,
+
+                                (
+                                    select count(*)
+                                    from comments
+                                    where comments.post_id =
+                                        posts.id
+                                ) as comments
 
                             from posts
 
@@ -1891,10 +1522,10 @@ app.get(
                             limit 100
                         `)
                         .all(
-                            search,
-                            search,
-                            search,
-                            search
+                            term,
+                            term,
+                            term,
+                            term
                         );
 
                 communities =
@@ -1921,8 +1552,8 @@ app.get(
                             limit 50
                         `)
                         .all(
-                            search,
-                            search
+                            term,
+                            term
                         );
             }
 
@@ -1952,17 +1583,14 @@ app.get(
     }
 );
 
-/*
- * admin login
- */
+/* admin login */
 
 app.get(
     adminPath,
     (req, res) => {
         if (req.session.admin) {
             return res.redirect(
-                adminPath +
-                    "/dashboard"
+                `${adminPath}/dashboard`
             );
         }
 
@@ -1997,41 +1625,32 @@ app.post(
             );
         }
 
-        req.session.admin =
-            true;
+        req.session.admin = true;
 
         req.session.save(
             error => {
                 if (error) {
-                    console.error(
-                        error
-                    );
+                    console.error(error);
 
                     return res
-                        .status(
-                            500
-                        )
+                        .status(500)
                         .send(
                             "something went wrong."
                         );
                 }
 
                 res.redirect(
-                    adminPath +
-                        "/dashboard"
+                    `${adminPath}/dashboard`
                 );
             }
         );
     }
 );
 
-/*
- * admin dashboard
- */
+/* admin dashboard */
 
 app.get(
-    adminPath +
-        "/dashboard",
+    `${adminPath}/dashboard`,
     requireAdmin,
     async (req, res) => {
         try {
@@ -2046,8 +1665,7 @@ app.get(
                             profile_picture,
                             created_at
                         from users
-                        order by
-                            created_at desc
+                        order by created_at desc
                         limit 500
                     `)
                     .all();
@@ -2075,9 +1693,7 @@ app.get(
                             on communities.id =
                                 posts.community_id
 
-                        order by
-                            posts.created_at desc
-
+                        order by posts.created_at desc
                         limit 500
                     `)
                     .all();
@@ -2097,8 +1713,7 @@ app.get(
 
                         from communities
 
-                        order by
-                            communities.created_at desc
+                        order by created_at desc
                     `)
                     .all();
 
@@ -2112,7 +1727,7 @@ app.get(
             );
         } catch (error) {
             console.error(
-                "admin dashboard error:",
+                "admin error:",
                 error
             );
 
@@ -2123,33 +1738,18 @@ app.get(
     }
 );
 
-/*
- * admin logout
- */
+/* admin logout */
 
 app.post(
-    adminPath +
-        "/logout",
+    `${adminPath}/logout`,
     requireAdmin,
     (req, res) => {
-        req.session.admin =
-            false;
+        req.session.admin = false;
 
         req.session.save(
             error => {
                 if (error) {
-                    console.error(
-                        "admin logout error:",
-                        error
-                    );
-
-                    return res
-                        .status(
-                            500
-                        )
-                        .send(
-                            "something went wrong."
-                        );
+                    console.error(error);
                 }
 
                 res.redirect(
@@ -2160,244 +1760,122 @@ app.post(
     }
 );
 
-/*
- * admin delete post
- */
+/* admin delete post */
 
 app.post(
-    adminPath +
-        "/posts/:id/delete",
+    `${adminPath}/posts/:id/delete`,
     requireAdmin,
     async (req, res) => {
-        try {
-            const postId =
-                Number(
-                    req.params.id
-                );
-
-            if (
-                !Number.isInteger(
-                    postId
-                )
-            ) {
-                return res.redirect(
-                    adminPath +
-                        "/dashboard"
-                );
-            }
-
-            await db
-                .prepare(`
-                    delete from posts
-                    where id = ?
-                `)
-                .run(
-                    postId
-                );
-
-            res.redirect(
-                adminPath +
-                    "/dashboard"
-            );
-        } catch (error) {
-            console.error(
-                "admin post delete error:",
-                error
+        await db
+            .prepare(`
+                delete from posts
+                where id = ?
+            `)
+            .run(
+                Number(req.params.id)
             );
 
-            res.status(500).send(
-                "something went wrong while deleting the post."
-            );
-        }
+        res.redirect(
+            `${adminPath}/dashboard`
+        );
     }
 );
 
-/*
- * admin delete user
- */
+/* admin delete user */
 
 app.post(
-    adminPath +
-        "/users/:id/delete",
+    `${adminPath}/users/:id/delete`,
     requireAdmin,
     async (req, res) => {
-        try {
-            const userId =
-                Number(
-                    req.params.id
-                );
-
-            if (
-                !Number.isInteger(
-                    userId
-                )
-            ) {
-                return res.redirect(
-                    adminPath +
-                        "/dashboard"
-                );
-            }
-
-            await db
-                .prepare(`
-                    delete from users
-                    where id = ?
-                `)
-                .run(
-                    userId
-                );
-
-            res.redirect(
-                adminPath +
-                    "/dashboard"
-            );
-        } catch (error) {
-            console.error(
-                "admin user delete error:",
-                error
+        await db
+            .prepare(`
+                delete from users
+                where id = ?
+            `)
+            .run(
+                Number(req.params.id)
             );
 
-            res.status(500).send(
-                "something went wrong while deleting the account."
-            );
-        }
+        res.redirect(
+            `${adminPath}/dashboard`
+        );
     }
 );
 
-/*
- * admin create community
- */
+/* admin create community */
 
 app.post(
-    adminPath +
-        "/communities/create",
+    `${adminPath}/communities/create`,
     requireAdmin,
     async (req, res) => {
-        try {
-            const name =
-                String(
-                    req.body.name ||
-                        ""
-                )
-                    .trim()
-                    .toLowerCase();
+        const name =
+            String(
+                req.body.name || ""
+            )
+                .trim()
+                .toLowerCase();
 
-            const description =
-                String(
-                    req.body.description ||
-                        ""
-                ).trim();
+        const description =
+            String(
+                req.body.description ||
+                    ""
+            ).trim();
 
-            if (
-                !/^[a-z0-9_-]{2,50}$/.test(
-                    name
-                )
-            ) {
-                return res
-                    .status(400)
-                    .send(
-                        "invalid community name."
-                    );
-            }
+        if (
+            !/^[a-z0-9_-]{2,50}$/.test(
+                name
+            )
+        ) {
+            return res
+                .status(400)
+                .send(
+                    "invalid community name."
+                );
+        }
 
-            if (
-                description.length >
-                300
-            ) {
-                return res
-                    .status(400)
-                    .send(
-                        "community description is too long."
-                    );
-            }
-
-            await db
-                .prepare(`
-                    insert into communities (
-                        name,
-                        description
-                    )
-                    values (?, ?)
-                    on conflict (name)
-                    do nothing
-                `)
-                .run(
+        await db
+            .prepare(`
+                insert into communities (
                     name,
                     description
-                );
-
-            res.redirect(
-                adminPath +
-                    "/dashboard"
-            );
-        } catch (error) {
-            console.error(
-                "admin community creation error:",
-                error
+                )
+                values (?, ?)
+                on conflict (name)
+                do nothing
+            `)
+            .run(
+                name,
+                description
             );
 
-            res.status(500).send(
-                "something went wrong while creating the community."
-            );
-        }
+        res.redirect(
+            `${adminPath}/dashboard`
+        );
     }
 );
 
-/*
- * admin delete community
- */
+/* admin delete community */
 
 app.post(
-    adminPath +
-        "/communities/:id/delete",
+    `${adminPath}/communities/:id/delete`,
     requireAdmin,
     async (req, res) => {
-        try {
-            const communityId =
-                Number(
-                    req.params.id
-                );
-
-            if (
-                !Number.isInteger(
-                    communityId
-                )
-            ) {
-                return res.redirect(
-                    adminPath +
-                        "/dashboard"
-                );
-            }
-
-            await db
-                .prepare(`
-                    delete from communities
-                    where id = ?
-                `)
-                .run(
-                    communityId
-                );
-
-            res.redirect(
-                adminPath +
-                    "/dashboard"
-            );
-        } catch (error) {
-            console.error(
-                "admin community delete error:",
-                error
+        await db
+            .prepare(`
+                delete from communities
+                where id = ?
+            `)
+            .run(
+                Number(req.params.id)
             );
 
-            res.status(500).send(
-                "something went wrong while deleting the community."
-            );
-        }
+        res.redirect(
+            `${adminPath}/dashboard`
+        );
     }
 );
 
-/*
- * fallback
- */
+/* 404 */
 
 app.use(
     (req, res) => {
@@ -2407,48 +1885,7 @@ app.use(
     }
 );
 
-/*
- * multer errors
- */
-
-app.use(
-    (error, req, res, next) => {
-        if (
-            error instanceof
-            multer.MulterError
-        ) {
-            console.error(
-                "multer error:",
-                error
-            );
-
-            return res
-                .status(400)
-                .send(
-                    "image upload failed. make sure your image is under 5mb."
-                );
-        }
-
-        if (error) {
-            console.error(
-                "server error:",
-                error
-            );
-
-            return res
-                .status(500)
-                .send(
-                    "something went wrong."
-                );
-        }
-
-        next();
-    }
-);
-
-/*
- * start
- */
+/* start */
 
 async function start() {
     try {
@@ -2458,17 +1895,15 @@ async function start() {
             port,
             () => {
                 console.log(
-                    "helloworld is running on port " +
-                        port
+                    `helloworld is running on port ${port}`
                 );
             }
         );
     } catch (error) {
         console.error(
-            "failed to start server:"
+            "failed to start server:",
+            error
         );
-
-        console.error(error);
 
         process.exit(1);
     }
