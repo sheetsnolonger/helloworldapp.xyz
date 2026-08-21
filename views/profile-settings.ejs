@@ -14,23 +14,9 @@
 
 <body>
 
-<nav class="topbar">
+<%- include("partials/sidebar") %>
 
-    <a class="brand" href="/feed">
-        helloworld
-    </a>
-
-    <div class="nav-links">
-        <a href="/u/<%= user.username %>">
-            profile
-        </a>
-
-        <a href="/feed">
-            feed
-        </a>
-    </div>
-
-</nav>
+<main class="container">
 
 <main class="settings-page">
 
