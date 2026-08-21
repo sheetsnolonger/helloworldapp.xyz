@@ -942,3 +942,155 @@ main,
     width: 22px !important;
     height: 22px !important;
 }
+
+/* =========================================================
+   icon + sidebar fixes
+   ========================================================= */
+
+/* never let icons become giant */
+img,
+svg,
+.icon,
+.sidebar-icon,
+.nav-icon,
+.menu-icon {
+    max-width: 100%;
+}
+
+/* sidebar */
+.sidebar {
+    width: 220px;
+    min-width: 220px;
+    max-width: 220px;
+    height: 100vh;
+    position: fixed;
+    left: 0;
+    top: 0;
+    z-index: 1000;
+    overflow-y: auto;
+    overflow-x: hidden;
+}
+
+/* sidebar links */
+.sidebar a,
+.sidebar button {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    width: 100%;
+    box-sizing: border-box;
+}
+
+/* sidebar icons */
+.sidebar img,
+.sidebar svg,
+.sidebar .icon,
+.sidebar .sidebar-icon,
+.sidebar .nav-icon,
+.sidebar .menu-icon {
+    width: 24px !important;
+    height: 24px !important;
+    min-width: 24px !important;
+    max-width: 24px !important;
+    min-height: 24px !important;
+    max-height: 24px !important;
+    object-fit: contain;
+    display: inline-block;
+    flex: 0 0 24px;
+}
+
+/* don't let generic image rules affect icons */
+.sidebar img {
+    position: static;
+    margin: 0;
+    padding: 0;
+}
+
+/* main content sits beside sidebar */
+.main-content,
+.page-content,
+.feed-container,
+.content,
+main {
+    box-sizing: border-box;
+}
+
+/* specifically keep the page content away from the sidebar */
+.main-content {
+    margin-left: 220px;
+    width: calc(100% - 220px);
+}
+
+/* normal content images */
+.post img,
+.profile img,
+.avatar,
+.profile-picture,
+.post-image {
+    max-width: 100%;
+    height: auto;
+}
+
+/* avatars */
+.avatar,
+.profile-picture {
+    width: 48px !important;
+    height: 48px !important;
+    min-width: 48px !important;
+    max-width: 48px !important;
+    min-height: 48px !important;
+    max-height: 48px !important;
+    object-fit: cover;
+    border-radius: 50%;
+}
+
+/* small navigation icons should never inherit image sizing */
+nav img,
+nav svg {
+    width: 24px !important;
+    height: 24px !important;
+    max-width: 24px !important;
+    max-height: 24px !important;
+    object-fit: contain;
+}
+
+/* prevent decorative/background elements from becoming giant */
+.icon img,
+.icon svg,
+.sidebar-icon img,
+.sidebar-icon svg,
+.nav-icon img,
+.nav-icon svg {
+    width: 24px !important;
+    height: 24px !important;
+    max-width: 24px !important;
+    max-height: 24px !important;
+}
+
+/* mobile */
+@media (max-width: 800px) {
+
+    .sidebar {
+        width: 72px;
+        min-width: 72px;
+        max-width: 72px;
+    }
+
+    .sidebar a,
+    .sidebar button {
+        justify-content: center;
+        padding: 12px 8px;
+    }
+
+    .sidebar a span,
+    .sidebar button span,
+    .sidebar .nav-label,
+    .sidebar .menu-label {
+        display: none;
+    }
+
+    .main-content {
+        margin-left: 72px;
+        width: calc(100% - 72px);
+    }
+}
