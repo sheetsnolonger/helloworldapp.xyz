@@ -44,6 +44,7 @@ pool.on("error", (error) => {
 });
 
 
+
 /* =========================================================
    supabase
    ========================================================= */
@@ -104,6 +105,40 @@ app.use(
     express.static(
         path.join(__dirname, "public")
     )
+);
+
+app.set("trust proxy", 1);
+
+app.use(
+    session({
+        store: new pgSession({
+            pool: pool,
+            tableName: "user_sessions",
+            createTableIfMissing: true
+        }),
+
+        secret:
+            process.env.SESSION_SECRET ||
+            "helloworld-change-this-secret",
+
+        resave: false,
+
+        saveUninitialized: false,
+
+        rolling: true,
+
+        cookie: {
+            httpOnly: true,
+
+            secure:
+                process.env.NODE_ENV === "production",
+
+            sameSite: "lax",
+
+            maxAge:
+                1000 * 60 * 60 * 24 * 30
+        }
+    })
 );
 
 
