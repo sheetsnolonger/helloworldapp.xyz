@@ -1,0 +1,766 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+
+    <meta
+        name="viewport"
+        content="width=device-width, initial-scale=1.0"
+    >
+
+    <title>settings - helloworld</title>
+
+    <link
+        rel="stylesheet"
+        href="/style.css"
+    >
+</head>
+
+<body>
+
+    <!-- sidebar -->
+
+    <nav class="site-nav">
+
+        <a
+            class="logo"
+            href="/feed"
+        >
+            helloworld
+        </a>
+
+        <div class="nav-right">
+
+            <a
+                href="/feed"
+                class="nav-item"
+                title="home"
+            >
+                <span class="nav-icon">
+                    <svg viewBox="0 0 24 24">
+                        <path d="m3 10 9-7 9 7v10a1 1 0 0 1-1 1h-5v-6H9v6H4a1 1 0 0 1-1-1z"/>
+                    </svg>
+                </span>
+
+                <span class="nav-label">
+                    home
+                </span>
+            </a>
+
+
+            <a
+                href="/search"
+                class="nav-item"
+                title="search"
+            >
+                <span class="nav-icon">
+                    <svg viewBox="0 0 24 24">
+                        <circle cx="11" cy="11" r="6.5"/>
+                        <path d="m16 16 5 5"/>
+                    </svg>
+                </span>
+
+                <span class="nav-label">
+                    search
+                </span>
+            </a>
+
+
+            <a
+                href="/communities"
+                class="nav-item"
+                title="communities"
+            >
+                <span class="nav-icon">
+                    <svg viewBox="0 0 24 24">
+                        <path d="M4 5.5A2.5 2.5 0 0 1 6.5 3h11A2.5 2.5 0 0 1 20 5.5v8a2.5 2.5 0 0 1-2.5 2.5H11l-4.5 4v-4.2A2.5 2.5 0 0 1 4 13.5z"/>
+                        <path d="M8 8h8M8 11h5"/>
+                    </svg>
+                </span>
+
+                <span class="nav-label">
+                    communities
+                </span>
+            </a>
+
+
+            <a
+                href="/u/<%= user.username %>"
+                class="nav-item"
+                title="profile"
+            >
+                <span class="nav-icon">
+                    <svg viewBox="0 0 24 24">
+                        <circle cx="12" cy="8" r="3.5"/>
+                        <path d="M5 21c.8-4 3.2-6 7-6s6.2 2 7 6"/>
+                    </svg>
+                </span>
+
+                <span class="nav-label">
+                    @<%= user.username %>
+                </span>
+            </a>
+
+
+            <a
+                href="/settings/profile"
+                class="nav-item active"
+                title="settings"
+            >
+                <span class="nav-icon">
+                    <svg viewBox="0 0 24 24">
+                        <circle cx="12" cy="12" r="3"/>
+                        <path d="M19.4 15a1.7 1.7 0 0 0 .3 1.9l.1.1-1.5 1.5-.1-.1a1.7 1.7 0 0 0-1.9-.3 1.7 1.7 0 0 0-1 1.6v.2h-2.1v-.2a1.7 1.7 0 0 0-1-1.6 1.7 1.7 0 0 0-1.9.3l-.1.1-1.5-1.5.1-.1A1.7 1.7 0 0 0 9 15a1.7 1.7 0 0 0-1.6-1H7.2v-2.1h.2A1.7 1.7 0 0 0 9 11a1.7 1.7 0 0 0-.3-1.9l-.1-.1 1.5-1.5.1.1a1.7 1.7 0 0 0 1.9.3 1.7 1.7 0 0 0 1-1.6v-.2h2.1v.2a1.7 1.7 0 0 0 1 1.6 1.7 1.7 0 0 0 1.9-.3l.1-.1 1.5 1.5-.1.1a1.7 1.7 0 0 0-.3 1.9 1.7 1.7 0 0 0-.3 1.9 1.7 1.7 0 0 0 1.6 1h.2V14h-.2a1.7 1.7 0 0 0-1.5 1z"/>
+                    </svg>
+                </span>
+
+                <span class="nav-label">
+                    settings
+                </span>
+            </a>
+
+
+            <form
+                action="/logout"
+                method="post"
+            >
+
+                <button
+                    class="logout nav-item"
+                    type="submit"
+                    title="logout"
+                >
+
+                    <span class="nav-icon">
+                        <svg viewBox="0 0 24 24">
+                            <path d="M10 5H6a2 2 0 0 0-2 2v10a2 2 0 0 0 2 2h4"/>
+                            <path d="M14 8l4 4-4 4"/>
+                            <path d="M9 12h9"/>
+                        </svg>
+                    </span>
+
+                    <span class="nav-label">
+                        logout
+                    </span>
+
+                </button>
+
+            </form>
+
+        </div>
+
+    </nav>
+
+
+    <!-- main -->
+
+    <main class="container settings-page">
+
+        <header class="page-header">
+
+            <div class="tiny">
+                account
+            </div>
+
+            <h1>
+                settings
+            </h1>
+
+            <p>
+                manage your helloworld account.
+            </p>
+
+        </header>
+
+
+        <!-- profile settings -->
+
+        <section class="settings-section">
+
+            <div class="settings-section-header">
+
+                <div>
+                    <h2>
+                        profile
+                    </h2>
+
+                    <p class="muted">
+                        change how your profile appears to other people.
+                    </p>
+                </div>
+
+            </div>
+
+
+            <form
+                action="/settings/profile"
+                method="post"
+                enctype="multipart/form-data"
+            >
+
+                <div class="settings-profile-preview">
+
+                    <% if (user.profile_picture) { %>
+
+                        <img
+                            class="settings-avatar"
+                            src="<%= user.profile_picture %>"
+                            alt="profile picture"
+                        >
+
+                    <% } else { %>
+
+                        <div class="settings-avatar-placeholder">
+                            <%= user.username.charAt(0).toUpperCase() %>
+                        </div>
+
+                    <% } %>
+
+
+                    <div class="settings-profile-info">
+
+                        <strong>
+                            @<%= user.username %>
+                        </strong>
+
+                        <span>
+                            update your profile information below.
+                        </span>
+
+                    </div>
+
+                </div>
+
+
+                <div class="form-group">
+
+                    <label for="display_name">
+                        display name
+                    </label>
+
+                    <input
+                        type="text"
+                        id="display_name"
+                        name="display_name"
+                        maxlength="50"
+                        value="<%= user.display_name || '' %>"
+                        placeholder="your display name"
+                    >
+
+                </div>
+
+
+                <div class="form-group">
+
+                    <label for="bio">
+                        bio
+                    </label>
+
+                    <textarea
+                        id="bio"
+                        name="bio"
+                        maxlength="300"
+                        placeholder="tell people a little about yourself..."
+                    ><%= user.bio || '' %></textarea>
+
+                </div>
+
+
+                <div class="form-group">
+
+                    <label for="attachment">
+                        profile picture
+                    </label>
+
+                    <input
+                        type="file"
+                        id="attachment"
+                        name="profile_picture"
+                        accept="image/png,image/jpeg,image/gif,image/webp"
+                    >
+
+                    <small class="form-help">
+                        png, jpg, gif, or webp.
+                    </small>
+
+                </div>
+
+
+                <div class="form-actions">
+
+                    <button
+                        type="submit"
+                    >
+                        save profile
+                    </button>
+
+                    <a
+                        href="/u/<%= user.username %>"
+                        class="button button-secondary"
+                    >
+                        view profile
+                    </a>
+
+                </div>
+
+            </form>
+
+        </section>
+
+
+        <!-- account -->
+
+        <section class="settings-section">
+
+            <div class="settings-section-header">
+
+                <div>
+                    <h2>
+                        account
+                    </h2>
+
+                    <p class="muted">
+                        information about your account.
+                    </p>
+                </div>
+
+            </div>
+
+
+            <div class="settings-info-list">
+
+                <div class="settings-info-row">
+
+                    <span>
+                        username
+                    </span>
+
+                    <strong>
+                        @<%= user.username %>
+                    </strong>
+
+                </div>
+
+
+                <div class="settings-info-row">
+
+                    <span>
+                        email
+                    </span>
+
+                    <strong>
+                        <%= user.email || 'not available' %>
+                    </strong>
+
+                </div>
+
+
+                <% if (user.created_at) { %>
+
+                    <div class="settings-info-row">
+
+                        <span>
+                            joined
+                        </span>
+
+                        <strong>
+                            <%= formatDate(user.created_at) %>
+                        </strong>
+
+                    </div>
+
+                <% } %>
+
+            </div>
+
+        </section>
+
+
+        <!-- navigation -->
+
+        <section class="settings-section">
+
+            <div class="settings-section-header">
+
+                <div>
+                    <h2>
+                        account navigation
+                    </h2>
+
+                    <p class="muted">
+                        quick links to different parts of your account.
+                    </p>
+                </div>
+
+            </div>
+
+
+            <div class="settings-links">
+
+                <a
+                    href="/u/<%= user.username %>"
+                    class="settings-link"
+                >
+                    <span>
+                        profile
+                    </span>
+
+                    <span>
+                        →
+                    </span>
+                </a>
+
+
+                <a
+                    href="/communities"
+                    class="settings-link"
+                >
+                    <span>
+                        communities
+                    </span>
+
+                    <span>
+                        →
+                    </span>
+                </a>
+
+
+                <a
+                    href="/feed"
+                    class="settings-link"
+                >
+                    <span>
+                        feed
+                    </span>
+
+                    <span>
+                        →
+                    </span>
+                </a>
+
+            </div>
+
+        </section>
+
+
+        <!-- logout -->
+
+        <section class="settings-section settings-danger">
+
+            <div class="settings-section-header">
+
+                <div>
+                    <h2>
+                        log out
+                    </h2>
+
+                    <p class="muted">
+                        log out of your helloworld account on this device.
+                    </p>
+                </div>
+
+            </div>
+
+
+            <form
+                action="/logout"
+                method="post"
+            >
+
+                <button
+                    type="submit"
+                    class="button-danger"
+                >
+                    log out
+                </button>
+
+            </form>
+
+        </section>
+
+    </main>
+
+
+    <style>
+
+        .page-header {
+            margin-bottom: 28px;
+        }
+
+        .page-header h1 {
+            margin-bottom: 5px;
+        }
+
+        .page-header p {
+            margin: 0;
+            color: #666666;
+        }
+
+
+        .settings-page {
+            width: min(720px, calc(100vw - 300px));
+        }
+
+
+        .settings-section {
+            margin-bottom: 18px;
+
+            padding: 22px;
+
+            background: #0d0d0d;
+
+            border: 1px solid #222222;
+            border-radius: 4px;
+        }
+
+
+        .settings-section-header {
+            display: flex;
+            align-items: flex-start;
+            justify-content: space-between;
+
+            margin-bottom: 22px;
+
+            gap: 20px;
+        }
+
+
+        .settings-section h2 {
+            margin: 0 0 5px;
+
+            color: #ffffff;
+
+            font-size: 17px;
+        }
+
+
+        .settings-section-header p {
+            margin: 0;
+
+            max-width: 500px;
+
+            font-size: 12px;
+            line-height: 1.6;
+        }
+
+
+        .settings-profile-preview {
+            display: flex;
+            align-items: center;
+
+            gap: 15px;
+
+            margin-bottom: 24px;
+            padding-bottom: 20px;
+
+            border-bottom: 1px solid #202020;
+        }
+
+
+        .settings-avatar,
+        .settings-avatar-placeholder {
+            width: 64px;
+            height: 64px;
+
+            flex: 0 0 64px;
+
+            border-radius: 50%;
+
+            object-fit: cover;
+
+            background: #151515;
+
+            border: 1px solid #292929;
+        }
+
+
+        .settings-avatar-placeholder {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+
+            color: #999999;
+
+            font-size: 22px;
+            font-weight: 600;
+        }
+
+
+        .settings-profile-info {
+            display: flex;
+            flex-direction: column;
+
+            gap: 3px;
+
+            min-width: 0;
+        }
+
+
+        .settings-profile-info strong {
+            color: #ffffff;
+        }
+
+
+        .settings-profile-info span {
+            color: #666666;
+
+            font-size: 12px;
+        }
+
+
+        .form-help {
+            display: block;
+
+            margin-top: 6px;
+
+            color: #555555;
+
+            font-size: 11px;
+        }
+
+
+        .settings-info-list {
+            border-top: 1px solid #202020;
+        }
+
+
+        .settings-info-row {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+
+            gap: 20px;
+
+            padding: 13px 0;
+
+            border-bottom: 1px solid #202020;
+        }
+
+
+        .settings-info-row:last-child {
+            border-bottom: 0;
+        }
+
+
+        .settings-info-row span {
+            color: #666666;
+
+            font-size: 12px;
+        }
+
+
+        .settings-info-row strong {
+            color: #dddddd;
+
+            font-size: 12px;
+
+            text-align: right;
+
+            overflow-wrap: anywhere;
+        }
+
+
+        .settings-links {
+            display: flex;
+            flex-direction: column;
+
+            border-top: 1px solid #202020;
+        }
+
+
+        .settings-link {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+
+            padding: 14px 2px;
+
+            border-bottom: 1px solid #202020;
+
+            color: #cccccc;
+
+            font-size: 13px;
+        }
+
+
+        .settings-link:last-child {
+            border-bottom: 0;
+        }
+
+
+        .settings-link:hover {
+            color: #d00000;
+        }
+
+
+        .settings-danger {
+            border-color: #2b1515;
+        }
+
+
+        .settings-danger h2 {
+            color: #dddddd;
+        }
+
+
+        @media (max-width: 850px) {
+
+            .settings-page {
+                width: calc(100% - 24px);
+
+                margin-left: auto;
+                margin-right: auto;
+            }
+
+        }
+
+
+        @media (max-width: 600px) {
+
+            .settings-page {
+                width: calc(100% - 16px);
+            }
+
+
+            .settings-section {
+                padding: 17px;
+            }
+
+
+            .settings-profile-preview {
+                align-items: flex-start;
+            }
+
+
+            .settings-info-row {
+                align-items: flex-start;
+                flex-direction: column;
+
+                gap: 4px;
+            }
+
+
+            .settings-info-row strong {
+                text-align: left;
+            }
+
+
+            .settings-section .form-actions {
+                flex-direction: column;
+                align-items: stretch;
+            }
+
+
+            .settings-section .form-actions button,
+            .settings-section .form-actions .button {
+                width: 100%;
+
+                text-align: center;
+            }
+
+        }
+
+    </style>
+
+</body>
+</html>
