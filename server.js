@@ -535,9 +535,14 @@ app.use(
 
 async function initializeDatabase() {
 
+    console.log("initializing database...");
+
     /*
-       users
-    */
+     * users
+     *
+     * this assumes your existing users table already exists.
+     * the alter statements below safely add anything missing.
+     */
 
     await pool.query(`
         create table if not exists users (
@@ -545,45 +550,98 @@ async function initializeDatabase() {
             username varchar(32) unique not null,
             email varchar(255) unique not null,
             password_hash text not null,
+
             display_name varchar(100),
             bio text,
+
             profile_picture text,
             profile_image_url text,
+
             is_admin boolean default false,
+
             created_at timestamptz default now()
         )
     `);
 
+
     /*
-       communities
-    */
+     * make sure older databases get the newer columns
+     */
+
+    await pool.query(`
+        alter table users
+        add column if not exists display_name varchar(100)
+    `);
+
+    await pool.query(`
+        alter table users
+        add column if not exists bio text
+    `);
+
+    await pool.query(`
+        alter table users
+        add column if not exists profile_picture text
+    `);
+
+    await pool.query(`
+        alter table users
+        add column if not exists profile_image_url text
+    `);
+
+    await pool.query(`
+        alter table users
+        add column if not exists is_admin boolean default false
+    `);
+
+    await pool.query(`
+        alter table users
+        add column if not exists created_at timestamptz default now()
+    `);
+
+
+    /*
+     * communities
+     */
 
     await pool.query(`
         create table if not exists communities (
             id serial primary key,
-            name varchar(50) unique not null,
+
+            name varchar(50)
+                unique
+                not null,
+
             description text,
+
             creator_id integer
                 references users(id)
                 on delete set null,
-            created_at timestamptz default now()
+
+            created_at timestamptz
+                default now()
         )
     `);
 
+
     /*
-       community members
-    */
+     * community members
+     */
 
     await pool.query(`
         create table if not exists community_members (
             id serial primary key,
+
             community_id integer
                 references communities(id)
                 on delete cascade,
+
             user_id integer
                 references users(id)
                 on delete cascade,
-            created_at timestamptz default now(),
+
+            created_at timestamptz
+                default now(),
+
             unique(
                 community_id,
                 user_id
@@ -591,40 +649,75 @@ async function initializeDatabase() {
         )
     `);
 
+
     /*
-       posts
-    */
+     * posts
+     */
 
     await pool.query(`
         create table if not exists posts (
             id serial primary key,
+
             user_id integer
                 references users(id)
                 on delete cascade,
+
             community_id integer
                 references communities(id)
                 on delete set null,
+
             content text not null,
+
             attachment_url text,
+
             attachment_name text,
-            created_at timestamptz default now()
+
+            created_at timestamptz
+                default now()
         )
     `);
 
+
     /*
-       likes
-    */
+     * make sure old posts tables have
+     * attachment support
+     */
+
+    await pool.query(`
+        alter table posts
+        add column if not exists attachment_url text
+    `);
+
+    await pool.query(`
+        alter table posts
+        add column if not exists attachment_name text
+    `);
+
+    await pool.query(`
+        alter table posts
+        add column if not exists community_id integer
+    `);
+
+
+    /*
+     * likes
+     */
 
     await pool.query(`
         create table if not exists likes (
             id serial primary key,
+
             user_id integer
                 references users(id)
                 on delete cascade,
+
             post_id integer
                 references posts(id)
                 on delete cascade,
-            created_at timestamptz default now(),
+
+            created_at timestamptz
+                default now(),
+
             unique(
                 user_id,
                 post_id
@@ -632,38 +725,50 @@ async function initializeDatabase() {
         )
     `);
 
+
     /*
-       comments
-    */
+     * comments
+     */
 
     await pool.query(`
         create table if not exists comments (
             id serial primary key,
+
             user_id integer
                 references users(id)
                 on delete cascade,
+
             post_id integer
                 references posts(id)
                 on delete cascade,
+
             content text not null,
-            created_at timestamptz default now()
+
+            created_at timestamptz
+                default now()
         )
     `);
 
+
     /*
-       follows
-    */
+     * follows
+     */
 
     await pool.query(`
         create table if not exists follows (
             id serial primary key,
+
             follower_id integer
                 references users(id)
                 on delete cascade,
+
             following_id integer
                 references users(id)
                 on delete cascade,
-            created_at timestamptz default now(),
+
+            created_at timestamptz
+                default now(),
+
             unique(
                 follower_id,
                 following_id
@@ -671,44 +776,99 @@ async function initializeDatabase() {
         )
     `);
 
+
     /*
-       make sure existing databases have
-       the newer profile columns
-    */
+     * indexes
+     */
 
     await pool.query(`
-        alter table users
-        add column if not exists
-        profile_picture text
+        create index if not exists
+        idx_posts_user_id
+        on posts(user_id)
     `);
 
     await pool.query(`
-        alter table users
-        add column if not exists
-        profile_image_url text
+        create index if not exists
+        idx_posts_community_id
+        on posts(community_id)
     `);
 
     await pool.query(`
-        alter table users
-        add column if not exists
-        display_name varchar(100)
+        create index if not exists
+        idx_posts_created_at
+        on posts(created_at desc)
     `);
 
     await pool.query(`
-        alter table users
-        add column if not exists
-        bio text
+        create index if not exists
+        idx_comments_post_id
+        on comments(post_id)
     `);
 
     await pool.query(`
-        alter table users
-        add column if not exists
-        is_admin boolean default false
+        create index if not exists
+        idx_likes_post_id
+        on likes(post_id)
     `);
 
-    console.log(
-        "database initialized"
-    );
+    await pool.query(`
+        create index if not exists
+        idx_follows_follower_id
+        on follows(follower_id)
+    `);
+
+    await pool.query(`
+        create index if not exists
+        idx_follows_following_id
+        on follows(following_id)
+    `);
+
+
+    /*
+     * sessions
+     *
+     * connect-pg-simple creates this automatically,
+     * but creating the table here makes startup more reliable.
+     */
+
+    await pool.query(`
+        create table if not exists user_sessions (
+            sid varchar primary key,
+            sess json not null,
+            expire timestamp(6) not null
+        )
+    `);
+
+    await pool.query(`
+        create index if not exists
+        idx_user_sessions_expire
+        on user_sessions(expire)
+    `);
+
+
+    /*
+     * make sure profile image data is
+     * synchronized when one column is empty
+     */
+
+    await pool.query(`
+        update users
+        set profile_image_url = profile_picture
+        where
+            profile_image_url is null
+            and profile_picture is not null
+    `);
+
+    await pool.query(`
+        update users
+        set profile_picture = profile_image_url
+        where
+            profile_picture is null
+            and profile_image_url is not null
+    `);
+
+
+    console.log("database initialized successfully");
 }
 
 /* =========================================================
@@ -1890,26 +2050,19 @@ app.get(
 app.post(
     "/settings/profile",
     requireLogin,
-    upload.single(
-        "profile_picture"
-    ),
-    async (
-        req,
-        res
-    ) => {
+    upload.single("profile_picture"),
+    async (req, res) => {
 
         try {
 
             const displayName =
                 String(
-                    req.body.display_name ||
-                    ""
+                    req.body.display_name || ""
                 ).trim();
 
             const bio =
                 String(
-                    req.body.bio ||
-                    ""
+                    req.body.bio || ""
                 ).trim();
 
             let profilePicture =
@@ -1917,25 +2070,27 @@ app.post(
                 req.user.profile_image_url ||
                 null;
 
-            if (
-                req.file
-            ) {
+
+            if (req.file) {
 
                 profilePicture =
-                    await uploadFile(
+                    await uploadToSupabase(
                         req.file,
                         `profiles/${req.user.id}`
                     );
             }
 
+
             await pool.query(
                 `
                 update users
+
                 set
                     display_name = $1,
                     bio = $2,
                     profile_picture = $3,
                     profile_image_url = $3
+
                 where id = $4
                 `,
                 [
@@ -1950,9 +2105,11 @@ app.post(
                 ]
             );
 
+
             res.redirect(
                 `/u/${req.user.username}`
             );
+
 
         } catch (error) {
 
@@ -1962,12 +2119,15 @@ app.post(
 
             console.error(error);
 
-            res.status(500).render(
+
+            res.render(
                 "profile-settings",
                 {
                     user: req.user,
+
                     error:
                         "could not update your profile",
+
                     success: null
                 }
             );
@@ -2246,33 +2406,23 @@ app.get(
     }
 );
 
-/* =========================================================
-   search
-   ========================================================= */
-
 app.get(
     "/search",
     requireLogin,
-    async (
-        req,
-        res
-    ) => {
+    async (req, res) => {
 
         try {
 
             const query =
                 String(
-                    req.query.q ||
-                    ""
+                    req.query.q || ""
                 ).trim();
 
             let users = [];
             let communities = [];
             let posts = [];
 
-            if (
-                query
-            ) {
+            if (query) {
 
                 const search =
                     `%${query}%`;
@@ -2289,10 +2439,11 @@ app.get(
 
                         from users
 
-                        where username ilike $1
-                           or display_name ilike $1
+                        where
+                            username ilike $1
+                            or display_name ilike $1
 
-                        order by username
+                        order by username asc
 
                         limit 25
                         `,
@@ -2305,7 +2456,11 @@ app.get(
                     await pool.query(
                         `
                         select
-                            c.*,
+                            c.id,
+                            c.name,
+                            c.description,
+                            c.creator_id,
+                            c.created_at,
                             count(p.id)::integer
                                 as post_count
 
@@ -2314,12 +2469,21 @@ app.get(
                         left join posts p
                             on p.community_id = c.id
 
-                        where c.name ilike $1
-                           or c.description ilike $1
+                        where
+                            c.name ilike $1
+                            or coalesce(
+                                c.description,
+                                ''
+                            ) ilike $1
 
-                        group by c.id
+                        group by
+                            c.id,
+                            c.name,
+                            c.description,
+                            c.creator_id,
+                            c.created_at
 
-                        order by c.name
+                        order by c.name asc
 
                         limit 25
                         `,
@@ -2334,10 +2498,13 @@ app.get(
                         select
                             p.id,
                             p.content,
-                            p.attachment_url,
                             p.created_at,
+                            p.attachment_url,
+                            p.attachment_name,
+
                             u.username,
                             u.display_name,
+
                             c.name
                                 as community_name
 
@@ -2349,9 +2516,11 @@ app.get(
                         left join communities c
                             on c.id = p.community_id
 
-                        where p.content ilike $1
+                        where
+                            p.content ilike $1
 
-                        order by p.created_at desc
+                        order by
+                            p.created_at desc
 
                         limit 50
                         `,
@@ -2374,9 +2543,13 @@ app.get(
                 "search",
                 {
                     user: req.user,
+
                     query,
+
                     users,
+
                     communities,
+
                     posts
                 }
             );
@@ -2387,10 +2560,13 @@ app.get(
                 "search error:"
             );
 
-            console.error(error);
+            console.error(
+                error
+            );
 
             res.status(500).send(
-                "internal server error"
+                "search error: " +
+                error.message
             );
         }
     }
