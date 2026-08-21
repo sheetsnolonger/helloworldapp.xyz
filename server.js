@@ -1530,6 +1530,166 @@ app.post(
     }
 );
 
+app.get("/communities", requireLogin, async (req, res) => {
+    try {
+        const communities = await db.prepare(`
+            select
+                communities.id,
+                communities.name,
+                communities.description,
+                communities.created_at,
+                count(posts.id)::integer as post_count
+            from communities
+            left join posts
+                on posts.community_id = communities.id
+            group by
+                communities.id,
+                communities.name,
+                communities.description,
+                communities.created_at
+            order by communities.name asc
+        `).all();
+
+        res.render("communities", {
+            user: currentUser(req),
+            communities
+        });
+    } catch (error) {
+        console.error("communities page error:", error);
+        res.status(500).send("internal server error.");
+    }
+});
+
+
+app.get("/community/:id", requireLogin, async (req, res) => {
+    try {
+        const communityId = Number(req.params.id);
+
+        if (!Number.isInteger(communityId)) {
+            return res.status(404).send("community not found.");
+        }
+
+        const community = await db.prepare(`
+            select
+                id,
+                name,
+                description,
+                created_at
+            from communities
+            where id = ?
+        `).get(communityId);
+
+        if (!community) {
+            return res.status(404).send("community not found.");
+        }
+
+        const user = currentUser(req);
+
+        const posts = await db.prepare(`
+            select
+                posts.id,
+                posts.content,
+                posts.created_at,
+                posts.user_id,
+                users.username,
+                users.display_name,
+                (
+                    select count(*)
+                    from likes
+                    where likes.post_id = posts.id
+                ) as likes,
+                (
+                    select count(*)
+                    from comments
+                    where comments.post_id = posts.id
+                ) as comments,
+                exists (
+                    select 1
+                    from likes
+                    where likes.post_id = posts.id
+                    and likes.user_id = ?
+                ) as liked
+            from posts
+            join users
+                on users.id = posts.user_id
+            where posts.community_id = ?
+            order by posts.created_at desc
+            limit 100
+        `).all(req.session.userId, communityId);
+
+        const getComments = db.prepare(`
+            select
+                comments.id,
+                comments.content,
+                comments.created_at,
+                users.username,
+                users.display_name
+            from comments
+            join users
+                on users.id = comments.user_id
+            where comments.post_id = ?
+            order by comments.created_at asc
+        `);
+
+        for (const post of posts) {
+            post.comment_list = await getComments.all(post.id);
+        }
+
+        res.render("community", {
+            user,
+            community,
+            posts
+        });
+    } catch (error) {
+        console.error("community page error:", error);
+        res.status(500).send("internal server error.");
+    }
+});
+
+
+app.post("/community/:id/posts", requireLogin, async (req, res) => {
+    try {
+        const communityId = Number(req.params.id);
+        const content = String(req.body.content || "").trim();
+
+        if (!Number.isInteger(communityId)) {
+            return res.status(404).send("community not found.");
+        }
+
+        if (!content || content.length > 500) {
+            return res.redirect(`/community/${communityId}`);
+        }
+
+        const community = await db.prepare(`
+            select id
+            from communities
+            where id = ?
+        `).get(communityId);
+
+        if (!community) {
+            return res.status(404).send("community not found.");
+        }
+
+        await db.prepare(`
+            insert into posts (
+                user_id,
+                community_id,
+                content
+            )
+            values (?, ?, ?)
+        `).run(
+            req.session.userId,
+            communityId,
+            content
+        );
+
+        res.redirect(`/community/${communityId}`);
+    } catch (error) {
+        console.error("community post error:", error);
+        res.status(500).send("internal server error.");
+    }
+});
+
 /* 404 */
 
 app.use((req, res) => {
