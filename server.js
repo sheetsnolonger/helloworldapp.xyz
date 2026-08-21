@@ -574,6 +574,28 @@ app.post(
     }
 );
 
+app.post("/posts/:id/delete", requireLogin, (req, res) => {
+    const postId = Number(req.params.id);
+
+    if (!Number.isInteger(postId)) {
+        return res.redirect(req.get("referer") || "/feed");
+    }
+
+    const post = db.prepare(
+        "select id from posts where id = ? and user_id = ?"
+    ).get(postId, req.session.userId);
+
+    if (!post) {
+        return res.redirect(req.get("referer") || "/feed");
+    }
+
+    db.prepare(
+        "delete from posts where id = ? and user_id = ?"
+    ).run(postId, req.session.userId);
+
+    res.redirect(req.get("referer") || "/feed");
+});
+
 /* comments */
 
 app.post(
