@@ -4,8 +4,7 @@
   "description": "a welcoming social app",
   "main": "server.js",
   "scripts": {
-    "start": "node server.js",
-    "dev": "node server.js"
+    "start": "node server.js"
   },
   "engines": {
     "node": ">=20"
@@ -13,11 +12,11 @@
   "dependencies": {
     "bcrypt": "^6.0.0",
     "connect-pg-simple": "^10.0.0",
-    "dotenv": "^17.2.2",
+    "dotenv": "^17.2.1",
     "ejs": "^3.1.10",
     "express": "^5.1.0",
     "express-session": "^1.18.2",
-    "pg": "^8.16.3",
-    "multer": "^2.0.2"
+    "multer": "^2.0.2",
+    "pg": "^8.16.3"
   }
 }
