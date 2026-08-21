@@ -82,30 +82,27 @@ console.log("");
    database
    ========================================================= */
 
-if (!database_url) {
-
-    console.error("");
-    console.error("DATABASE_URL is missing.");
-    console.error(
-        "add DATABASE_URL to your Render environment variables."
-    );
-    console.error("");
-
-    process.exit(1);
-}
+const { Pool } = require("pg");
 
 const pool = new Pool({
-    connectionString: database_url,
+    connectionString: process.env.DATABASE_URL,
 
-    ssl: {
-        rejectUnauthorized: false
-    },
+    ssl: process.env.DATABASE_URL
+        ? {
+            rejectUnauthorized: false
+        }
+        : false,
 
     max: 10,
 
     idleTimeoutMillis: 30000,
 
     connectionTimeoutMillis: 10000
+});
+
+pool.on("error", (error) => {
+    console.error("unexpected database error:");
+    console.error(error);
 });
 
 
