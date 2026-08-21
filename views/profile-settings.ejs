@@ -1,0 +1,267 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+
+    <meta
+        name="viewport"
+        content="width=device-width, initial-scale=1.0"
+    >
+
+    <title>settings - helloworld</title>
+
+    <link
+        rel="stylesheet"
+        href="/style.css"
+    >
+</head>
+
+<body>
+
+    <%- include("partials/sidebar") %>
+
+    <main class="settings-page">
+
+        <div class="settings-container">
+
+            <header class="page-header">
+
+                <div class="tiny">
+                    account
+                </div>
+
+                <h1>
+                    settings
+                </h1>
+
+                <p>
+                    change how your profile appears on helloworld.
+                </p>
+
+            </header>
+
+
+            <% if (typeof error !== "undefined" && error) { %>
+
+                <div class="error">
+                    <%= error %>
+                </div>
+
+            <% } %>
+
+
+            <section class="settings-section">
+
+                <div class="settings-heading">
+
+                    <div>
+                        <h2>
+                            profile
+                        </h2>
+
+                        <p>
+                            update your public profile information.
+                        </p>
+                    </div>
+
+                </div>
+
+
+                <form
+                    action="/settings/profile"
+                    method="post"
+                    enctype="multipart/form-data"
+                >
+
+                    <div class="settings-profile-preview">
+
+                        <% if (user && user.profile_picture) { %>
+
+                            <img
+                                src="<%= user.profile_picture %>"
+                                alt="profile picture"
+                                class="settings-avatar"
+                            >
+
+                        <% } else { %>
+
+                            <div class="settings-avatar-placeholder">
+                                <%= user && user.username
+                                    ? user.username.charAt(0).toUpperCase()
+                                    : "?" %>
+                            </div>
+
+                        <% } %>
+
+                        <div class="settings-profile-info">
+
+                            <strong>
+                                @<%= user.username %>
+                            </strong>
+
+                            <span>
+                                your profile picture is visible to other users.
+                            </span>
+
+                        </div>
+
+                    </div>
+
+
+                    <div class="form-group">
+
+                        <label for="profile_picture">
+                            profile picture
+                        </label>
+
+                        <input
+                            id="profile_picture"
+                            type="file"
+                            name="profile_picture"
+                            accept="image/png,image/jpeg,image/gif,image/webp"
+                        >
+
+                        <small>
+                            png, jpg, gif, or webp
+                        </small>
+
+                    </div>
+
+
+                    <div class="form-group">
+
+                        <label for="display_name">
+                            display name
+                        </label>
+
+                        <input
+                            id="display_name"
+                            type="text"
+                            name="display_name"
+                            maxlength="50"
+                            value="<%= user.display_name || '' %>"
+                            placeholder="your display name"
+                        >
+
+                    </div>
+
+
+                    <div class="form-group">
+
+                        <label for="bio">
+                            bio
+                        </label>
+
+                        <textarea
+                            id="bio"
+                            name="bio"
+                            maxlength="300"
+                            placeholder="tell people a little about yourself..."
+                        ><%= user.bio || '' %></textarea>
+
+                    </div>
+
+
+                    <div class="settings-account-info">
+
+                        <div>
+
+                            <span class="settings-label">
+                                username
+                            </span>
+
+                            <strong>
+                                @<%= user.username %>
+                            </strong>
+
+                        </div>
+
+                    </div>
+
+
+                    <div class="form-actions">
+
+                        <button
+                            type="submit"
+                            class="button"
+                        >
+                            save changes
+                        </button>
+
+                        <a
+                            href="/u/<%= user.username %>"
+                            class="button button-secondary"
+                        >
+                            view profile
+                        </a>
+
+                    </div>
+
+                </form>
+
+            </section>
+
+
+            <section class="settings-section">
+
+                <div class="settings-heading">
+
+                    <div>
+                        <h2>
+                            account
+                        </h2>
+
+                        <p>
+                            basic information about your account.
+                        </p>
+                    </div>
+
+                </div>
+
+
+                <div class="account-row">
+
+                    <span>
+                        username
+                    </span>
+
+                    <strong>
+                        @<%= user.username %>
+                    </strong>
+
+                </div>
+
+
+                <% if (user.created_at) { %>
+
+                    <div class="account-row">
+
+                        <span>
+                            joined
+                        </span>
+
+                        <strong>
+                            <%= new Date(user.created_at).toLocaleDateString() %>
+                        </strong>
+
+                    </div>
+
+                <% } %>
+
+            </section>
+
+
+            <div class="settings-back">
+
+                <a href="/feed">
+                    back to feed
+                </a>
+
+            </div>
+
+        </div>
+
+    </main>
+
+</body>
+</html>
