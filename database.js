@@ -286,6 +286,13 @@ async function initializeDatabase() {
             posts_community_id_idx
         on posts(community_id);
     `);
+    
+    await pool.query(`
+    alter table users
+    add column if not exists
+    profile_picture text
+    default null;
+`);
 
     console.log(
         "postgresql database initialized."
