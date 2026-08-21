@@ -1,27 +1,26 @@
 <!doctype html>
-<html lang="en">
+<html>
 <head>
     <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>log in</title>
-    <link rel="stylesheet" href="/css/style.css">
+    <meta name="viewport" content="width=device-width,initial-scale=1">
+    <title>helloworld</title>
+    <link rel="stylesheet" href="/style.css">
 </head>
-<body>
-<main class="auth">
-<div class="auth-box">
-    <a href="/" class="logo">helloWorld</a>
-    <h1>welcome back.</h1>
-    <p class="muted">it's good to see you again.</p>
-    <% if (error) { %><div class="error"><%= error %></div><% } %>
-    <form method="post" action="/login">
-        <label>username</label>
-        <input name="username" type="text" required autocomplete="username">
-        <label>password</label>
-        <input name="password" type="password" required autocomplete="current-password">
-        <button type="submit">log in</button>
-    </form>
-    <p class="switch">new here? <a href="/register">make an account</a></p>
-</div>
+
+<body class="landing">
+
+<main class="landing-box">
+    <h1>helloworld</h1>
+
+    <p>
+        a simple place to talk, share, and meet people.
+    </p>
+
+    <div class="landing-actions">
+        <a class="button" href="/login">login</a>
+        <a class="button secondary" href="/register">create account</a>
+    </div>
 </main>
+
 </body>
 </html>
