@@ -1,0 +1,297 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta
+        name="viewport"
+        content="width=device-width, initial-scale=1"
+    >
+
+    <title>search - helloworld</title>
+
+    <link rel="stylesheet" href="/css/style.css">
+</head>
+
+<body>
+
+<nav>
+    <a class="logo" href="/feed">helloworld</a>
+
+    <div class="nav-right">
+        <a href="/feed">feed</a>
+        <a href="/communities">communities</a>
+        <a href="/search">search</a>
+        <a href="/u/<%= user.username %>">
+            @<%= user.username %>
+        </a>
+
+        <form action="/logout" method="post">
+            <button class="logout" type="submit">
+                logout
+            </button>
+        </form>
+    </div>
+</nav>
+
+<main class="container">
+
+    <header class="feed-header">
+        <div class="tiny">
+            find people, posts, and communities
+        </div>
+
+        <h1>search</h1>
+
+        <p>
+            search all across helloworld.
+        </p>
+    </header>
+
+    <section class="search-box">
+
+        <form action="/search" method="get">
+
+            <input
+                type="search"
+                name="q"
+                value="<%= query %>"
+                placeholder="search..."
+                autocomplete="off"
+                maxlength="100"
+                required
+            >
+
+            <button type="submit">
+                search
+            </button>
+
+        </form>
+
+    </section>
+
+    <% if (query) { %>
+
+        <div class="search-results">
+
+            <section class="search-section">
+
+                <div class="section-title">
+                    <h2>users</h2>
+                    <span>
+                        <%= users.length %>
+                    </span>
+                </div>
+
+                <% if (users.length === 0) { %>
+
+                    <div class="empty">
+                        no users found.
+                    </div>
+
+                <% } else { %>
+
+                    <div class="search-list">
+
+                        <% users.forEach(result => { %>
+
+                            <a
+                                class="search-user"
+                                href="/u/<%= result.username %>"
+                            >
+
+                                <div>
+
+                                    <strong>
+                                        <%= result.display_name || result.username %>
+                                    </strong>
+
+                                    <span>
+                                        @<%= result.username %>
+                                    </span>
+
+                                </div>
+
+                                <% if (result.bio) { %>
+
+                                    <p>
+                                        <%= result.bio %>
+                                    </p>
+
+                                <% } %>
+
+                            </a>
+
+                        <% }) %>
+
+                    </div>
+
+                <% } %>
+
+            </section>
+
+
+            <section class="search-section">
+
+                <div class="section-title">
+                    <h2>communities</h2>
+                    <span>
+                        <%= communities.length %>
+                    </span>
+                </div>
+
+                <% if (communities.length === 0) { %>
+
+                    <div class="empty">
+                        no communities found.
+                    </div>
+
+                <% } else { %>
+
+                    <div class="search-list">
+
+                        <% communities.forEach(community => { %>
+
+                            <a
+                                class="search-community"
+                                href="/c/<%= community.name %>"
+                            >
+
+                                <div>
+
+                                    <strong>
+                                        c/<%= community.name %>
+                                    </strong>
+
+                                    <span>
+                                        <%= community.post_count || 0 %>
+                                        <%= Number(community.post_count) === 1 ? "post" : "posts" %>
+                                    </span>
+
+                                </div>
+
+                                <% if (community.description) { %>
+
+                                    <p>
+                                        <%= community.description %>
+                                    </p>
+
+                                <% } %>
+
+                            </a>
+
+                        <% }) %>
+
+                    </div>
+
+                <% } %>
+
+            </section>
+
+
+            <section class="search-section">
+
+                <div class="section-title">
+                    <h2>posts</h2>
+                    <span>
+                        <%= posts.length %>
+                    </span>
+                </div>
+
+                <% if (posts.length === 0) { %>
+
+                    <div class="empty">
+                        no posts found.
+                    </div>
+
+                <% } else { %>
+
+                    <div class="post-list">
+
+                        <% posts.forEach(post => { %>
+
+                            <article class="post">
+
+                                <div class="post-header">
+
+                                    <div>
+
+                                        <a
+                                            href="/u/<%= post.username %>"
+                                        >
+                                            @<%= post.username %>
+                                        </a>
+
+                                        <% if (post.community_name) { %>
+
+                                            <span class="post-community">
+                                                in
+                                                <a
+                                                    href="/c/<%= post.community_name %>"
+                                                >
+                                                    c/<%= post.community_name %>
+                                                </a>
+                                            </span>
+
+                                        <% } %>
+
+                                    </div>
+
+                                    <span>
+                                        <%= formatDate(post.created_at) %>
+                                    </span>
+
+                                </div>
+
+                                <a
+                                    class="post-content post-link"
+                                    href="/posts/<%= post.id %>/comments"
+                                >
+                                    <%= post.content %>
+                                </a>
+
+                                <div class="post-actions">
+
+                                    <span>
+                                        <%= post.likes || 0 %>
+                                        <%= Number(post.likes) === 1 ? "like" : "likes" %>
+                                    </span>
+
+                                    <a
+                                        href="/posts/<%= post.id %>/comments"
+                                    >
+                                        <%= post.comments || 0 %>
+                                        <%= Number(post.comments) === 1 ? "comment" : "comments" %>
+                                    </a>
+
+                                </div>
+
+                            </article>
+
+                        <% }) %>
+
+                    </div>
+
+                <% } %>
+
+            </section>
+
+        </div>
+
+    <% } else { %>
+
+        <div class="empty search-empty">
+
+            <h2>search helloworld</h2>
+
+            <p>
+                look for a username, post, or community.
+            </p>
+
+        </div>
+
+    <% } %>
+
+</main>
+
+</body>
+</html>
