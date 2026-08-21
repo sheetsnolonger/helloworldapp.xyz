@@ -277,45 +277,28 @@ const upload = multer({
 
 app.use(
     session({
-
         store: new pgSession({
-
             pool: pool,
-
-            tableName:
-                "user_sessions",
-
-            createTableIfMissing:
-                true
+            tableName: "user_sessions",
+            createTableIfMissing: true
         }),
 
-        secret:
-            session_secret,
+        secret: process.env.SESSION_SECRET,
 
-        resave:
-            false,
+        resave: false,
 
-        saveUninitialized:
-            false,
+        saveUninitialized: false,
+
+        proxy: true,
 
         cookie: {
+            maxAge: 1000 * 60 * 60 * 24 * 30,
 
-            maxAge:
-                1000 *
-                60 *
-                60 *
-                24 *
-                30,
+            httpOnly: true,
 
-            httpOnly:
-                true,
+            secure: process.env.NODE_ENV === "production",
 
-            secure:
-                process.env.NODE_ENV ===
-                "production",
-
-            sameSite:
-                "lax"
+            sameSite: "lax"
         }
     })
 );
@@ -1127,7 +1110,7 @@ app.post("/login", async (req, res) => {
             [username]
         );
 
-        if (!result.rows.length) {
+        if (result.rows.length === 0) {
             return res.status(401).render("login", {
                 error: "invalid username or password"
             });
@@ -1135,54 +1118,44 @@ app.post("/login", async (req, res) => {
 
         const user = result.rows[0];
 
-        const valid = await bcrypt.compare(
+        const password_valid = await bcrypt.compare(
             password,
             user.password_hash
         );
 
-        if (!valid) {
+        if (!password_valid) {
             return res.status(401).render("login", {
                 error: "invalid username or password"
             });
         }
 
-        /*
-         * regenerate the session after authentication.
-         * this also helps prevent session fixation.
-         */
+        req.session.user_id = user.id;
 
-        req.session.regenerate((session_error) => {
-            if (session_error) {
+        req.session.save((error) => {
+            if (error) {
                 console.error(
-                    "session regenerate error:",
-                    session_error
+                    "login session save error:"
                 );
 
+                console.error(error);
+
                 return res.status(500).render("login", {
-                    error: "could not create your login session"
+                    error: "could not save login session"
                 });
             }
 
-            req.session.user_id = user.id;
+            console.log(
+                `user logged in: ${user.username}`
+            );
 
-            req.session.save((save_error) => {
-                if (save_error) {
-                    console.error(
-                        "session save error:",
-                        save_error
-                    );
-
-                    return res.status(500).render("login", {
-                        error: "could not save your login session"
-                    });
-                }
-
-                return res.redirect("/feed");
-            });
+            return res.redirect("/feed");
         });
 
     } catch (error) {
-        console.error("login error:");
+        console.error(
+            "login database error:"
+        );
+
         console.error(error);
 
         return res.status(500).render("login", {
