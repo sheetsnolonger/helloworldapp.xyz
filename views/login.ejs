@@ -1,46 +1,115 @@
-<!doctype html>
-<html>
+<!DOCTYPE html>
+<html lang="en">
 <head>
     <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width,initial-scale=1">
-    <title>login — helloworld</title>
-    <link rel="stylesheet" href="/style.css">
+
+    <meta
+        name="viewport"
+        content="width=device-width, initial-scale=1"
+    >
+
+    <title>helloworld / login</title>
+
+    <link
+        rel="stylesheet"
+        href="/css/style.css"
+    >
 </head>
 
-<body>
+<body class="auth-body">
 
-<main class="auth-box">
-    <h1>helloworld</h1>
-    <h2>login</h2>
+    <main class="auth-page">
 
-    <% if (error) { %>
-        <div class="error"><%= error %></div>
-    <% } %>
+        <section class="auth-card">
 
-    <form method="post" action="/login">
-        <input
-            name="username"
-            placeholder="username"
-            autocomplete="username"
-            required
-        >
+            <div class="auth-logo">
+                helloworld
+            </div>
 
-        <input
-            type="password"
-            name="password"
-            placeholder="password"
-            autocomplete="current-password"
-            required
-        >
+            <div class="auth-label">
+                welcome back
+            </div>
 
-        <button type="submit">login</button>
-    </form>
+            <h1>login</h1>
 
-    <p>
-        don't have an account?
-        <a href="/register">register</a>
-    </p>
-</main>
+            <p class="auth-description">
+                sign in to continue to helloworld.
+            </p>
+
+            <% if (error) { %>
+                <div class="auth-error">
+                    <span class="auth-error-title">
+                        error
+                    </span>
+
+                    <%= error %>
+                </div>
+            <% } %>
+
+            <form
+                action="/login"
+                method="post"
+                class="auth-form"
+            >
+
+                <div class="auth-field">
+
+                    <label for="username">
+                        username
+                    </label>
+
+                    <input
+                        type="text"
+                        id="username"
+                        name="username"
+                        autocomplete="username"
+                        maxlength="32"
+                        required
+                        autofocus
+                    >
+
+                </div>
+
+                <div class="auth-field">
+
+                    <label for="password">
+                        password
+                    </label>
+
+                    <input
+                        type="password"
+                        id="password"
+                        name="password"
+                        autocomplete="current-password"
+                        required
+                    >
+
+                </div>
+
+                <button
+                    type="submit"
+                    class="auth-submit"
+                >
+                    login
+                </button>
+
+            </form>
+
+            <div class="auth-footer">
+
+                <span>
+                    don't have an account?
+                </span>
+
+                <a href="/register">
+                    register
+                </a>
+
+            </div>
+
+        </section>
+
+    </main>
 
 </body>
 </html>
