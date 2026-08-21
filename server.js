@@ -1252,6 +1252,83 @@ app.post(
     }
 );
 
+
+app.get("/c/:name", requireLogin, async (req, res) => {
+    try {
+        const name = String(req.params.name || "")
+            .trim()
+            .toLowerCase();
+
+        const community = await db.prepare(`
+            select
+                id,
+                name,
+                description,
+                created_at
+            from communities
+            where name = ?
+        `).get(name);
+
+        if (!community) {
+            return res.status(404).send("community not found.");
+        }
+
+        const posts = await db.prepare(`
+            select
+                posts.id,
+                posts.content,
+                posts.created_at,
+                users.username,
+                (
+                    select count(*)
+                    from likes
+                    where likes.post_id = posts.id
+                ) as likes,
+                (
+                    select count(*)
+                    from comments
+                    where comments.post_id = posts.id
+                ) as comments,
+                exists(
+                    select 1
+                    from likes
+                    where likes.post_id = posts.id
+                    and likes.user_id = ?
+                ) as liked
+            from posts
+            join users on users.id = posts.user_id
+            where posts.community_id = ?
+            order by posts.created_at desc
+            limit 100
+        `).all(req.session.userId, community.id);
+
+        const getComments = db.prepare(`
+            select
+                comments.id,
+                comments.content,
+                comments.created_at,
+                users.username
+            from comments
+            join users on users.id = comments.user_id
+            where comments.post_id = ?
+            order by comments.created_at asc
+        `);
+
+        for (const post of posts) {
+            post.comment_list = await getComments.all(post.id);
+        }
+
+        res.render("community", {
+            community,
+            posts,
+            user: currentUser(req)
+        });
+    } catch (error) {
+        console.error("community error:", error);
+        res.status(500).send("something went wrong.");
+    }
+});
+
 /*
     404
 */
