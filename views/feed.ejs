@@ -6,7 +6,7 @@
 
     <title>helloworld</title>
 
-    <link rel="stylesheet" href="/css/style.css">
+    <link rel="stylesheet" href="/style.css">
 </head>
 
 <body>
@@ -67,114 +67,80 @@
 
     <% } %>
 
-    <% posts.forEach(post => { %>
+    <% if (posts && posts.length > 0) { %>
 
-        <article class="post">
+        <% posts.forEach(post => { %>
 
-            <div class="post-header">
+            <article class="post">
 
-                <a href="/u/<%= post.username %>">
-                    @<%= post.username %>
-                </a>
+                <div class="post-header">
 
-                <span>
-                    <%= formatDate(post.created_at) %>
-                </span>
+                    <a href="/u/<%= post.username %>">
+                        @<%= post.username %>
+                    </a>
 
-            </div>
+                    <div class="post-header-right">
 
-            <div class="post-content">
-                <%= post.content %>
-            </div>
+                        <span>
+                            <%= formatDate(post.created_at) %>
+                        </span>
 
-            <div class="post-actions">
+                        <% if (Number(post.user_id) === Number(user.id)) { %>
 
-                <form
-                    action="/posts/<%= post.id %>/like"
-                    method="post"
-                >
-                    <button
-                        type="submit"
-                        class="<%= post.liked ? 'liked' : '' %>"
-                    >
-                        <%= post.liked ? 'liked' : 'like' %>
-                        <%= post.likes || 0 %>
-                    </button>
-                </form>
+                            <form
+                                class="delete-form"
+                                action="/posts/<%= post.id %>/delete"
+                                method="post"
+                                onsubmit="return confirm('delete this post?');"
+                            >
+                                <button
+                                    type="submit"
+                                    class="delete-button"
+                                >
+                                    delete
+                                </button>
+                            </form>
 
-                <span>
-                    <%= post.comments || 0 %>
-                    <%= post.comments === 1 ? 'comment' : 'comments' %>
-                </span>
+                        <% } %>
 
-            </div>
-
-            <!-- comments -->
-
-            <div class="comments">
-
-                <% if (post.comment_list && post.comment_list.length > 0) { %>
-
-                    <% post.comment_list.forEach(comment => { %>
-
-                        <div class="comment">
-
-                            <div class="comment-header">
-
-                                <a href="/u/<%= comment.username %>">
-                                    @<%= comment.username %>
-                                </a>
-
-                                <span>
-                                    <%= formatDate(comment.created_at) %>
-                                </span>
-
-                            </div>
-
-                            <div class="comment-content">
-                                <%= comment.content %>
-                            </div>
-
-                        </div>
-
-                    <% }) %>
-
-                <% } else { %>
-
-                    <div class="no-comments">
-                        no comments yet.
                     </div>
 
-                <% } %>
+                </div>
 
-            </div>
+                <div class="post-content">
+                    <%= post.content %>
+                </div>
 
-            <!-- comment button/form -->
+                <div class="post-actions">
 
-            <form
-                class="comment-form"
-                action="/posts/<%= post.id %>/comments"
-                method="post"
-            >
+                    <form
+                        action="/posts/<%= post.id %>/like"
+                        method="post"
+                    >
+                        <button
+                            type="submit"
+                            class="<%= post.liked ? 'liked' : '' %>"
+                        >
+                            <%= post.liked ? 'liked' : 'like' %>
+                            <%= post.likes || 0 %>
+                        </button>
+                    </form>
 
-                <input
-                    type="text"
-                    name="content"
-                    maxlength="300"
-                    placeholder="write a comment..."
-                    autocomplete="off"
-                    required
-                >
+                    <a
+                        class="comments-link"
+                        href="/posts/<%= post.id %>/comments"
+                    >
+                        comments
+                        (<%= post.comments || 0 %>)
+                    </a>
 
-                <button type="submit">
-                    comment
-                </button>
+                </div>
 
-            </form>
+            </article>
 
-        </article>
+        <% }) %>
 
-    <% }) %>
+    <% } %>
 
 </main>
 
