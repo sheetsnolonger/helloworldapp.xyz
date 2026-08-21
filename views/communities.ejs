@@ -1,11 +1,10 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="utf-8">
-
+    <meta charset="UTF-8">
     <meta
         name="viewport"
-        content="width=device-width, initial-scale=1"
+        content="width=device-width, initial-scale=1.0"
     >
 
     <title>communities - helloworld</title>
@@ -20,8 +19,14 @@
 
     <div class="nav-right">
         <a href="/feed">feed</a>
-        <a href="/communities">communities</a>
-        <a href="/search">search</a>
+
+        <a href="/communities">
+            communities
+        </a>
+
+        <a href="/search">
+            search
+        </a>
 
         <a href="/u/<%= user.username %>">
             @<%= user.username %>
@@ -41,49 +46,47 @@
 <main class="container">
 
     <header class="feed-header">
-
         <div class="tiny">
-            find your corner of helloworld
+            find your little corner of the internet
         </div>
 
         <h1>communities</h1>
 
         <p>
-            browse communities and see what people are posting.
+            explore the communities people have created.
         </p>
-
     </header>
 
     <% if (!communities || communities.length === 0) { %>
 
         <section class="empty">
-
-            <h2>no communities yet.</h2>
-
             <p>
-                there aren't any communities available right now.
+                there aren't any communities yet.
             </p>
 
+            <p>
+                check back later.
+            </p>
         </section>
 
     <% } else { %>
 
-        <section class="community-grid">
+        <section class="communities-grid">
 
             <% communities.forEach(community => { %>
 
                 <a
                     class="community-card"
-                    href="/c/<%= community.name %>"
+                    href="/c/<%= encodeURIComponent(community.name) %>"
                 >
 
-                    <div class="community-card-top">
+                    <div class="community-card-header">
 
                         <h2>
-                            c/<%= community.name %>
+                            /<%= community.name %>
                         </h2>
 
-                        <span class="community-count">
+                        <span>
                             <%= community.post_count || 0 %>
                             <%= Number(community.post_count) === 1 ? "post" : "posts" %>
                         </span>
@@ -104,7 +107,7 @@
 
                     <% } %>
 
-                    <div class="community-footer">
+                    <div class="community-card-footer">
                         view community →
                     </div>
 
