@@ -1053,3 +1053,197 @@ textarea:focus {
         gap: 5px;
     }
 }
+
+.post-link {
+    display: block;
+    color: inherit;
+}
+
+.post-link:hover {
+    text-decoration: none;
+}
+
+.back-link {
+    display: inline-block;
+    margin: 25px 0;
+    color: #12627a;
+}
+
+.post-page {
+    padding-bottom: 60px;
+}
+
+.comments-page {
+    margin-top: 35px;
+    padding-bottom: 60px;
+}
+
+.comments-page h2 {
+    margin: 5px 0 20px;
+    font-size: 30px;
+}
+
+.comment-list {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    margin-top: 20px;
+}
+
+.comment {
+    padding: 16px;
+    border: 1px solid #b7d8df;
+    border-radius: 10px;
+    background: rgba(255, 255, 255, 0.7);
+}
+
+.comment-header {
+    display: flex;
+    justify-content: space-between;
+    gap: 15px;
+    margin-bottom: 8px;
+    font-size: 13px;
+    color: #66858d;
+}
+
+.comment-header a {
+    color: #12627a;
+    font-weight: bold;
+}
+
+.comment-content {
+    line-height: 1.55;
+    white-space: pre-wrap;
+    overflow-wrap: anywhere;
+}
+
+.profile-customization {
+    margin: 35px 0;
+    padding: 25px;
+    border: 1px solid #b7d8df;
+    border-radius: 12px;
+    background: rgba(255, 255, 255, 0.65);
+}
+
+.profile-customization h2 {
+    margin: 5px 0 20px;
+}
+
+.profile-customization form {
+    max-width: 600px;
+}
+
+.profile-customization textarea {
+    min-height: 120px;
+    resize: vertical;
+}
+
+.profile-customization button {
+    align-self: flex-start;
+}
+
+.profile-posts {
+    padding-bottom: 70px;
+}
+
+.profile-posts .section-heading {
+    margin-bottom: 20px;
+}
+
+.profile-posts .section-heading h2 {
+    margin: 5px 0;
+    font-size: 30px;
+}
+
+.profile-info {
+    min-width: 0;
+}
+
+.profile-info h1 {
+    overflow-wrap: anywhere;
+}
+
+.username {
+    color: #66858d;
+    font-size: 14px;
+}
+
+.profile-bio {
+    max-width: 600px;
+    line-height: 1.6;
+    white-space: pre-wrap;
+    overflow-wrap: anywhere;
+}
+
+.profile-owner {
+    font-size: 13px;
+    color: #66858d;
+}
+
+.follow-form {
+    display: inline-flex;
+}
+
+.follow-form button {
+    margin-top: 5px;
+}
+
+.profile-actions {
+    margin-top: 15px;
+}
+
+.post-community {
+    margin: 10px 0;
+    font-size: 13px;
+}
+
+.post-community a {
+    color: #12627a;
+    font-weight: bold;
+}
+
+.delete-post {
+    background: transparent !important;
+    border: 0 !important;
+    color: #a33 !important;
+    padding: 0 !important;
+}
+
+.comment-link {
+    color: #12627a;
+}
+
+@media (max-width: 600px) {
+
+    .profile-customization {
+        padding: 18px;
+        margin-top: 25px;
+    }
+
+    .profile-posts {
+        padding-bottom: 40px;
+    }
+
+    .comments-page {
+        margin-top: 25px;
+    }
+
+    .comment-form {
+        flex-direction: column;
+    }
+
+    .comment-form button {
+        width: 100%;
+    }
+
+    .comment-header {
+        flex-direction: column;
+        gap: 4px;
+    }
+
+    .post-actions {
+        flex-wrap: wrap;
+        gap: 12px;
+    }
+
+}
