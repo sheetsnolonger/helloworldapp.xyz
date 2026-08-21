@@ -1,46 +1,342 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="en">
+
 <head>
-    <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>@<%= user.username %> · helloWorld</title>
-    <link rel="stylesheet" href="/css/style.css">
+    <meta charset="UTF-8">
+
+    <meta
+        name="viewport"
+        content="width=device-width, initial-scale=1.0"
+    >
+
+    <title>
+        @<%= user.username %> — helloworld
+    </title>
+
+    <link
+        rel="stylesheet"
+        href="/css/style.css"
+    >
 </head>
+
 <body>
+
 <nav>
-    <a href="/feed" class="logo">helloWorld</a>
-    <div class="nav-right"><a href="/feed">home</a></div>
+
+    <a
+        class="logo"
+        href="/feed"
+    >
+        helloworld
+    </a>
+
+    <div class="nav-right">
+
+        <a href="/feed">
+            feed
+        </a>
+
+        <a href="/u/<%= currentUser.username %>">
+            @<%= currentUser.username %>
+        </a>
+
+        <form
+            action="/logout"
+            method="post"
+        >
+            <button
+                class="logout"
+                type="submit"
+            >
+                logout
+            </button>
+        </form>
+
+    </div>
+
 </nav>
+
+
 <main class="container">
+
     <section class="profile">
-        <div class="avatar"><%= user.username.charAt(0) %></div>
-        <div>
-            <p class="tiny">profile</p>
-            <h1>@<%= user.username %></h1>
-            <p class="muted"><%= user.bio || "still figuring out what to put here." %></p>
-            <div class="stats">
-                <span><strong><%= followers %></strong> followers</span>
-                <span><strong><%= following %></strong> following</span>
-            </div>
-            <% if (currentUser.id !== user.id) { %>
-                <form method="post" action="/u/<%= user.username %>/follow">
-                    <button><%= isFollowing ? "unfollow" : "follow" %></button>
-                </form>
-            <% } %>
+
+        <div class="avatar">
+            <%= (
+                user.display_name ||
+                user.username
+            ).charAt(0).toUpperCase() %>
         </div>
-    </section>
-    <section class="feed">
-        <% posts.forEach(post => { %>
-            <article class="post">
-                <div class="post-header">
-                    <span>@<%= user.username %></span>
-                    <span><%= formatDate(post.created_at) %></span>
+
+        <div class="profile-info">
+
+            <div class="tiny">
+                profile
+            </div>
+
+            <h1>
+                <%= user.display_name || user.username %>
+            </h1>
+
+            <div class="username">
+                @<%= user.username %>
+            </div>
+
+            <% if (user.bio) { %>
+
+                <p class="profile-bio">
+                    <%= user.bio %>
+                </p>
+
+            <% } %>
+
+            <div class="stats">
+
+                <span>
+                    <strong>
+                        <%= followers %>
+                    </strong>
+                    followers
+                </span>
+
+                <span>
+                    <strong>
+                        <%= following %>
+                    </strong>
+                    following
+                </span>
+
+                <span>
+                    <strong>
+                        <%= posts.length %>
+                    </strong>
+                    posts
+                </span>
+
+            </div>
+
+
+            <% if (
+                currentUser &&
+                Number(currentUser.id) === Number(user.id)
+            ) { %>
+
+                <div class="profile-actions">
+                    <span class="profile-owner">
+                        this is your profile
+                    </span>
                 </div>
-                <p class="post-content"><%= post.content %></p>
-                <div class="post-actions"><span>likes · <%= post.likes %></span></div>
-            </article>
-        <% }) %>
+
+            <% } else { %>
+
+                <form
+                    action="/u/<%= user.username %>/follow"
+                    method="post"
+                    class="follow-form"
+                >
+
+                    <button type="submit">
+
+                        <%= isFollowing
+                            ? "unfollow"
+                            : "follow"
+                        %>
+
+                    </button>
+
+                </form>
+
+            <% } %>
+
+        </div>
+
     </section>
+
+
+    <% if (
+        currentUser &&
+        Number(currentUser.id) === Number(user.id)
+    ) { %>
+
+        <section class="profile-customization">
+
+            <div class="tiny">
+                customize your profile
+            </div>
+
+            <h2>
+                edit profile
+            </h2>
+
+            <form
+                action="/profile/customize"
+                method="post"
+            >
+
+                <input
+                    type="hidden"
+                    name="username"
+                    value="<%= user.username %>"
+                >
+
+                <label for="display_name">
+                    display name
+                </label>
+
+                <input
+                    id="display_name"
+                    type="text"
+                    name="display_name"
+                    maxlength="40"
+                    value="<%= user.display_name || '' %>"
+                    placeholder="your display name"
+                >
+
+                <label for="bio">
+                    bio
+                </label>
+
+                <textarea
+                    id="bio"
+                    name="bio"
+                    maxlength="300"
+                    placeholder="tell people about yourself..."
+                ><%= user.bio || '' %></textarea>
+
+                <button type="submit">
+                    save profile
+                </button>
+
+            </form>
+
+        </section>
+
+    <% } %>
+
+
+    <section class="profile-posts">
+
+        <header class="section-heading">
+
+            <div class="tiny">
+                posts
+            </div>
+
+            <h2>
+                <%= user.display_name || user.username %>'s posts
+            </h2>
+
+        </header>
+
+
+        <% if (!posts || posts.length === 0) { %>
+
+            <div class="empty">
+
+                <p>
+                    no posts yet.
+                </p>
+
+            </div>
+
+        <% } else { %>
+
+
+            <% posts.forEach(post => { %>
+
+                <article class="post">
+
+                    <div class="post-header">
+
+                        <a
+                            href="/u/<%= user.username %>"
+                        >
+                            @<%= user.username %>
+                        </a>
+
+                        <span>
+                            <%= formatDate(post.created_at) %>
+                        </span>
+
+                    </div>
+
+
+                    <% if (post.community_name) { %>
+
+                        <div class="post-community">
+
+                            <a
+                                href="/c/<%= post.community_name %>"
+                            >
+                                c/<%= post.community_name %>
+                            </a>
+
+                        </div>
+
+                    <% } %>
+
+
+                    <a
+                        class="post-content post-link"
+                        href="/posts/<%= post.id %>"
+                    >
+                        <%= post.content %>
+                    </a>
+
+
+                    <div class="post-actions">
+
+                        <span>
+                            <%= post.likes || 0 %>
+                            <%= post.likes === 1
+                                ? "like"
+                                : "likes"
+                            %>
+                        </span>
+
+                        <a
+                            class="comment-link"
+                            href="/posts/<%= post.id %>"
+                        >
+                            view comments
+                        </a>
+
+                        <% if (
+                            currentUser &&
+                            Number(currentUser.id) ===
+                            Number(user.id)
+                        ) { %>
+
+                            <form
+                                action="/posts/<%= post.id %>/delete"
+                                method="post"
+                                onsubmit="return confirm('delete this post?');"
+                            >
+
+                                <button
+                                    type="submit"
+                                    class="delete-post"
+                                >
+                                    delete
+                                </button>
+
+                            </form>
+
+                        <% } %>
+
+                    </div>
+
+                </article>
+
+            <% }) %>
+
+
+        <% } %>
+
+    </section>
+
 </main>
+
 </body>
+
 </html>
