@@ -907,6 +907,52 @@ app.post(
     }
 );
 
+app.get("/posts/:id/comments", requireLogin, (req, res) => {
+    const postId = Number(req.params.id);
+
+    if (!Number.isInteger(postId)) {
+        return res.status(404).send("post not found.");
+    }
+
+    const post = db.prepare(`
+        select
+            posts.*,
+            users.username,
+            (select count(*) from likes where likes.post_id = posts.id) as likes,
+            exists(
+                select 1
+                from likes
+                where likes.post_id = posts.id
+                and likes.user_id = ?
+            ) as liked
+        from posts
+        join users on users.id = posts.user_id
+        where posts.id = ?
+    `).get(req.session.userId, postId);
+
+    if (!post) {
+        return res.status(404).send("post not found.");
+    }
+
+    const comments = db.prepare(`
+        select
+            comments.id,
+            comments.content,
+            comments.created_at,
+            users.username
+        from comments
+        join users on users.id = comments.user_id
+        where comments.post_id = ?
+        order by comments.created_at asc
+    `).all(postId);
+
+    res.render("comments", {
+        user: currentUser(req),
+        post,
+        comments
+    });
+});
+
 /* 404 */
 
 app.use((req, res) => {
