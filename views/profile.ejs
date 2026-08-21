@@ -25,9 +25,11 @@
 
     <%- include("partials/sidebar", { user: user }) %>
 
+
     <main class="site-main">
 
         <div class="page-container">
+
 
             <section class="profile-header">
 
@@ -36,15 +38,19 @@
                     <% if (profile.profile_picture) { %>
 
                         <img
-                            class="profile-picture"
                             src="<%= profile.profile_picture %>"
                             alt="profile picture"
+                            class="profile-picture"
                         >
 
                     <% } else { %>
 
                         <div class="profile-picture-placeholder">
-                            <%= profile.username.charAt(0).toUpperCase() %>
+
+                            <%= profile.username
+                                ? profile.username.charAt(0).toUpperCase()
+                                : "?" %>
+
                         </div>
 
                     <% } %>
@@ -88,7 +94,13 @@
                 </div>
 
 
-                <% if (user && user.id === profile.id) { %>
+                <% if (
+                    user &&
+                    profile &&
+                    user.id &&
+                    profile.id &&
+                    String(user.id) === String(profile.id)
+                ) { %>
 
                     <div class="profile-actions">
 
@@ -125,31 +137,41 @@
                             no posts yet.
                         </strong>
 
+                        <p>
+                            this user hasn't posted anything yet.
+                        </p>
+
                     </div>
 
                 <% } else { %>
 
+
                     <% posts.forEach(post => { %>
 
-                        <article
-                            class="post"
-                            id="post-<%= post.id %>"
-                        >
+                        <article class="post">
+
 
                             <div class="post-header">
 
                                 <div class="post-user">
 
-                                    <a href="/u/<%= profile.username %>">
+                                    <a
+                                        href="/u/<%= profile.username %>"
+                                    >
                                         @<%= profile.username %>
                                     </a>
 
                                 </div>
 
+
                                 <% if (post.created_at) { %>
 
                                     <span class="post-date">
-                                        <%= new Date(post.created_at).toLocaleDateString() %>
+
+                                        <%= new Date(
+                                            post.created_at
+                                        ).toLocaleDateString() %>
+
                                     </span>
 
                                 <% } %>
@@ -178,7 +200,7 @@
                             >
 
                                 <div class="post-content">
-                                    <%= post.content %>
+                                    <%= post.content || "" %>
                                 </div>
 
 
@@ -188,7 +210,7 @@
 
                                         <img
                                             src="<%= post.attachment_url %>"
-                                            alt="post image"
+                                            alt="post attachment"
                                             loading="lazy"
                                         >
 
@@ -201,29 +223,31 @@
 
                             <div class="post-actions">
 
-                                <span>
-                                    <%= post.likes || 0 %> likes
-                                </span>
-
                                 <a
                                     href="/posts/<%= post.id %>/comments"
+                                    class="comments-link"
                                 >
-                                    <%= post.comments || 0 %> comments
+                                    <%= post.comments || 0 %>
+                                    comments
                                 </a>
 
                             </div>
+
 
                         </article>
 
                     <% }) %>
 
+
                 <% } %>
 
             </section>
+
 
         </div>
 
     </main>
 
 </body>
+
 </html>
