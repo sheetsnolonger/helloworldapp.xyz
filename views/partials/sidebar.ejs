@@ -1,113 +1,221 @@
 <aside class="site-sidebar">
 
-    <div class="sidebar-brand">
-        <a href="/feed" class="sidebar-logo">helloworld</a>
-        <span class="sidebar-subtitle">social space</span>
-    </div>
+    <div class="sidebar-inner">
 
-    <nav class="sidebar-nav">
-
-        <a href="/feed" class="sidebar-link">
-            <span class="sidebar-icon">
+        <a href="/feed" class="sidebar-brand">
+            <span class="brand-mark">
                 <svg viewBox="0 0 24 24" aria-hidden="true">
-                    <path d="M3 11.5 12 4l9 7.5v8a1 1 0 0 1-1 1h-5v-6h-6v6H4a1 1 0 0 1-1-1z"/>
+                    <circle cx="12" cy="12" r="8"></circle>
+                    <path d="M8 12h8"></path>
+                    <path d="M12 8v8"></path>
                 </svg>
             </span>
-            <span>home</span>
-        </a>
 
-        <a href="/search" class="sidebar-link">
-            <span class="sidebar-icon">
-                <svg viewBox="0 0 24 24" aria-hidden="true">
-                    <circle cx="11" cy="11" r="6.5"/>
-                    <path d="m16 16 5 5"/>
-                </svg>
+            <span class="brand-text">
+                helloworld
             </span>
-            <span>search</span>
         </a>
 
-        <a href="/communities" class="sidebar-link">
-            <span class="sidebar-icon">
-                <svg viewBox="0 0 24 24" aria-hidden="true">
-                    <path d="M4 5.5A2.5 2.5 0 0 1 6.5 3h11A2.5 2.5 0 0 1 20 5.5v8a2.5 2.5 0 0 1-2.5 2.5H12l-4.5 4v-4h-1A2.5 2.5 0 0 1 4 13.5z"/>
-                    <path d="M8 8h8M8 11h5"/>
-                </svg>
-            </span>
-            <span>communities</span>
-        </a>
 
-        <% if (user) { %>
-            <a href="/u/<%= user.username %>" class="sidebar-link">
+        <nav class="sidebar-nav">
+
+            <div class="sidebar-section-title">
+                navigation
+            </div>
+
+
+            <a
+                href="/feed"
+                class="sidebar-link"
+            >
                 <span class="sidebar-icon">
                     <svg viewBox="0 0 24 24" aria-hidden="true">
-                        <circle cx="12" cy="8" r="3.5"/>
-                        <path d="M5 20c.8-4 3-6 7-6s6.2 2 7 6"/>
+                        <path d="M4 11.5 12 5l8 6.5"></path>
+                        <path d="M6.5 10.5V19h11v-8.5"></path>
+                        <path d="M10 19v-5h4v5"></path>
                     </svg>
                 </span>
-                <span>profile</span>
+
+                <span class="sidebar-label">
+                    feed
+                </span>
             </a>
 
-            <a href="/settings/profile" class="sidebar-link">
+
+            <a
+                href="/search"
+                class="sidebar-link"
+            >
                 <span class="sidebar-icon">
                     <svg viewBox="0 0 24 24" aria-hidden="true">
-                        <path d="M12 3v2M12 19v2M3 12h2M19 12h2M5.6 5.6 7 7M17 17l1.4 1.4M18.4 5.6 17 7M7 17l-1.4 1.4"/>
-                        <circle cx="12" cy="12" r="3.5"/>
+                        <circle cx="10.5" cy="10.5" r="6"></circle>
+                        <path d="m15 15 5 5"></path>
                     </svg>
                 </span>
-                <span>settings</span>
+
+                <span class="sidebar-label">
+                    search
+                </span>
             </a>
 
-            <% if (user.is_admin) { %>
-                <a href="/admin" class="sidebar-link">
-                    <span class="sidebar-icon">
-                        <svg viewBox="0 0 24 24" aria-hidden="true">
-                            <path d="M4 19V9M10 19V5M16 19v-8M22 19V3"/>
-                        </svg>
-                    </span>
-                    <span>admin</span>
-                </a>
-            <% } %>
 
-            <div class="sidebar-divider"></div>
+            <a
+                href="/communities"
+                class="sidebar-link"
+            >
+                <span class="sidebar-icon">
+                    <svg viewBox="0 0 24 24" aria-hidden="true">
+                        <circle cx="8" cy="8" r="3"></circle>
+                        <circle cx="16" cy="8" r="3"></circle>
+                        <path d="M3.5 18c.5-3 2.2-4.5 4.5-4.5S12 15 12.5 18"></path>
+                        <path d="M11.5 18c.5-3 2.2-4.5 4.5-4.5s4 1.5 4.5 4.5"></path>
+                    </svg>
+                </span>
 
-            <form action="/logout" method="post">
-                <button type="submit" class="sidebar-link sidebar-logout">
-                    <span class="sidebar-icon">
-                        <svg viewBox="0 0 24 24" aria-hidden="true">
-                            <path d="M10 4H5a1 1 0 0 0-1 1v14a1 1 0 0 0 1 1h5"/>
-                            <path d="M14 8l4 4-4 4M9 12h9"/>
-                        </svg>
-                    </span>
-                    <span>logout</span>
-                </button>
-            </form>
-        <% } %>
+                <span class="sidebar-label">
+                    communities
+                </span>
+            </a>
 
-    </nav>
 
-    <% if (user) { %>
-        <div class="sidebar-user">
-            <a href="/u/<%= user.username %>">
+            <a
+                href="/u/<%= encodeURIComponent(user.username) %>"
+                class="sidebar-link"
+            >
+                <span class="sidebar-icon">
+                    <svg viewBox="0 0 24 24" aria-hidden="true">
+                        <circle cx="12" cy="8" r="3.5"></circle>
+                        <path d="M5 19c.8-3.2 3-5 7-5s6.2 1.8 7 5"></path>
+                    </svg>
+                </span>
 
-                <% if (user.profile_picture) { %>
-                    <img
-                        src="<%= user.profile_picture %>"
-                        alt=""
-                        class="sidebar-avatar"
-                    >
-                <% } else { %>
-                    <div class="sidebar-avatar sidebar-avatar-placeholder">
-                        <%= user.username.charAt(0).toUpperCase() %>
-                    </div>
-                <% } %>
+                <span class="sidebar-label">
+                    profile
+                </span>
+            </a>
 
-                <div class="sidebar-user-info">
-                    <strong><%= user.display_name || user.username %></strong>
-                    <span>@<%= user.username %></span>
+
+            <a
+                href="/settings/profile"
+                class="sidebar-link"
+            >
+                <span class="sidebar-icon">
+                    <svg viewBox="0 0 24 24" aria-hidden="true">
+                        <circle cx="12" cy="12" r="3"></circle>
+                        <path d="M19 12a7 7 0 0 0-.1-1.2l2-1.5-2-3.4-2.3 1a7.5 7.5 0 0 0-2-1.2L14.3 3h-4.6l-.3 2.7a7.5 7.5 0 0 0-2 1.2l-2.3-1-2 3.4 2 1.5A7 7 0 0 0 5 12c0 .4 0 .8.1 1.2l-2 1.5 2 3.4 2.3-1a7.5 7.5 0 0 0 2 1.2l.3 2.7h4.6l.3-2.7a7.5 7.5 0 0 0 2-1.2l2.3 1 2-3.4-2-1.5c.1-.4.1-.8.1-1.2z"></path>
+                    </svg>
+                </span>
+
+                <span class="sidebar-label">
+                    settings
+                </span>
+            </a>
+
+
+            <% if (user && user.is_admin) { %>
+
+                <div class="sidebar-section-title sidebar-admin-title">
+                    administration
                 </div>
 
-            </a>
+                <a
+                    href="/admin"
+                    class="sidebar-link sidebar-admin-link"
+                >
+                    <span class="sidebar-icon">
+                        <svg viewBox="0 0 24 24" aria-hidden="true">
+                            <rect x="4" y="4" width="16" height="16" rx="2"></rect>
+                            <path d="M8 9h8"></path>
+                            <path d="M8 12h8"></path>
+                            <path d="M8 15h5"></path>
+                        </svg>
+                    </span>
+
+                    <span class="sidebar-label">
+                        admin
+                    </span>
+                </a>
+
+            <% } %>
+
+        </nav>
+
+
+        <div class="sidebar-bottom">
+
+            <div class="sidebar-user">
+
+                <a
+                    href="/u/<%= encodeURIComponent(user.username) %>"
+                    class="sidebar-user-link"
+                >
+
+                    <div class="sidebar-avatar">
+
+                        <% if (user.profile_picture || user.profile_image_url) { %>
+
+                            <img
+                                src="<%= user.profile_picture || user.profile_image_url %>"
+                                alt=""
+                            >
+
+                        <% } else { %>
+
+                            <span>
+                                <%= String(user.username || "?").charAt(0).toUpperCase() %>
+                            </span>
+
+                        <% } %>
+
+                    </div>
+
+
+                    <div class="sidebar-user-info">
+
+                        <strong>
+                            <%= user.display_name || user.username %>
+                        </strong>
+
+                        <span>
+                            @<%= user.username %>
+                        </span>
+
+                    </div>
+
+                </a>
+
+            </div>
+
+
+            <form
+                action="/logout"
+                method="post"
+                class="sidebar-logout-form"
+            >
+
+                <button
+                    type="submit"
+                    class="sidebar-logout"
+                >
+
+                    <span class="sidebar-icon">
+                        <svg viewBox="0 0 24 24" aria-hidden="true">
+                            <path d="M10 5H6a2 2 0 0 0-2 2v10a2 2 0 0 0 2 2h4"></path>
+                            <path d="M14 8l4 4-4 4"></path>
+                            <path d="M18 12H9"></path>
+                        </svg>
+                    </span>
+
+                    <span class="sidebar-label">
+                        logout
+                    </span>
+
+                </button>
+
+            </form>
+
         </div>
-    <% } %>
+
+    </div>
 
 </aside>
