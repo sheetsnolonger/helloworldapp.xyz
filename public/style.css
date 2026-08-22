@@ -1425,3 +1425,693 @@ img {
         transition-duration: .01ms !important;
     }
 }
+
+
+/* =========================================================
+   search / settings / community pages
+   ========================================================= */
+
+/* page wrapper */
+
+.page-card {
+    width: 100%;
+    padding: 20px;
+
+    border: 2px solid rgba(255,255,255,.9);
+    border-radius: 17px;
+
+    background:
+        linear-gradient(
+            180deg,
+            rgba(255,255,255,.92),
+            rgba(225,250,255,.74)
+        );
+
+    box-shadow:
+        0 4px 0 rgba(40,130,155,.1),
+        0 10px 25px rgba(30,110,135,.15),
+        inset 0 2px 0 white;
+}
+
+/* =========================================================
+   search
+   ========================================================= */
+
+.search-page {
+    width: 100%;
+}
+
+.search-header {
+    margin-bottom: 18px;
+}
+
+.search-header h1 {
+    margin: 0;
+
+    color: #155b69;
+
+    font-family:
+        Georgia,
+        "Times New Roman",
+        serif;
+
+    font-size: 30px;
+
+    text-shadow:
+        0 2px 0 white;
+}
+
+.search-form {
+    display: flex;
+
+    gap: 8px;
+
+    width: 100%;
+
+    margin-top: 12px;
+}
+
+.search-form input {
+    flex: 1;
+
+    min-width: 0;
+
+    padding: 10px 12px;
+
+    border: 1px solid #8bcbd4;
+    border-radius: 10px;
+
+    outline: none;
+
+    background: rgba(255,255,255,.85);
+
+    color: #244f58;
+
+    font: inherit;
+}
+
+.search-form input:focus {
+    border-color: #4aafbd;
+
+    box-shadow:
+        0 0 0 3px rgba(94,203,215,.18);
+}
+
+.search-form button {
+    flex-shrink: 0;
+}
+
+.search-section {
+    margin-top: 18px;
+}
+
+.search-section h2 {
+    margin: 0 0 9px;
+
+    color: #286572;
+
+    font-family:
+        Georgia,
+        "Times New Roman",
+        serif;
+
+    font-size: 19px;
+}
+
+.search-results {
+    display: flex;
+    flex-direction: column;
+
+    gap: 8px;
+}
+
+.search-result {
+    display: flex;
+    align-items: center;
+
+    gap: 10px;
+
+    width: 100%;
+
+    padding: 11px;
+
+    border: 1px solid rgba(255,255,255,.9);
+    border-radius: 11px;
+
+    color: #285e6b;
+
+    background: rgba(255,255,255,.48);
+}
+
+.search-result:hover {
+    color: #285e6b;
+
+    text-decoration: none;
+
+    background: rgba(255,255,255,.8);
+
+    box-shadow:
+        0 3px 8px rgba(40,120,140,.12);
+}
+
+.search-result-avatar {
+    width: 38px;
+    height: 38px;
+
+    min-width: 38px;
+    max-width: 38px;
+
+    min-height: 38px;
+    max-height: 38px;
+
+    flex: 0 0 38px;
+
+    overflow: hidden;
+
+    border-radius: 10px;
+
+    border: 1px solid white;
+
+    background:
+        linear-gradient(
+            145deg,
+            #ffffff,
+            #a8e7ed
+        );
+}
+
+.search-result-avatar img {
+    display: block;
+
+    width: 38px;
+    height: 38px;
+
+    min-width: 38px;
+    max-width: 38px;
+
+    min-height: 38px;
+    max-height: 38px;
+
+    object-fit: cover;
+}
+
+.search-result-info {
+    min-width: 0;
+}
+
+.search-result-info strong {
+    display: block;
+
+    color: #286572;
+
+    font-size: 14px;
+}
+
+.search-result-info span {
+    display: block;
+
+    margin-top: 2px;
+
+    color: #71949a;
+
+    font-size: 11px;
+}
+
+.search-empty {
+    padding: 20px;
+
+    border-radius: 11px;
+
+    color: #6c9197;
+
+    background: rgba(255,255,255,.42);
+
+    text-align: center;
+}
+
+/* =========================================================
+   community pages
+   ========================================================= */
+
+.community-page {
+    width: 100%;
+}
+
+.community-header {
+    margin-bottom: 18px;
+
+    padding: 22px;
+
+    border: 2px solid rgba(255,255,255,.9);
+    border-radius: 17px;
+
+    background:
+        linear-gradient(
+            180deg,
+            rgba(255,255,255,.94),
+            rgba(225,250,255,.72)
+        );
+
+    box-shadow:
+        0 4px 0 rgba(40,130,155,.1),
+        0 10px 25px rgba(30,110,135,.15),
+        inset 0 2px 0 white;
+}
+
+.community-header h1 {
+    margin: 0;
+
+    color: #155b69;
+
+    font-family:
+        Georgia,
+        "Times New Roman",
+        serif;
+
+    font-size: 32px;
+
+    text-shadow:
+        0 2px 0 white;
+}
+
+.community-description {
+    margin: 7px 0 0;
+
+    color: #5c858c;
+}
+
+.community-meta {
+    display: flex;
+    flex-wrap: wrap;
+
+    gap: 8px;
+
+    margin-top: 12px;
+}
+
+.community-meta span {
+    padding: 5px 9px;
+
+    border-radius: 999px;
+
+    color: #4b7d84;
+
+    background: rgba(255,255,255,.65);
+
+    border: 1px solid rgba(255,255,255,.9);
+
+    font-size: 11px;
+}
+
+.community-posts {
+    width: 100%;
+}
+
+.community-posts-title {
+    margin: 0 0 10px;
+
+    color: #286572;
+
+    font-family:
+        Georgia,
+        "Times New Roman",
+        serif;
+
+    font-size: 20px;
+}
+
+/* =========================================================
+   communities listing
+   ========================================================= */
+
+.communities-page {
+    width: 100%;
+}
+
+.communities-header {
+    margin-bottom: 18px;
+}
+
+.communities-header h1 {
+    margin: 0;
+
+    color: #155b69;
+
+    font-family:
+        Georgia,
+        "Times New Roman",
+        serif;
+
+    font-size: 32px;
+
+    text-shadow:
+        0 2px 0 white;
+}
+
+.communities-header p {
+    margin: 5px 0 0;
+
+    color: #638b92;
+}
+
+.create-community {
+    margin-bottom: 20px;
+
+    padding: 18px;
+
+    border: 2px solid rgba(255,255,255,.9);
+    border-radius: 17px;
+
+    background:
+        linear-gradient(
+            180deg,
+            rgba(255,255,255,.9),
+            rgba(225,250,255,.72)
+        );
+
+    box-shadow:
+        0 4px 0 rgba(40,130,155,.1),
+        0 10px 25px rgba(30,110,135,.13),
+        inset 0 2px 0 white;
+}
+
+.create-community h2 {
+    margin: 0 0 12px;
+
+    color: #286572;
+
+    font-family:
+        Georgia,
+        "Times New Roman",
+        serif;
+
+    font-size: 19px;
+}
+
+.create-community form {
+    display: flex;
+    flex-direction: column;
+
+    gap: 9px;
+}
+
+.create-community input,
+.create-community textarea {
+    width: 100%;
+
+    padding: 10px 11px;
+
+    border: 1px solid #8bcbd4;
+    border-radius: 9px;
+
+    outline: none;
+
+    background: rgba(255,255,255,.82);
+
+    color: #244f58;
+
+    font: inherit;
+}
+
+.create-community textarea {
+    min-height: 80px;
+
+    resize: vertical;
+}
+
+.create-community button {
+    align-self: flex-start;
+}
+
+.community-grid {
+    display: grid;
+
+    grid-template-columns:
+        repeat(2, minmax(0, 1fr));
+
+    gap: 10px;
+}
+
+.community-grid-card {
+    display: block;
+
+    min-width: 0;
+
+    padding: 14px;
+
+    border: 2px solid rgba(255,255,255,.85);
+    border-radius: 13px;
+
+    color: #285f6b;
+
+    background:
+        linear-gradient(
+            180deg,
+            rgba(255,255,255,.75),
+            rgba(225,250,255,.58)
+        );
+
+    box-shadow:
+        0 3px 8px rgba(30,110,135,.11),
+        inset 0 1px 0 white;
+
+    transition:
+        transform .12s ease,
+        box-shadow .12s ease;
+}
+
+.community-grid-card:hover {
+    color: #285f6b;
+
+    text-decoration: none;
+
+    transform: translateY(-2px);
+
+    box-shadow:
+        0 6px 13px rgba(30,110,135,.16),
+        inset 0 1px 0 white;
+}
+
+.community-grid-card h3 {
+    margin: 0 0 4px;
+
+    color: #236271;
+
+    font-family:
+        Georgia,
+        "Times New Roman",
+        serif;
+
+    font-size: 17px;
+}
+
+.community-grid-card p {
+    margin: 0 0 8px;
+
+    color: #638a91;
+
+    font-size: 12px;
+}
+
+.community-grid-card .community-count {
+    color: #71969b;
+
+    font-size: 11px;
+}
+
+/* =========================================================
+   settings
+   ========================================================= */
+
+.settings-page {
+    width: 100%;
+}
+
+.settings-header {
+    margin-bottom: 18px;
+}
+
+.settings-header h1 {
+    margin: 0;
+
+    color: #155b69;
+
+    font-family:
+        Georgia,
+        "Times New Roman",
+        serif;
+
+    font-size: 32px;
+
+    text-shadow:
+        0 2px 0 white;
+}
+
+.settings-header p {
+    margin: 5px 0 0;
+
+    color: #638b92;
+}
+
+.settings-card {
+    margin-bottom: 15px;
+
+    padding: 20px;
+
+    border: 2px solid rgba(255,255,255,.9);
+    border-radius: 17px;
+
+    background:
+        linear-gradient(
+            180deg,
+            rgba(255,255,255,.92),
+            rgba(225,250,255,.72)
+        );
+
+    box-shadow:
+        0 4px 0 rgba(40,130,155,.1),
+        0 10px 25px rgba(30,110,135,.13),
+        inset 0 2px 0 white;
+}
+
+.settings-card h2 {
+    margin: 0 0 13px;
+
+    color: #286572;
+
+    font-family:
+        Georgia,
+        "Times New Roman",
+        serif;
+
+    font-size: 20px;
+}
+
+.settings-form {
+    display: flex;
+    flex-direction: column;
+
+    gap: 12px;
+}
+
+.settings-field {
+    display: flex;
+    flex-direction: column;
+
+    gap: 5px;
+}
+
+.settings-field label {
+    color: #3d7079;
+
+    font-size: 13px;
+    font-weight: 800;
+}
+
+.settings-field input,
+.settings-field textarea {
+    width: 100%;
+
+    padding: 10px 11px;
+
+    border: 1px solid #8bcbd4;
+    border-radius: 9px;
+
+    outline: none;
+
+    background: rgba(255,255,255,.82);
+
+    color: #244f58;
+
+    font: inherit;
+}
+
+.settings-field textarea {
+    min-height: 100px;
+
+    resize: vertical;
+}
+
+.settings-field input:focus,
+.settings-field textarea:focus {
+    border-color: #4aafbd;
+
+    box-shadow:
+        0 0 0 3px rgba(94,203,215,.18);
+}
+
+.settings-submit {
+    align-self: flex-start;
+}
+
+.settings-avatar-section {
+    display: flex;
+    align-items: center;
+
+    gap: 15px;
+
+    margin-bottom: 16px;
+}
+
+.settings-avatar {
+    width: 72px;
+    height: 72px;
+
+    min-width: 72px;
+    max-width: 72px;
+
+    min-height: 72px;
+    max-height: 72px;
+
+    flex: 0 0 72px;
+
+    overflow: hidden;
+
+    border-radius: 16px;
+
+    border: 3px solid white;
+
+    background:
+        linear-gradient(
+            145deg,
+            #ffffff,
+            #a6e8ef
+        );
+
+    box-shadow:
+        0 4px 9px rgba(30,110,130,.18);
+}
+
+.settings-avatar img {
+    display: block;
+
+    width: 72px;
+    height: 72px;
+
+    min-width: 72px;
+    max-width: 72px;
+
+    min-height: 72px;
+    max-height: 72px;
+
+    object-fit: cover;
+}
+
+/* =========================================================
+   responsive fixes for these pages
+   ========================================================= */
+
+@media (max-width: 700px) {
+
+    .community-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .search-form {
+        flex-direction: column;
+    }
+
+    .search-form button {
+        width: 100%;
+    }
+}
