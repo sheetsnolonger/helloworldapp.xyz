@@ -2,16 +2,21 @@
 <html lang="en">
 <head>
     <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1">
+
+    <meta
+        name="viewport"
+        content="width=device-width, initial-scale=1"
+    >
 
     <title>search - helloworld</title>
 
-    <link rel="stylesheet" href="/style.css">
+    <link
+        rel="stylesheet"
+        href="/style.css"
+    >
 </head>
 
 <body>
-
-    <%- include("sidebar", { user: user }) %>
 
     <main class="site-main">
 
@@ -20,6 +25,7 @@
             <div class="page-header">
                 <h1>search</h1>
             </div>
+
 
             <form
                 action="/search"
@@ -33,6 +39,7 @@
                     value="<%= query || '' %>"
                     placeholder="search..."
                     maxlength="100"
+                    autocomplete="off"
                 >
 
                 <button type="submit">
@@ -41,175 +48,237 @@
 
             </form>
 
+
             <% if (query) { %>
 
-                <p>
+                <div class="search-query">
                     results for:
                     <strong><%= query %></strong>
-                </p>
+                </div>
 
+
+                <!-- users -->
 
                 <section class="search-section">
 
                     <h2>users</h2>
 
-                    <% if (users.length === 0) { %>
+                    <% if (!users || users.length === 0) { %>
 
-                        <p>no users found.</p>
+                        <p class="muted">
+                            no users found.
+                        </p>
 
                     <% } else { %>
 
-                        <% users.forEach(function(foundUser) { %>
+                        <div class="search-results">
 
-                            <a
-                                href="/u/<%= foundUser.username %>"
-                                class="search-result"
-                            >
+                            <% users.forEach(function(foundUser) { %>
 
-                                <% if (foundUser.profile_picture) { %>
+                                <a
+                                    href="/u/<%= foundUser.username %>"
+                                    class="search-result"
+                                >
 
-                                    <img
-                                        src="<%= foundUser.profile_picture %>"
-                                        alt=""
-                                        class="search-avatar"
-                                    >
+                                    <div class="search-result-avatar">
 
-                                <% } else { %>
+                                        <% if (foundUser.profile_picture) { %>
 
-                                    <div class="search-avatar search-avatar-empty">
-                                        <%= foundUser.username.charAt(0).toUpperCase() %>
+                                            <img
+                                                src="<%= foundUser.profile_picture %>"
+                                                alt=""
+                                            >
+
+                                        <% } else { %>
+
+                                            <span>
+                                                <%= foundUser.username.charAt(0).toUpperCase() %>
+                                            </span>
+
+                                        <% } %>
+
                                     </div>
 
-                                <% } %>
 
-                                <div>
+                                    <div class="search-result-info">
 
-                                    <strong>
-                                        <%= foundUser.display_name || foundUser.username %>
-                                    </strong>
+                                        <strong>
+                                            <%= foundUser.display_name || foundUser.username %>
+                                        </strong>
 
-                                    <br>
+                                        <span>
+                                            @<%= foundUser.username %>
+                                        </span>
 
-                                    <span>
-                                        @<%= foundUser.username %>
-                                    </span>
+                                    </div>
 
-                                </div>
+                                </a>
 
-                            </a>
+                            <% }) %>
 
-                        <% }) %>
+                        </div>
 
                     <% } %>
 
                 </section>
 
+
+                <!-- communities -->
 
                 <section class="search-section">
 
                     <h2>communities</h2>
 
-                    <% if (communities.length === 0) { %>
+                    <% if (!communities || communities.length === 0) { %>
 
-                        <p>no communities found.</p>
+                        <p class="muted">
+                            no communities found.
+                        </p>
 
                     <% } else { %>
 
-                        <% communities.forEach(function(community) { %>
+                        <div class="search-results">
 
-                            <a
-                                href="/c/<%= community.name %>"
-                                class="search-result"
-                            >
+                            <% communities.forEach(function(community) { %>
 
-                                <div class="search-community-icon">
-                                    #
-                                </div>
+                                <a
+                                    href="/c/<%= community.name %>"
+                                    class="search-result"
+                                >
 
-                                <div>
+                                    <div class="search-result-avatar search-community-avatar">
+                                        #
+                                    </div>
 
-                                    <strong>
-                                        c/<%= community.name %>
-                                    </strong>
 
-                                    <% if (community.description) { %>
+                                    <div class="search-result-info">
 
-                                        <br>
+                                        <strong>
+                                            c/<%= community.name %>
+                                        </strong>
 
-                                        <span>
-                                            <%= community.description %>
-                                        </span>
+                                        <% if (community.description) { %>
 
-                                    <% } %>
+                                            <span>
+                                                <%= community.description %>
+                                            </span>
 
-                                    <br>
+                                        <% } %>
 
-                                    <small>
-                                        <%= community.post_count %> posts
-                                    </small>
+                                        <small>
+                                            <%= community.post_count || 0 %> posts
+                                        </small>
 
-                                </div>
+                                    </div>
 
-                            </a>
+                                </a>
 
-                        <% }) %>
+                            <% }) %>
+
+                        </div>
 
                     <% } %>
 
                 </section>
 
+
+                <!-- posts -->
 
                 <section class="search-section">
 
                     <h2>posts</h2>
 
-                    <% if (posts.length === 0) { %>
+                    <% if (!posts || posts.length === 0) { %>
 
-                        <p>no posts found.</p>
+                        <p class="muted">
+                            no posts found.
+                        </p>
 
                     <% } else { %>
 
-                        <% posts.forEach(function(post) { %>
+                        <div class="search-posts">
 
-                            <div class="search-post">
+                            <% posts.forEach(function(post) { %>
 
-                                <div class="search-post-meta">
+                                <article class="search-post">
 
-                                    <a href="/u/<%= post.username %>">
-                                        @<%= post.username %>
-                                    </a>
+                                    <div class="search-post-header">
 
-                                    <% if (post.community_name) { %>
+                                        <a
+                                            href="/u/<%= post.username %>"
+                                        >
+                                            @<%= post.username %>
+                                        </a>
 
-                                        <span>
-                                            in
-                                            <a href="/c/<%= post.community_name %>">
+
+                                        <% if (post.community_name) { %>
+
+                                            <span>
+                                                in
+                                            </span>
+
+                                            <a
+                                                href="/c/<%= post.community_name %>"
+                                            >
                                                 c/<%= post.community_name %>
                                             </a>
-                                        </span>
+
+                                        <% } %>
+
+                                    </div>
+
+
+                                    <div class="search-post-content">
+                                        <%= post.content %>
+                                    </div>
+
+
+                                    <% if (post.attachment_url) { %>
+
+                                        <div class="search-post-attachment">
+
+                                            <img
+                                                src="<%= post.attachment_url %>"
+                                                alt="<%= post.attachment_name || 'post attachment' %>"
+                                                loading="lazy"
+                                            >
+
+                                        </div>
 
                                     <% } %>
 
-                                </div>
 
-                                <div class="search-post-content">
-                                    <%= post.content %>
-                                </div>
+                                    <div class="search-post-date">
 
-                            </div>
+                                        <%= typeof formatDate === "function"
+                                            ? formatDate(post.created_at)
+                                            : new Date(post.created_at).toLocaleString()
+                                        %>
 
-                        <% }) %>
+                                    </div>
+
+                                </article>
+
+                            <% }) %>
+
+                        </div>
 
                     <% } %>
 
                 </section>
 
+
             <% } else { %>
 
-                <p>
-                    enter something to search for users,
-                    communities, or posts.
-                </p>
+                <div class="search-empty">
+
+                    <h2>search helloworld</h2>
+
+                    <p>
+                        search for users, communities, or posts.
+                    </p>
+
+                </div>
 
             <% } %>
 
