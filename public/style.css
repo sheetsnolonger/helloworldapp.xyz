@@ -7,12 +7,17 @@
     --blue: #258ed0;
     --green: #72d34b;
     --green-dark: #3c9e35;
+
     --white: #ffffff;
+
     --glass: rgba(255, 255, 255, 0.78);
     --glass-light: rgba(255, 255, 255, 0.9);
+
     --border: rgba(255, 255, 255, 0.9);
+
     --text: #17506c;
     --muted: #56839a;
+
     --shadow: rgba(23, 102, 143, 0.25);
 }
 
@@ -35,13 +40,13 @@ body {
     background:
         radial-gradient(
             circle at 15% 15%,
-            rgba(255,255,255,0.95) 0,
-            rgba(255,255,255,0) 18%
+            rgba(255, 255, 255, 0.95) 0,
+            rgba(255, 255, 255, 0) 18%
         ),
         radial-gradient(
             circle at 80% 25%,
-            rgba(255,255,255,0.7) 0,
-            rgba(255,255,255,0) 16%
+            rgba(255, 255, 255, 0.7) 0,
+            rgba(255, 255, 255, 0) 16%
         ),
         linear-gradient(
             180deg,
@@ -58,12 +63,13 @@ body {
 }
 
 /* =========================================================
-   floating bubbles
+   bubbles
    ========================================================= */
 
 body::before,
 body::after {
     content: "";
+
     position: fixed;
 
     pointer-events: none;
@@ -83,17 +89,17 @@ body::before {
     background:
         radial-gradient(
             circle at 30% 25%,
-            rgba(255,255,255,0.95),
-            rgba(255,255,255,0.35) 12%,
-            rgba(70,220,255,0.2) 45%,
-            rgba(255,255,255,0.05) 70%
+            rgba(255, 255, 255, 0.95),
+            rgba(255, 255, 255, 0.35) 12%,
+            rgba(70, 220, 255, 0.2) 45%,
+            rgba(255, 255, 255, 0.05) 70%
         );
 
-    border: 2px solid rgba(255,255,255,0.5);
+    border: 2px solid rgba(255, 255, 255, 0.5);
 
     box-shadow:
-        inset -20px -25px 40px rgba(0,130,190,0.12),
-        0 15px 40px rgba(0,100,160,0.12);
+        inset -20px -25px 40px rgba(0, 130, 190, 0.12),
+        0 15px 40px rgba(0, 100, 160, 0.12);
 
     animation: bubble-float 7s ease-in-out infinite;
 }
@@ -108,18 +114,19 @@ body::after {
     background:
         radial-gradient(
             circle at 30% 25%,
-            rgba(255,255,255,0.95),
-            rgba(255,255,255,0.3) 18%,
-            rgba(50,210,240,0.15) 60%
+            rgba(255, 255, 255, 0.95),
+            rgba(255, 255, 255, 0.3) 18%,
+            rgba(50, 210, 240, 0.15) 60%
         );
 
-    border: 2px solid rgba(255,255,255,0.55);
+    border: 2px solid rgba(255, 255, 255, 0.55);
 
     animation: bubble-float-small 5s ease-in-out infinite;
 }
 
 @keyframes bubble-float {
-    0%, 100% {
+    0%,
+    100% {
         transform: translateY(0) rotate(0deg);
     }
 
@@ -129,7 +136,8 @@ body::after {
 }
 
 @keyframes bubble-float-small {
-    0%, 100% {
+    0%,
+    100% {
         transform: translateY(0);
     }
 
@@ -144,29 +152,48 @@ body::after {
 
 a {
     color: #087fbd;
+
     text-decoration: none;
+
     font-weight: 700;
 }
 
 a:hover {
     color: #045e91;
+
     text-decoration: underline;
 }
 
 /* =========================================================
-   main layout
+   layout
    ========================================================= */
 
 .page {
     width: min(1200px, calc(100% - 30px));
+
     margin: 25px auto 50px;
 }
 
 .layout {
     display: grid;
-    grid-template-columns: 220px minmax(0, 1fr);
+
+    grid-template-columns:
+        220px
+        minmax(0, 1fr);
+
     gap: 18px;
+
     align-items: start;
+}
+
+.main-content {
+    min-width: 0;
+}
+
+.content,
+.feed,
+main {
+    min-width: 0;
 }
 
 /* =========================================================
@@ -187,27 +214,25 @@ a:hover {
     background:
         linear-gradient(
             180deg,
-            rgba(255,255,255,0.94) 0%,
-            rgba(255,255,255,0.72) 48%,
-            rgba(224,248,255,0.72) 100%
+            rgba(255, 255, 255, 0.94) 0%,
+            rgba(255, 255, 255, 0.72) 48%,
+            rgba(224, 248, 255, 0.72) 100%
         );
 
-    border: 2px solid rgba(255,255,255,0.9);
+    border: 2px solid rgba(255, 255, 255, 0.9);
 
     border-radius: 22px;
 
     box-shadow:
-        0 5px 0 rgba(24,120,164,0.12),
+        0 5px 0 rgba(24, 120, 164, 0.12),
         0 14px 35px var(--shadow),
-        inset 0 2px 0 rgba(255,255,255,0.95);
+        inset 0 2px 0 rgba(255, 255, 255, 0.95);
 
     backdrop-filter: blur(12px);
     -webkit-backdrop-filter: blur(12px);
 
     overflow: hidden;
 }
-
-/* glossy highlight */
 
 .panel::before,
 .card::before,
@@ -233,8 +258,8 @@ a:hover {
     background:
         linear-gradient(
             180deg,
-            rgba(255,255,255,0.75),
-            rgba(255,255,255,0)
+            rgba(255, 255, 255, 0.75),
+            rgba(255, 255, 255, 0)
         );
 
     opacity: 0.7;
@@ -248,6 +273,7 @@ a:hover {
     padding: 15px;
 
     position: sticky;
+
     top: 20px;
 }
 
@@ -266,21 +292,25 @@ a:hover {
 
     text-shadow:
         0 2px 0 #fff,
-        0 3px 5px rgba(0,100,150,0.2);
+        0 3px 5px rgba(0, 100, 150, 0.2);
 
     letter-spacing: -1px;
 }
 
 .sidebar nav {
     display: flex;
+
     flex-direction: column;
+
     gap: 8px;
 }
 
 .sidebar nav a,
 .sidebar a.nav-link {
     display: flex;
+
     align-items: center;
+
     gap: 10px;
 
     min-height: 43px;
@@ -291,18 +321,18 @@ a:hover {
 
     border-radius: 13px;
 
-    border: 1px solid rgba(255,255,255,0.85);
+    border: 1px solid rgba(255, 255, 255, 0.85);
 
     background:
         linear-gradient(
             180deg,
-            rgba(255,255,255,0.8),
-            rgba(206,241,251,0.65)
+            rgba(255, 255, 255, 0.8),
+            rgba(206, 241, 251, 0.65)
         );
 
     box-shadow:
         inset 0 1px 0 white,
-        0 2px 5px rgba(0,100,150,0.12);
+        0 2px 5px rgba(0, 100, 150, 0.12);
 
     transition:
         transform 0.15s ease,
@@ -325,10 +355,11 @@ a:hover {
 
     box-shadow:
         inset 0 1px 0 white,
-        0 5px 10px rgba(0,100,150,0.18);
+        0 5px 10px rgba(0, 100, 150, 0.18);
 }
 
-.sidebar nav a.active {
+.sidebar nav a.active,
+.sidebar a.active {
     color: white;
 
     background:
@@ -341,61 +372,92 @@ a:hover {
     border-color: #bff4ff;
 
     text-shadow:
-        0 1px 2px rgba(0,80,120,0.5);
+        0 1px 2px rgba(0, 80, 120, 0.5);
 
     box-shadow:
-        inset 0 2px 0 rgba(255,255,255,0.65),
-        0 4px 8px rgba(0,100,150,0.2);
+        inset 0 2px 0 rgba(255, 255, 255, 0.65),
+        0 4px 8px rgba(0, 100, 150, 0.2);
 }
 
 /* =========================================================
-   icons
+   sidebar icons
    ========================================================= */
 
-.sidebar img,
-.sidebar svg,
-.nav-icon,
-.icon {
-    width: 20px !important;
-    height: 20px !important;
+/*
+   only actual navigation icons get this sizing.
+   do NOT globally resize every image inside the sidebar.
+*/
 
-    min-width: 20px !important;
-    max-width: 20px !important;
+.sidebar .nav-icon,
+.sidebar .icon,
+.sidebar nav svg,
+.sidebar nav i {
+    width: 18px;
+    height: 18px;
 
-    min-height: 20px !important;
-    max-height: 20px !important;
+    min-width: 18px;
+    min-height: 18px;
+
+    max-width: 18px;
+    max-height: 18px;
+
+    flex: 0 0 18px;
+
+    display: inline-flex;
+
+    align-items: center;
+    justify-content: center;
 
     object-fit: contain;
 
     flex-shrink: 0;
 }
 
-.sidebar .icon {
-    font-size: 18px;
+.sidebar nav svg {
+    stroke-width: 2;
+}
+
+.sidebar nav i {
+    font-size: 17px;
+
     line-height: 1;
 }
 
-/* =========================================================
-   content
-   ========================================================= */
+/*
+   if your sidebar icons are images,
+   use .nav-icon on them.
+*/
 
-.main-content {
-    min-width: 0;
+.sidebar img.nav-icon {
+    width: 18px;
+    height: 18px;
+
+    min-width: 18px;
+    min-height: 18px;
+
+    max-width: 18px;
+    max-height: 18px;
+
+    object-fit: contain;
+
+    border: 0;
+
+    border-radius: 0;
+
+    background: transparent;
+
+    box-shadow: none;
 }
 
-.content,
-.feed,
-main {
-    min-width: 0;
-}
-
 /* =========================================================
-   top bar
+   topbar
    ========================================================= */
 
 .topbar {
     display: flex;
+
     align-items: center;
+
     justify-content: space-between;
 
     gap: 12px;
@@ -409,15 +471,15 @@ main {
     background:
         linear-gradient(
             180deg,
-            rgba(255,255,255,0.92),
-            rgba(211,246,255,0.75)
+            rgba(255, 255, 255, 0.92),
+            rgba(211, 246, 255, 0.75)
         );
 
-    border: 2px solid rgba(255,255,255,0.9);
+    border: 2px solid rgba(255, 255, 255, 0.9);
 
     box-shadow:
         inset 0 2px 0 white,
-        0 8px 20px rgba(0,100,150,0.17);
+        0 8px 20px rgba(0, 100, 150, 0.17);
 }
 
 /* =========================================================
@@ -427,7 +489,7 @@ main {
 button,
 .btn,
 input[type="submit"] {
-    border: 1px solid rgba(255,255,255,0.95);
+    border: 1px solid rgba(255, 255, 255, 0.95);
 
     border-radius: 999px;
 
@@ -436,6 +498,7 @@ input[type="submit"] {
     font-family: inherit;
 
     font-size: 14px;
+
     font-weight: 800;
 
     color: white;
@@ -452,12 +515,12 @@ input[type="submit"] {
         );
 
     box-shadow:
-        inset 0 2px 0 rgba(255,255,255,0.7),
-        inset 0 -2px 0 rgba(0,80,130,0.15),
-        0 3px 7px rgba(0,100,150,0.22);
+        inset 0 2px 0 rgba(255, 255, 255, 0.7),
+        inset 0 -2px 0 rgba(0, 80, 130, 0.15),
+        0 3px 7px rgba(0, 100, 150, 0.22);
 
     text-shadow:
-        0 1px 2px rgba(0,70,110,0.5);
+        0 1px 2px rgba(0, 70, 110, 0.5);
 
     transition:
         transform 0.12s ease,
@@ -468,6 +531,7 @@ button:hover,
 .btn:hover,
 input[type="submit"]:hover {
     transform: translateY(-2px);
+
     filter: brightness(1.08);
 }
 
@@ -475,11 +539,10 @@ button:active,
 .btn:active,
 input[type="submit"]:active {
     transform: translateY(1px);
-    box-shadow:
-        inset 0 2px 4px rgba(0,70,100,0.2);
-}
 
-/* green buttons */
+    box-shadow:
+        inset 0 2px 4px rgba(0, 70, 100, 0.2);
+}
 
 .btn-green,
 button.green {
@@ -502,7 +565,7 @@ textarea,
 select {
     width: 100%;
 
-    border: 2px solid rgba(91,185,218,0.35);
+    border: 2px solid rgba(91, 185, 218, 0.35);
 
     border-radius: 14px;
 
@@ -517,19 +580,20 @@ select {
     background:
         linear-gradient(
             180deg,
-            rgba(255,255,255,0.95),
-            rgba(232,249,255,0.8)
+            rgba(255, 255, 255, 0.95),
+            rgba(232, 249, 255, 0.8)
         );
 
     outline: none;
 
     box-shadow:
-        inset 0 2px 5px rgba(0,100,150,0.08),
+        inset 0 2px 5px rgba(0, 100, 150, 0.08),
         0 1px 0 white;
 }
 
 textarea {
     min-height: 100px;
+
     resize: vertical;
 }
 
@@ -539,8 +603,8 @@ select:focus {
     border-color: #45c7ed;
 
     box-shadow:
-        0 0 0 3px rgba(80,210,245,0.18),
-        inset 0 2px 5px rgba(0,100,150,0.08);
+        0 0 0 3px rgba(80, 210, 245, 0.18),
+        inset 0 2px 5px rgba(0, 100, 150, 0.08);
 }
 
 /* =========================================================
@@ -555,6 +619,7 @@ select:focus {
 
 .post-header {
     display: flex;
+
     align-items: center;
 
     gap: 10px;
@@ -562,16 +627,22 @@ select:focus {
     margin-bottom: 12px;
 }
 
+/*
+   avatars are intentionally separate from sidebar icons.
+*/
+
 .avatar,
 .profile-avatar {
     width: 45px !important;
     height: 45px !important;
 
     min-width: 45px !important;
-    max-width: 45px !important;
-
     min-height: 45px !important;
+
+    max-width: 45px !important;
     max-height: 45px !important;
+
+    flex: 0 0 45px;
 
     border-radius: 50%;
 
@@ -587,7 +658,7 @@ select:focus {
         );
 
     box-shadow:
-        0 3px 8px rgba(0,90,130,0.2);
+        0 3px 8px rgba(0, 90, 130, 0.2);
 }
 
 .post-content {
@@ -603,7 +674,10 @@ select:focus {
 .post-image {
     display: block;
 
+    width: auto;
+
     max-width: 100%;
+
     max-height: 600px;
 
     margin-top: 14px;
@@ -613,7 +687,7 @@ select:focus {
     border: 3px solid white;
 
     box-shadow:
-        0 5px 14px rgba(0,80,120,0.18);
+        0 5px 14px rgba(0, 80, 120, 0.18);
 }
 
 /* =========================================================
@@ -622,11 +696,14 @@ select:focus {
 
 .post-actions {
     display: flex;
+
     align-items: center;
 
     gap: 7px;
 
     margin-top: 13px;
+
+    flex-wrap: wrap;
 }
 
 .post-actions button,
@@ -660,8 +737,8 @@ select:focus {
     text-decoration: none;
 
     box-shadow:
-        0 7px 0 rgba(24,120,164,0.1),
-        0 18px 35px rgba(20,100,140,0.22),
+        0 7px 0 rgba(24, 120, 164, 0.1),
+        0 18px 35px rgba(20, 100, 140, 0.22),
         inset 0 2px 0 white;
 }
 
@@ -693,7 +770,7 @@ h3 {
 }
 
 /* =========================================================
-   labels / muted text
+   text
    ========================================================= */
 
 .muted,
@@ -718,6 +795,7 @@ small,
 
 .profile-header {
     display: flex;
+
     align-items: center;
 
     gap: 15px;
@@ -728,10 +806,12 @@ small,
     height: 85px !important;
 
     min-width: 85px !important;
-    max-width: 85px !important;
-
     min-height: 85px !important;
+
+    max-width: 85px !important;
     max-height: 85px !important;
+
+    flex-basis: 85px;
 }
 
 /* =========================================================
@@ -758,7 +838,7 @@ small,
     border: 2px solid #ffffff;
 
     box-shadow:
-        0 3px 8px rgba(140,60,60,0.12);
+        0 3px 8px rgba(140, 60, 60, 0.12);
 }
 
 .success,
@@ -782,14 +862,16 @@ small,
 }
 
 /* =========================================================
-   login/register
+   authentication
    ========================================================= */
 
 .auth-page {
     min-height: 100vh;
 
     display: flex;
+
     align-items: center;
+
     justify-content: center;
 
     padding: 25px;
@@ -805,15 +887,15 @@ small,
     background:
         linear-gradient(
             180deg,
-            rgba(255,255,255,0.96),
-            rgba(213,247,255,0.82)
+            rgba(255, 255, 255, 0.96),
+            rgba(213, 247, 255, 0.82)
         );
 
     border: 3px solid white;
 
     box-shadow:
         inset 0 3px 0 white,
-        0 15px 40px rgba(0,90,130,0.25);
+        0 15px 40px rgba(0, 90, 130, 0.25);
 }
 
 .auth-card h1 {
@@ -821,6 +903,24 @@ small,
 
     font-size: 34px;
 }
+
+/* =========================================================
+   generic image safety
+   ========================================================= */
+
+img {
+    max-width: 100%;
+}
+
+svg {
+    max-width: 100%;
+}
+
+/*
+   IMPORTANT:
+   do not give every svg a fixed width here.
+   sidebar navigation handles its own icon size.
+*/
 
 /* =========================================================
    scrollbar
@@ -831,13 +931,13 @@ small,
 }
 
 ::-webkit-scrollbar-track {
-    background: rgba(255,255,255,0.35);
+    background: rgba(255, 255, 255, 0.35);
 }
 
 ::-webkit-scrollbar-thumb {
     border-radius: 20px;
 
-    border: 2px solid rgba(255,255,255,0.7);
+    border: 2px solid rgba(255, 255, 255, 0.7);
 
     background:
         linear-gradient(
@@ -865,6 +965,7 @@ small,
 
     .sidebar {
         position: relative;
+
         top: auto;
     }
 
@@ -896,6 +997,7 @@ small,
 
     .topbar {
         flex-direction: column;
+
         align-items: stretch;
     }
 }
@@ -910,65 +1012,9 @@ small,
     *::before,
     *::after {
         animation-duration: 0.01ms !important;
+
         animation-iteration-count: 1 !important;
+
         transition-duration: 0.01ms !important;
     }
-}
-
-/* icon sizing fix */
-
-.sidebar img,
-.sidebar svg,
-.sidebar i,
-.nav-icon,
-.icon,
-.icon img,
-.icon svg {
-    width: 18px;
-    height: 18px;
-    max-width: 18px;
-    max-height: 18px;
-    min-width: 18px;
-    min-height: 18px;
-    flex: 0 0 18px;
-    object-fit: contain;
-}
-
-/* sidebar links */
-
-.sidebar a {
-    display: flex;
-    align-items: center;
-    gap: 9px;
-}
-
-/* don't let normal images become icons */
-
-.post img,
-.profile img,
-.avatar,
-.post-image,
-.attachment {
-    max-width: 100%;
-    height: auto;
-}
-
-/* specifically prevent svg/icon elements
-   from being stretched by global rules */
-
-svg {
-    width: 18px;
-    height: 18px;
-    flex-shrink: 0;
-}
-
-/* if you're using lucide/fontawesome-style icons */
-
-.sidebar .icon {
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    width: 18px;
-    height: 18px;
-    flex-shrink: 0;
 }
