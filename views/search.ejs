@@ -18,6 +18,8 @@
 
 <body>
 
+    <%- include("partials/sidebar", { user: user }) %>
+
     <main class="site-main">
 
         <div class="page-container">
@@ -25,7 +27,6 @@
             <div class="page-header">
                 <h1>search</h1>
             </div>
-
 
             <form
                 action="/search"
@@ -48,16 +49,12 @@
 
             </form>
 
-
             <% if (query) { %>
 
                 <div class="search-query">
                     results for:
                     <strong><%= query %></strong>
                 </div>
-
-
-                <!-- users -->
 
                 <section class="search-section">
 
@@ -82,23 +79,30 @@
 
                                     <div class="search-result-avatar">
 
-                                        <% if (foundUser.profile_picture) { %>
+                                        <% if (
+                                            foundUser.profile_picture ||
+                                            foundUser.profile_image_url
+                                        ) { %>
 
                                             <img
-                                                src="<%= foundUser.profile_picture %>"
+                                                src="<%= foundUser.profile_picture || foundUser.profile_image_url %>"
                                                 alt=""
+                                                loading="lazy"
                                             >
 
                                         <% } else { %>
 
                                             <span>
-                                                <%= foundUser.username.charAt(0).toUpperCase() %>
+                                                <%= (
+                                                    foundUser.display_name ||
+                                                    foundUser.username ||
+                                                    "?"
+                                                ).charAt(0).toUpperCase() %>
                                             </span>
 
                                         <% } %>
 
                                     </div>
-
 
                                     <div class="search-result-info">
 
@@ -123,13 +127,14 @@
                 </section>
 
 
-                <!-- communities -->
-
                 <section class="search-section">
 
                     <h2>communities</h2>
 
-                    <% if (!communities || communities.length === 0) { %>
+                    <% if (
+                        !communities ||
+                        communities.length === 0
+                    ) { %>
 
                         <p class="muted">
                             no communities found.
@@ -149,7 +154,6 @@
                                     <div class="search-result-avatar search-community-avatar">
                                         #
                                     </div>
-
 
                                     <div class="search-result-info">
 
@@ -182,8 +186,6 @@
                 </section>
 
 
-                <!-- posts -->
-
                 <section class="search-section">
 
                     <h2>posts</h2>
@@ -210,7 +212,6 @@
                                             @<%= post.username %>
                                         </a>
 
-
                                         <% if (post.community_name) { %>
 
                                             <span>
@@ -227,11 +228,9 @@
 
                                     </div>
 
-
                                     <div class="search-post-content">
                                         <%= post.content %>
                                     </div>
-
 
                                     <% if (post.attachment_url) { %>
 
@@ -247,13 +246,17 @@
 
                                     <% } %>
 
-
                                     <div class="search-post-date">
 
-                                        <%= typeof formatDate === "function"
-                                            ? formatDate(post.created_at)
-                                            : new Date(post.created_at).toLocaleString()
-                                        %>
+                                        <% if (typeof formatDate === "function") { %>
+
+                                            <%= formatDate(post.created_at) %>
+
+                                        <% } else { %>
+
+                                            <%= new Date(post.created_at).toLocaleString() %>
+
+                                        <% } %>
 
                                     </div>
 
@@ -266,7 +269,6 @@
                     <% } %>
 
                 </section>
-
 
             <% } else { %>
 
