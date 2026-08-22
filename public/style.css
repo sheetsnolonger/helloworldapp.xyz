@@ -1,21 +1,27 @@
 @import url("https://fonts.googleapis.com/css2?family=Nunito:wght@400;500;600;700;800&display=swap");
 
 :root {
-    --sky: #63cfff;
-    --sky-dark: #249bd7;
-    --aqua: #55e5e5;
-    --blue: #258ed0;
-    --green: #72d34b;
-    --green-dark: #3c9e35;
+    --sky: #65d5ff;
+    --sky-dark: #238fca;
+    --aqua: #59e4e7;
+    --blue: #258dcc;
+    --green: #71d453;
+    --green-dark: #3d9d38;
 
     --white: #ffffff;
-    --glass: rgba(255, 255, 255, 0.78);
-    --glass-light: rgba(255, 255, 255, 0.92);
 
-    --text: #17506c;
-    --muted: #56839a;
+    --text: #18536d;
+    --muted: #5b879b;
 
-    --shadow: rgba(23, 102, 143, 0.22);
+    --glass: rgba(255, 255, 255, 0.82);
+    --glass-light: rgba(255, 255, 255, 0.94);
+
+    --border: rgba(255, 255, 255, 0.92);
+
+    --shadow:
+        0 12px 30px rgba(25, 105, 140, 0.2);
+
+    --sidebar-width: 220px;
 }
 
 /* =========================================================
@@ -29,13 +35,17 @@
 }
 
 html {
+    width: 100%;
     min-height: 100%;
 }
 
 body {
     margin: 0;
+    width: 100%;
     min-width: 0;
     min-height: 100vh;
+
+    overflow-x: hidden;
 
     font-family: "Nunito", Arial, sans-serif;
 
@@ -43,94 +53,99 @@ body {
 
     background:
         radial-gradient(
-            circle at 12% 12%,
-            rgba(255, 255, 255, 0.95) 0,
-            rgba(255, 255, 255, 0) 19%
+            circle at 15% 10%,
+            rgba(255,255,255,.95) 0,
+            rgba(255,255,255,0) 18%
         ),
         radial-gradient(
-            circle at 82% 20%,
-            rgba(255, 255, 255, 0.75) 0,
-            rgba(255, 255, 255, 0) 17%
+            circle at 82% 17%,
+            rgba(255,255,255,.7) 0,
+            rgba(255,255,255,0) 17%
         ),
         linear-gradient(
             180deg,
-            #c1efff 0%,
-            #73d7f8 35%,
-            #45bfe9 58%,
-            #82db61 82%,
-            #50b442 100%
+            #baf0ff 0%,
+            #69d6f7 35%,
+            #46bce7 57%,
+            #80d95e 82%,
+            #4aaa3c 100%
         );
 
     background-attachment: fixed;
-
-    overflow-x: hidden;
 }
 
 /* =========================================================
-   whimsical bubbles
+   links
    ========================================================= */
 
-body::before {
+a {
+    color: #087db9;
+    text-decoration: none;
+    font-weight: 700;
+}
+
+a:hover {
+    color: #045e8e;
+    text-decoration: underline;
+}
+
+/* =========================================================
+   floating bubbles
+   ========================================================= */
+
+body::before,
+body::after {
     content: "";
-
     position: fixed;
-
-    width: 180px;
-    height: 180px;
-
-    left: 7%;
-    bottom: 8%;
 
     pointer-events: none;
 
     border-radius: 50%;
 
+    z-index: -1;
+}
+
+body::before {
+    width: 180px;
+    height: 180px;
+
+    left: 8%;
+    bottom: 8%;
+
     background:
         radial-gradient(
             circle at 30% 25%,
-            rgba(255, 255, 255, 0.95),
-            rgba(255, 255, 255, 0.35) 13%,
-            rgba(70, 220, 255, 0.2) 45%,
-            rgba(255, 255, 255, 0.03) 72%
+            rgba(255,255,255,.95),
+            rgba(255,255,255,.35) 12%,
+            rgba(70,220,255,.2) 45%,
+            rgba(255,255,255,.05) 70%
         );
 
-    border: 2px solid rgba(255, 255, 255, 0.55);
+    border: 2px solid rgba(255,255,255,.5);
 
     box-shadow:
-        inset -20px -25px 40px rgba(0, 130, 190, 0.12),
-        0 15px 40px rgba(0, 100, 160, 0.12);
-
-    z-index: -1;
+        inset -20px -25px 40px rgba(0,130,190,.12),
+        0 15px 40px rgba(0,100,160,.12);
 
     animation: bubble-float 7s ease-in-out infinite;
 }
 
 body::after {
-    content: "";
-
-    position: fixed;
-
     width: 95px;
     height: 95px;
 
     right: 14%;
     top: 18%;
 
-    pointer-events: none;
-
-    border-radius: 50%;
-
     background:
         radial-gradient(
             circle at 30% 25%,
-            rgba(255, 255, 255, 0.95),
-            rgba(255, 255, 255, 0.3) 18%,
-            rgba(50, 210, 240, 0.15) 60%
+            rgba(255,255,255,.95),
+            rgba(255,255,255,.3) 18%,
+            rgba(50,210,240,.15) 60%
         );
 
-    border: 2px solid rgba(255, 255, 255, 0.55);
-
-    z-index: -1;
+    border: 2px solid rgba(255,255,255,.55);
 
     animation: bubble-float-small 5s ease-in-out infinite;
 }
@@ -158,39 +173,86 @@ body::after {
 }
 
 /* =========================================================
-   links
-   ========================================================= */
-
-a {
-    color: #087fbd;
-    text-decoration: none;
-}
-
-a:hover {
-    color: #045e91;
-    text-decoration: underline;
-}
-
-/* =========================================================
-   main page structure
+   page
    ========================================================= */
 
 .page {
     width: min(1200px, calc(100% - 30px));
 
     margin: 25px auto 50px;
+
+    min-width: 0;
 }
+
+/* =========================================================
+   MAIN LAYOUT
+   THIS IS THE IMPORTANT PART
+   ========================================================= */
 
 .layout {
     display: grid;
 
-    grid-template-columns: 220px minmax(0, 1fr);
+    grid-template-columns:
+        var(--sidebar-width)
+        minmax(0, 1fr);
 
     gap: 18px;
 
-    align-items: start;
-
     width: 100%;
+
+    align-items: start;
+}
+
+/* make sure content cannot push sidebar around */
+
+.main-content {
+    min-width: 0;
+    width: 100%;
+}
+
+.content,
+.feed,
+main {
+    min-width: 0;
+    width: 100%;
+}
+
+/* =========================================================
+   glass panels
+   ========================================================= */
+
+.panel,
+.card,
+.sidebar,
+.post,
+.community-card,
+.profile-card,
+.search-card,
+.comments,
+.settings-card {
+    position: relative;
+
+    min-width: 0;
+
+    background:
+        linear-gradient(
+            180deg,
+            rgba(255,255,255,.95),
+            rgba(255,255,255,.74) 50%,
+            rgba(224,248,255,.74)
+        );
+
+    border: 2px solid rgba(255,255,255,.9);
+
+    border-radius: 20px;
+
+    box-shadow:
+        0 5px 0 rgba(24,120,164,.12),
+        var(--shadow),
+        inset 0 2px 0 rgba(255,255,255,.95);
+
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
 }
 
 /* =========================================================
@@ -198,48 +260,38 @@ a:hover {
    ========================================================= */
 
 .sidebar {
-    width: 220px;
-    min-width: 220px;
+    width: var(--sidebar-width);
+    min-width: var(--sidebar-width);
+    max-width: var(--sidebar-width);
+
+    padding: 14px;
 
     position: sticky;
+
     top: 20px;
 
-    padding: 15px;
-
-    background:
-        linear-gradient(
-            180deg,
-            rgba(255, 255, 255, 0.94),
-            rgba(224, 248, 255, 0.76)
-        );
-
-    border: 2px solid rgba(255, 255, 255, 0.95);
-
-    border-radius: 22px;
-
-    box-shadow:
-        0 5px 0 rgba(24, 120, 164, 0.12),
-        0 14px 35px var(--shadow),
-        inset 0 2px 0 rgba(255, 255, 255, 0.95);
-
-    backdrop-filter: blur(12px);
-    -webkit-backdrop-filter: blur(12px);
+    align-self: start;
 
     overflow: hidden;
 }
 
-/* sidebar logo */
+/* =========================================================
+   logo
+   ========================================================= */
 
-.sidebar .logo {
+.sidebar .logo,
+.logo {
     display: block;
 
     width: 100%;
 
-    padding: 10px 5px 17px;
+    padding: 10px 6px 17px;
 
     text-align: center;
 
-    font-size: 25px;
+    font-size: 26px;
+    line-height: 1.1;
+
     font-weight: 800;
 
     color: #087ab4;
@@ -248,10 +300,12 @@ a:hover {
 
     text-shadow:
         0 2px 0 #fff,
-        0 3px 5px rgba(0, 100, 150, 0.2);
+        0 3px 5px rgba(0,100,150,.2);
 }
 
-/* sidebar navigation */
+/* =========================================================
+   sidebar navigation
+   ========================================================= */
 
 .sidebar nav {
     display: flex;
@@ -260,66 +314,63 @@ a:hover {
 
     width: 100%;
 
-    gap: 8px;
+    gap: 7px;
 }
-
-/* ONLY navigation links get this layout */
 
 .sidebar nav a,
 .sidebar a.nav-link {
     display: flex;
 
-    flex-direction: row;
-
     align-items: center;
 
     width: 100%;
     min-width: 0;
-    min-height: 43px;
 
-    padding: 9px 12px;
+    min-height: 42px;
+
+    padding: 9px 11px;
 
     gap: 9px;
 
     color: #23647e;
 
-    border-radius: 13px;
+    border-radius: 12px;
 
-    border: 1px solid rgba(255, 255, 255, 0.85);
+    border: 1px solid rgba(255,255,255,.85);
 
     background:
         linear-gradient(
             180deg,
-            rgba(255, 255, 255, 0.82),
-            rgba(206, 241, 251, 0.65)
+            rgba(255,255,255,.82),
+            rgba(206,241,251,.65)
         );
 
     box-shadow:
         inset 0 1px 0 white,
-        0 2px 5px rgba(0, 100, 150, 0.12);
-
-    text-decoration: none;
+        0 2px 5px rgba(0,100,150,.12);
 
     transition:
-        transform 0.15s ease,
-        box-shadow 0.15s ease,
-        background 0.15s ease;
+        transform .15s ease,
+        box-shadow .15s ease,
+        background .15s ease;
 }
 
 .sidebar nav a:hover,
 .sidebar a.nav-link:hover {
+    text-decoration: none;
+
     transform: translateY(-2px);
 
     background:
         linear-gradient(
             180deg,
-            #ffffff,
+            #fff,
             #bceeff
         );
 
     box-shadow:
         inset 0 1px 0 white,
-        0 5px 10px rgba(0, 100, 150, 0.18);
+        0 5px 10px rgba(0,100,150,.18);
 }
 
 .sidebar nav a.active {
@@ -335,21 +386,51 @@ a:hover {
     border-color: #bff4ff;
 
     text-shadow:
-        0 1px 2px rgba(0, 80, 120, 0.5);
+        0 1px 2px rgba(0,80,120,.5);
+
+    box-shadow:
+        inset 0 2px 0 rgba(255,255,255,.65),
+        0 4px 8px rgba(0,100,150,.2);
 }
 
 /* =========================================================
-   sidebar icons
-   IMPORTANT:
-   only navigation icons are affected
+   ICONS
+   ONLY SIDEBAR ICONS ARE CONTROLLED HERE
    ========================================================= */
 
-.sidebar nav img,
-.sidebar nav svg,
-.sidebar nav i,
-.sidebar nav .icon,
-.sidebar nav .nav-icon {
+/*
+   do NOT globally style svg.
+   do NOT globally style img.
+*/
+
+.sidebar .icon,
+.sidebar .nav-icon {
     display: inline-flex;
+
+    align-items: center;
+    justify-content: center;
+
+    width: 20px;
+    height: 20px;
+
+    min-width: 20px;
+    max-width: 20px;
+
+    min-height: 20px;
+    max-height: 20px;
+
+    flex: 0 0 20px;
+
+    line-height: 1;
+
+    font-size: 18px;
+}
+
+/* svg inside sidebar icons */
+
+.sidebar .icon svg,
+.sidebar .nav-icon svg {
+    display: block;
 
     width: 18px;
     height: 18px;
@@ -361,113 +442,30 @@ a:hover {
     max-height: 18px;
 
     flex: 0 0 18px;
+}
+
+/* image inside sidebar icons */
+
+.sidebar .icon img,
+.sidebar .nav-icon img {
+    display: block;
+
+    width: 18px;
+    height: 18px;
+
+    min-width: 18px;
+    max-width: 18px;
+
+    min-height: 18px;
+    max-height: 18px;
 
     object-fit: contain;
 
-    align-items: center;
-    justify-content: center;
-
-    font-size: 18px;
-
-    line-height: 18px;
-}
-
-/* svg itself */
-
-.sidebar nav svg {
-    overflow: visible;
+    flex: 0 0 18px;
 }
 
 /* =========================================================
-   main content
-   ========================================================= */
-
-.main-content {
-    min-width: 0;
-    width: 100%;
-}
-
-.content {
-    width: 100%;
-    min-width: 0;
-}
-
-.feed {
-    width: 100%;
-    min-width: 0;
-}
-
-/* =========================================================
-   glass cards
-   ========================================================= */
-
-.panel,
-.card,
-.post,
-.community-card,
-.profile-card,
-.search-card,
-.comments,
-.settings-card {
-    position: relative;
-
-    width: 100%;
-
-    background:
-        linear-gradient(
-            180deg,
-            rgba(255, 255, 255, 0.94) 0%,
-            rgba(255, 255, 255, 0.72) 48%,
-            rgba(224, 248, 255, 0.72) 100%
-        );
-
-    border: 2px solid rgba(255, 255, 255, 0.9);
-
-    border-radius: 22px;
-
-    box-shadow:
-        0 5px 0 rgba(24, 120, 164, 0.12),
-        0 14px 35px var(--shadow),
-        inset 0 2px 0 rgba(255, 255, 255, 0.95);
-
-    backdrop-filter: blur(12px);
-    -webkit-backdrop-filter: blur(12px);
-
-    overflow: hidden;
-}
-
-/* glossy strip */
-
-.panel::before,
-.card::before,
-.post::before,
-.community-card::before,
-.profile-card::before,
-.search-card::before,
-.comments::before,
-.settings-card::before {
-    content: "";
-
-    position: absolute;
-
-    top: 0;
-    left: 0;
-    right: 0;
-
-    height: 45px;
-
-    pointer-events: none;
-
-    background:
-        linear-gradient(
-            180deg,
-            rgba(255, 255, 255, 0.7),
-            rgba(255, 255, 255, 0)
-        );
-}
-
-/* =========================================================
-   top bar
+   topbar
    ========================================================= */
 
 .topbar {
@@ -477,6 +475,7 @@ a:hover {
     justify-content: space-between;
 
     width: 100%;
+    min-width: 0;
 
     gap: 12px;
 
@@ -484,20 +483,20 @@ a:hover {
 
     padding: 12px 16px;
 
-    border-radius: 18px;
+    border-radius: 17px;
 
     background:
         linear-gradient(
             180deg,
-            rgba(255, 255, 255, 0.92),
-            rgba(211, 246, 255, 0.75)
+            rgba(255,255,255,.92),
+            rgba(211,246,255,.75)
         );
 
-    border: 2px solid rgba(255, 255, 255, 0.9);
+    border: 2px solid rgba(255,255,255,.9);
 
     box-shadow:
         inset 0 2px 0 white,
-        0 8px 20px rgba(0, 100, 150, 0.17);
+        0 8px 20px rgba(0,100,150,.17);
 }
 
 /* =========================================================
@@ -507,16 +506,26 @@ a:hover {
 button,
 .btn,
 input[type="submit"] {
-    border: 1px solid rgba(255, 255, 255, 0.95);
+    display: inline-flex;
+
+    align-items: center;
+    justify-content: center;
+
+    width: auto;
+    max-width: 100%;
+
+    border: 1px solid rgba(255,255,255,.95);
 
     border-radius: 999px;
 
-    padding: 9px 17px;
+    padding: 9px 16px;
 
     font-family: inherit;
 
     font-size: 14px;
     font-weight: 800;
+
+    line-height: 1.2;
 
     color: white;
 
@@ -525,29 +534,30 @@ input[type="submit"] {
     background:
         linear-gradient(
             180deg,
-            #75dcff 0%,
+            #75dcff,
             #35addd 48%,
             #1684bd 52%,
-            #45b8e5 100%
+            #45b8e5
         );
 
     box-shadow:
-        inset 0 2px 0 rgba(255, 255, 255, 0.7),
-        inset 0 -2px 0 rgba(0, 80, 130, 0.15),
-        0 3px 7px rgba(0, 100, 150, 0.22);
+        inset 0 2px 0 rgba(255,255,255,.7),
+        inset 0 -2px 0 rgba(0,80,130,.15),
+        0 3px 7px rgba(0,100,150,.22);
 
     text-shadow:
-        0 1px 2px rgba(0, 70, 110, 0.5);
+        0 1px 2px rgba(0,70,110,.5);
 
     transition:
-        transform 0.12s ease,
-        filter 0.12s ease;
+        transform .12s ease,
+        filter .12s ease;
 }
 
 button:hover,
 .btn:hover,
 input[type="submit"]:hover {
     transform: translateY(-2px);
+
     filter: brightness(1.08);
 }
 
@@ -576,15 +586,16 @@ button.green {
 input,
 textarea,
 select {
-    width: 100%;
+    display: block;
 
+    width: 100%;
     max-width: 100%;
 
-    border: 2px solid rgba(91, 185, 218, 0.35);
+    border: 2px solid rgba(91,185,218,.35);
 
-    border-radius: 14px;
+    border-radius: 13px;
 
-    padding: 11px 13px;
+    padding: 10px 12px;
 
     font-family: inherit;
 
@@ -595,15 +606,20 @@ select {
     background:
         linear-gradient(
             180deg,
-            rgba(255, 255, 255, 0.95),
-            rgba(232, 249, 255, 0.8)
+            rgba(255,255,255,.95),
+            rgba(232,249,255,.8)
         );
 
     outline: none;
+
+    box-shadow:
+        inset 0 2px 5px rgba(0,100,150,.08),
+        0 1px 0 white;
 }
 
 textarea {
     min-height: 100px;
+
     resize: vertical;
 }
 
@@ -613,7 +629,8 @@ select:focus {
     border-color: #45c7ed;
 
     box-shadow:
-        0 0 0 3px rgba(80, 210, 245, 0.18);
+        0 0 0 3px rgba(80,210,245,.18),
+        inset 0 2px 5px rgba(0,100,150,.08);
 }
 
 /* =========================================================
@@ -621,6 +638,8 @@ select:focus {
    ========================================================= */
 
 .post {
+    width: 100%;
+
     padding: 17px;
 
     margin-bottom: 15px;
@@ -634,24 +653,22 @@ select:focus {
     gap: 10px;
 
     margin-bottom: 12px;
+
+    min-width: 0;
 }
 
-.post-content {
-    width: 100%;
-
-    line-height: 1.65;
-
-    font-size: 15px;
-
-    white-space: pre-wrap;
-
-    overflow-wrap: anywhere;
+.post-header > * {
+    min-width: 0;
 }
 
-/* post avatar ONLY */
+/* =========================================================
+   avatars
+   ========================================================= */
 
-.post-header .avatar,
-.post-header .profile-avatar {
+.avatar,
+.profile-avatar {
+    display: block;
+
     width: 45px;
     height: 45px;
 
@@ -677,10 +694,25 @@ select:focus {
         );
 
     box-shadow:
-        0 3px 8px rgba(0, 90, 130, 0.2);
+        0 3px 8px rgba(0,90,130,.2);
 }
 
-/* post images */
+.post-content {
+    width: 100%;
+    min-width: 0;
+
+    line-height: 1.65;
+
+    font-size: 15px;
+
+    white-space: pre-wrap;
+
+    overflow-wrap: anywhere;
+}
+
+/* =========================================================
+   POST IMAGES
+   ========================================================= */
 
 .post-image {
     display: block;
@@ -698,7 +730,21 @@ select:focus {
     border: 3px solid white;
 
     box-shadow:
-        0 5px 14px rgba(0, 80, 120, 0.18);
+        0 5px 14px rgba(0,80,120,.18);
+}
+
+/* =========================================================
+   attachments
+   ========================================================= */
+
+.attachment {
+    display: block;
+
+    max-width: 100%;
+
+    width: auto;
+
+    height: auto;
 }
 
 /* =========================================================
@@ -719,6 +765,8 @@ select:focus {
 
 .post-actions button,
 .post-actions .btn {
+    width: auto;
+
     padding: 7px 12px;
 
     font-size: 13px;
@@ -731,17 +779,17 @@ select:focus {
 .community-card {
     display: block;
 
+    width: 100%;
+
     padding: 16px;
 
     margin-bottom: 12px;
 
     color: var(--text);
 
-    text-decoration: none;
-
     transition:
-        transform 0.15s ease,
-        box-shadow 0.15s ease;
+        transform .15s ease,
+        box-shadow .15s ease;
 }
 
 .community-card:hover {
@@ -750,8 +798,8 @@ select:focus {
     text-decoration: none;
 
     box-shadow:
-        0 7px 0 rgba(24, 120, 164, 0.1),
-        0 18px 35px rgba(20, 100, 140, 0.22),
+        0 7px 0 rgba(24,120,164,.1),
+        0 18px 35px rgba(20,100,140,.22),
         inset 0 2px 0 white;
 }
 
@@ -801,6 +849,8 @@ small,
    ========================================================= */
 
 .profile-card {
+    width: 100%;
+
     padding: 22px;
 
     margin-bottom: 18px;
@@ -812,10 +862,11 @@ small,
     align-items: center;
 
     gap: 15px;
+
+    min-width: 0;
 }
 
-.profile-header .avatar,
-.profile-header .profile-avatar {
+.profile-header .avatar {
     width: 85px;
     height: 85px;
 
@@ -826,12 +877,6 @@ small,
     max-height: 85px;
 
     flex: 0 0 85px;
-
-    border-radius: 50%;
-
-    object-fit: cover;
-
-    border: 3px solid white;
 }
 
 /* =========================================================
@@ -839,13 +884,22 @@ small,
    ========================================================= */
 
 .error,
-.alert-error {
+.alert-error,
+.success,
+.alert-success {
+    width: 100%;
+
     padding: 11px 14px;
 
     margin-bottom: 12px;
 
     border-radius: 13px;
 
+    border: 2px solid white;
+}
+
+.error,
+.alert-error {
     color: #8c3535;
 
     background:
@@ -855,17 +909,12 @@ small,
             #ffdede
         );
 
-    border: 2px solid white;
+    box-shadow:
+        0 3px 8px rgba(140,60,60,.12);
 }
 
 .success,
 .alert-success {
-    padding: 11px 14px;
-
-    margin-bottom: 12px;
-
-    border-radius: 13px;
-
     color: #347533;
 
     background:
@@ -874,8 +923,6 @@ small,
             #f4fff0,
             #d8f5cb
         );
-
-    border: 2px solid white;
 }
 
 /* =========================================================
@@ -903,15 +950,15 @@ small,
     background:
         linear-gradient(
             180deg,
-            rgba(255, 255, 255, 0.96),
-            rgba(213, 247, 255, 0.82)
+            rgba(255,255,255,.96),
+            rgba(213,247,255,.82)
         );
 
     border: 3px solid white;
 
     box-shadow:
         inset 0 3px 0 white,
-        0 15px 40px rgba(0, 90, 130, 0.25);
+        0 15px 40px rgba(0,90,130,.25);
 }
 
 .auth-card h1 {
@@ -929,13 +976,13 @@ small,
 }
 
 ::-webkit-scrollbar-track {
-    background: rgba(255, 255, 255, 0.35);
+    background: rgba(255,255,255,.35);
 }
 
 ::-webkit-scrollbar-thumb {
     border-radius: 20px;
 
-    border: 2px solid rgba(255, 255, 255, 0.7);
+    border: 2px solid rgba(255,255,255,.7);
 
     background:
         linear-gradient(
@@ -954,11 +1001,15 @@ small,
     .page {
         width: calc(100% - 16px);
 
-        margin: 10px auto 30px;
+        margin-top: 10px;
     }
 
     .layout {
-        display: block;
+        display: grid;
+
+        grid-template-columns: 1fr;
+
+        gap: 12px;
     }
 
     .sidebar {
@@ -968,8 +1019,7 @@ small,
 
         width: 100%;
         min-width: 0;
-
-        margin-bottom: 14px;
+        max-width: none;
     }
 
     .sidebar nav {
@@ -978,11 +1028,11 @@ small,
         grid-template-columns:
             repeat(2, minmax(0, 1fr));
 
-        gap: 8px;
+        gap: 7px;
     }
 
-    .main-content {
-        width: 100%;
+    .sidebar .logo {
+        padding-bottom: 10px;
     }
 }
 
@@ -1016,10 +1066,8 @@ small,
     *,
     *::before,
     *::after {
-        animation-duration: 0.01ms !important;
-
+        animation-duration: .01ms !important;
         animation-iteration-count: 1 !important;
-
-        transition-duration: 0.01ms !important;
+        transition-duration: .01ms !important;
     }
 }
