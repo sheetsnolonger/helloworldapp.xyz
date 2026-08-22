@@ -20,8 +20,6 @@
 
 <body>
 
-    <%- include("sidebar", { user: user }) %>
-
     <main class="site-main">
 
         <div class="page-container">
@@ -29,6 +27,10 @@
             <div class="page-header">
 
                 <h1>profile settings</h1>
+
+                <p>
+                    change how your profile appears to other users.
+                </p>
 
             </div>
 
@@ -58,60 +60,131 @@
                 class="settings-form"
             >
 
-                <label for="display_name">
-                    display name
-                </label>
+                <div class="settings-section">
 
-                <input
-                    id="display_name"
-                    type="text"
-                    name="display_name"
-                    value="<%= user.display_name || user.username %>"
-                    maxlength="100"
-                >
+                    <h2>profile picture</h2>
 
+                    <div class="profile-picture-settings">
 
-                <label for="bio">
-                    bio
-                </label>
+                        <div class="profile-picture-preview">
 
-                <textarea
-                    id="bio"
-                    name="bio"
-                    maxlength="1000"
-                    rows="6"
-                ><%= user.bio || "" %></textarea>
+                            <% if (
+                                user.profile_picture ||
+                                user.profile_image_url
+                            ) { %>
 
+                                <img
+                                    src="<%= user.profile_picture || user.profile_image_url %>"
+                                    alt="your profile picture"
+                                >
 
-                <label for="profile_picture">
-                    profile picture
-                </label>
+                            <% } else { %>
 
-                <input
-                    id="profile_picture"
-                    type="file"
-                    name="profile_picture"
-                    accept="image/jpeg,image/png,image/gif,image/webp"
-                >
+                                <div class="profile-picture-placeholder">
+                                    <%= (
+                                        user.display_name ||
+                                        user.username ||
+                                        "?"
+                                    ).charAt(0).toUpperCase() %>
+                                </div>
+
+                            <% } %>
+
+                        </div>
 
 
-                <% if (user.profile_picture) { %>
+                        <div class="profile-picture-upload">
 
-                    <div class="current-profile-picture">
+                            <label for="profile_picture">
+                                upload a new picture
+                            </label>
 
-                        <img
-                            src="<%= user.profile_picture %>"
-                            alt="current profile picture"
-                        >
+                            <input
+                                id="profile_picture"
+                                type="file"
+                                name="profile_picture"
+                                accept="image/jpeg,image/png,image/gif,image/webp"
+                            >
+
+                            <small>
+                                png, jpg, gif, or webp. maximum 15mb.
+                            </small>
+
+                        </div>
 
                     </div>
 
-                <% } %>
+                </div>
 
 
-                <button type="submit">
-                    save changes
-                </button>
+                <div class="settings-section">
+
+                    <h2>profile information</h2>
+
+
+                    <label for="display_name">
+                        display name
+                    </label>
+
+                    <input
+                        id="display_name"
+                        type="text"
+                        name="display_name"
+                        value="<%= user.display_name || user.username %>"
+                        maxlength="100"
+                        autocomplete="nickname"
+                    >
+
+
+                    <label for="username">
+                        username
+                    </label>
+
+                    <input
+                        id="username"
+                        type="text"
+                        value="@<%= user.username %>"
+                        disabled
+                    >
+
+
+                    <label for="bio">
+                        bio
+                    </label>
+
+                    <textarea
+                        id="bio"
+                        name="bio"
+                        maxlength="1000"
+                        rows="7"
+                        placeholder="tell people about yourself..."
+                    ><%= user.bio || "" %></textarea>
+
+
+                    <div class="character-count">
+                        maximum 1000 characters
+                    </div>
+
+                </div>
+
+
+                <div class="settings-actions">
+
+                    <button
+                        type="submit"
+                        class="button primary"
+                    >
+                        save changes
+                    </button>
+
+                    <a
+                        href="/u/<%= user.username %>"
+                        class="button secondary"
+                    >
+                        cancel
+                    </a>
+
+                </div>
 
             </form>
 
