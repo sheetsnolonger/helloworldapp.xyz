@@ -1,4 +1,4 @@
-@import url('https://fonts.googleapis.com/css2?family=Nunito:wght@400;500;600;700;800&display=swap');
+@import url("https://fonts.googleapis.com/css2?family=Nunito:wght@400;500;600;700;800&display=swap");
 
 :root {
     --sky: #63cfff;
@@ -9,19 +9,22 @@
     --green-dark: #3c9e35;
 
     --white: #ffffff;
-
     --glass: rgba(255, 255, 255, 0.78);
-    --glass-light: rgba(255, 255, 255, 0.9);
-
-    --border: rgba(255, 255, 255, 0.9);
+    --glass-light: rgba(255, 255, 255, 0.92);
 
     --text: #17506c;
     --muted: #56839a;
 
-    --shadow: rgba(23, 102, 143, 0.25);
+    --shadow: rgba(23, 102, 143, 0.22);
 }
 
-* {
+/* =========================================================
+   reset
+   ========================================================= */
+
+*,
+*::before,
+*::after {
     box-sizing: border-box;
 }
 
@@ -31,6 +34,7 @@ html {
 
 body {
     margin: 0;
+    min-width: 0;
     min-height: 100vh;
 
     font-family: "Nunito", Arial, sans-serif;
@@ -39,22 +43,22 @@ body {
 
     background:
         radial-gradient(
-            circle at 15% 15%,
+            circle at 12% 12%,
             rgba(255, 255, 255, 0.95) 0,
-            rgba(255, 255, 255, 0) 18%
+            rgba(255, 255, 255, 0) 19%
         ),
         radial-gradient(
-            circle at 80% 25%,
-            rgba(255, 255, 255, 0.7) 0,
-            rgba(255, 255, 255, 0) 16%
+            circle at 82% 20%,
+            rgba(255, 255, 255, 0.75) 0,
+            rgba(255, 255, 255, 0) 17%
         ),
         linear-gradient(
             180deg,
-            #b9edff 0%,
-            #68d3f7 35%,
-            #42bce8 58%,
-            #80d95c 82%,
-            #4caf3d 100%
+            #c1efff 0%,
+            #73d7f8 35%,
+            #45bfe9 58%,
+            #82db61 82%,
+            #50b442 100%
         );
 
     background-attachment: fixed;
@@ -63,53 +67,58 @@ body {
 }
 
 /* =========================================================
-   bubbles
+   whimsical bubbles
    ========================================================= */
 
-body::before,
-body::after {
+body::before {
     content: "";
 
     position: fixed;
+
+    width: 180px;
+    height: 180px;
+
+    left: 7%;
+    bottom: 8%;
 
     pointer-events: none;
 
     border-radius: 50%;
 
-    z-index: -1;
-}
-
-body::before {
-    width: 180px;
-    height: 180px;
-
-    left: 8%;
-    bottom: 8%;
-
     background:
         radial-gradient(
             circle at 30% 25%,
             rgba(255, 255, 255, 0.95),
-            rgba(255, 255, 255, 0.35) 12%,
+            rgba(255, 255, 255, 0.35) 13%,
             rgba(70, 220, 255, 0.2) 45%,
-            rgba(255, 255, 255, 0.05) 70%
+            rgba(255, 255, 255, 0.03) 72%
         );
 
-    border: 2px solid rgba(255, 255, 255, 0.5);
+    border: 2px solid rgba(255, 255, 255, 0.55);
 
     box-shadow:
         inset -20px -25px 40px rgba(0, 130, 190, 0.12),
         0 15px 40px rgba(0, 100, 160, 0.12);
 
+    z-index: -1;
+
     animation: bubble-float 7s ease-in-out infinite;
 }
 
 body::after {
+    content: "";
+
+    position: fixed;
+
     width: 95px;
     height: 95px;
 
     right: 14%;
     top: 18%;
+
+    pointer-events: none;
+
+    border-radius: 50%;
 
     background:
         radial-gradient(
@@ -121,17 +130,19 @@ body::after {
 
     border: 2px solid rgba(255, 255, 255, 0.55);
 
+    z-index: -1;
+
     animation: bubble-float-small 5s ease-in-out infinite;
 }
 
 @keyframes bubble-float {
     0%,
     100% {
-        transform: translateY(0) rotate(0deg);
+        transform: translateY(0);
     }
 
     50% {
-        transform: translateY(-30px) rotate(6deg);
+        transform: translateY(-30px);
     }
 }
 
@@ -152,20 +163,16 @@ body::after {
 
 a {
     color: #087fbd;
-
     text-decoration: none;
-
-    font-weight: 700;
 }
 
 a:hover {
     color: #045e91;
-
     text-decoration: underline;
 }
 
 /* =========================================================
-   layout
+   main page structure
    ========================================================= */
 
 .page {
@@ -177,32 +184,225 @@ a:hover {
 .layout {
     display: grid;
 
-    grid-template-columns:
-        220px
-        minmax(0, 1fr);
+    grid-template-columns: 220px minmax(0, 1fr);
 
     gap: 18px;
 
     align-items: start;
+
+    width: 100%;
 }
+
+/* =========================================================
+   sidebar
+   ========================================================= */
+
+.sidebar {
+    width: 220px;
+    min-width: 220px;
+
+    position: sticky;
+    top: 20px;
+
+    padding: 15px;
+
+    background:
+        linear-gradient(
+            180deg,
+            rgba(255, 255, 255, 0.94),
+            rgba(224, 248, 255, 0.76)
+        );
+
+    border: 2px solid rgba(255, 255, 255, 0.95);
+
+    border-radius: 22px;
+
+    box-shadow:
+        0 5px 0 rgba(24, 120, 164, 0.12),
+        0 14px 35px var(--shadow),
+        inset 0 2px 0 rgba(255, 255, 255, 0.95);
+
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+
+    overflow: hidden;
+}
+
+/* sidebar logo */
+
+.sidebar .logo {
+    display: block;
+
+    width: 100%;
+
+    padding: 10px 5px 17px;
+
+    text-align: center;
+
+    font-size: 25px;
+    font-weight: 800;
+
+    color: #087ab4;
+
+    letter-spacing: -1px;
+
+    text-shadow:
+        0 2px 0 #fff,
+        0 3px 5px rgba(0, 100, 150, 0.2);
+}
+
+/* sidebar navigation */
+
+.sidebar nav {
+    display: flex;
+
+    flex-direction: column;
+
+    width: 100%;
+
+    gap: 8px;
+}
+
+/* ONLY navigation links get this layout */
+
+.sidebar nav a,
+.sidebar a.nav-link {
+    display: flex;
+
+    flex-direction: row;
+
+    align-items: center;
+
+    width: 100%;
+    min-width: 0;
+    min-height: 43px;
+
+    padding: 9px 12px;
+
+    gap: 9px;
+
+    color: #23647e;
+
+    border-radius: 13px;
+
+    border: 1px solid rgba(255, 255, 255, 0.85);
+
+    background:
+        linear-gradient(
+            180deg,
+            rgba(255, 255, 255, 0.82),
+            rgba(206, 241, 251, 0.65)
+        );
+
+    box-shadow:
+        inset 0 1px 0 white,
+        0 2px 5px rgba(0, 100, 150, 0.12);
+
+    text-decoration: none;
+
+    transition:
+        transform 0.15s ease,
+        box-shadow 0.15s ease,
+        background 0.15s ease;
+}
+
+.sidebar nav a:hover,
+.sidebar a.nav-link:hover {
+    transform: translateY(-2px);
+
+    background:
+        linear-gradient(
+            180deg,
+            #ffffff,
+            #bceeff
+        );
+
+    box-shadow:
+        inset 0 1px 0 white,
+        0 5px 10px rgba(0, 100, 150, 0.18);
+}
+
+.sidebar nav a.active {
+    color: white;
+
+    background:
+        linear-gradient(
+            180deg,
+            #74dcff,
+            #238fc9
+        );
+
+    border-color: #bff4ff;
+
+    text-shadow:
+        0 1px 2px rgba(0, 80, 120, 0.5);
+}
+
+/* =========================================================
+   sidebar icons
+   IMPORTANT:
+   only navigation icons are affected
+   ========================================================= */
+
+.sidebar nav img,
+.sidebar nav svg,
+.sidebar nav i,
+.sidebar nav .icon,
+.sidebar nav .nav-icon {
+    display: inline-flex;
+
+    width: 18px;
+    height: 18px;
+
+    min-width: 18px;
+    max-width: 18px;
+
+    min-height: 18px;
+    max-height: 18px;
+
+    flex: 0 0 18px;
+
+    object-fit: contain;
+
+    align-items: center;
+    justify-content: center;
+
+    font-size: 18px;
+
+    line-height: 18px;
+}
+
+/* svg itself */
+
+.sidebar nav svg {
+    overflow: visible;
+}
+
+/* =========================================================
+   main content
+   ========================================================= */
 
 .main-content {
     min-width: 0;
+    width: 100%;
 }
 
-.content,
-.feed,
-main {
+.content {
+    width: 100%;
+    min-width: 0;
+}
+
+.feed {
+    width: 100%;
     min-width: 0;
 }
 
 /* =========================================================
-   glass panels
+   glass cards
    ========================================================= */
 
 .panel,
 .card,
-.sidebar,
 .post,
 .community-card,
 .profile-card,
@@ -210,6 +410,8 @@ main {
 .comments,
 .settings-card {
     position: relative;
+
+    width: 100%;
 
     background:
         linear-gradient(
@@ -234,9 +436,10 @@ main {
     overflow: hidden;
 }
 
+/* glossy strip */
+
 .panel::before,
 .card::before,
-.sidebar::before,
 .post::before,
 .community-card::before,
 .profile-card::before,
@@ -258,207 +461,22 @@ main {
     background:
         linear-gradient(
             180deg,
-            rgba(255, 255, 255, 0.75),
+            rgba(255, 255, 255, 0.7),
             rgba(255, 255, 255, 0)
         );
-
-    opacity: 0.7;
 }
 
 /* =========================================================
-   sidebar
-   ========================================================= */
-
-.sidebar {
-    padding: 15px;
-
-    position: sticky;
-
-    top: 20px;
-}
-
-.sidebar .logo,
-.logo {
-    display: block;
-
-    padding: 12px 10px 18px;
-
-    text-align: center;
-
-    font-size: 27px;
-    font-weight: 800;
-
-    color: #087ab4;
-
-    text-shadow:
-        0 2px 0 #fff,
-        0 3px 5px rgba(0, 100, 150, 0.2);
-
-    letter-spacing: -1px;
-}
-
-.sidebar nav {
-    display: flex;
-
-    flex-direction: column;
-
-    gap: 8px;
-}
-
-.sidebar nav a,
-.sidebar a.nav-link {
-    display: flex;
-
-    align-items: center;
-
-    gap: 10px;
-
-    min-height: 43px;
-
-    padding: 9px 12px;
-
-    color: #23647e;
-
-    border-radius: 13px;
-
-    border: 1px solid rgba(255, 255, 255, 0.85);
-
-    background:
-        linear-gradient(
-            180deg,
-            rgba(255, 255, 255, 0.8),
-            rgba(206, 241, 251, 0.65)
-        );
-
-    box-shadow:
-        inset 0 1px 0 white,
-        0 2px 5px rgba(0, 100, 150, 0.12);
-
-    transition:
-        transform 0.15s ease,
-        box-shadow 0.15s ease,
-        background 0.15s ease;
-}
-
-.sidebar nav a:hover,
-.sidebar a.nav-link:hover {
-    text-decoration: none;
-
-    transform: translateY(-2px);
-
-    background:
-        linear-gradient(
-            180deg,
-            #ffffff,
-            #bceeff
-        );
-
-    box-shadow:
-        inset 0 1px 0 white,
-        0 5px 10px rgba(0, 100, 150, 0.18);
-}
-
-.sidebar nav a.active,
-.sidebar a.active {
-    color: white;
-
-    background:
-        linear-gradient(
-            180deg,
-            #74dcff,
-            #238fc9
-        );
-
-    border-color: #bff4ff;
-
-    text-shadow:
-        0 1px 2px rgba(0, 80, 120, 0.5);
-
-    box-shadow:
-        inset 0 2px 0 rgba(255, 255, 255, 0.65),
-        0 4px 8px rgba(0, 100, 150, 0.2);
-}
-
-/* =========================================================
-   sidebar icons
-   ========================================================= */
-
-/*
-   only actual navigation icons get this sizing.
-   do NOT globally resize every image inside the sidebar.
-*/
-
-.sidebar .nav-icon,
-.sidebar .icon,
-.sidebar nav svg,
-.sidebar nav i {
-    width: 18px;
-    height: 18px;
-
-    min-width: 18px;
-    min-height: 18px;
-
-    max-width: 18px;
-    max-height: 18px;
-
-    flex: 0 0 18px;
-
-    display: inline-flex;
-
-    align-items: center;
-    justify-content: center;
-
-    object-fit: contain;
-
-    flex-shrink: 0;
-}
-
-.sidebar nav svg {
-    stroke-width: 2;
-}
-
-.sidebar nav i {
-    font-size: 17px;
-
-    line-height: 1;
-}
-
-/*
-   if your sidebar icons are images,
-   use .nav-icon on them.
-*/
-
-.sidebar img.nav-icon {
-    width: 18px;
-    height: 18px;
-
-    min-width: 18px;
-    min-height: 18px;
-
-    max-width: 18px;
-    max-height: 18px;
-
-    object-fit: contain;
-
-    border: 0;
-
-    border-radius: 0;
-
-    background: transparent;
-
-    box-shadow: none;
-}
-
-/* =========================================================
-   topbar
+   top bar
    ========================================================= */
 
 .topbar {
     display: flex;
 
     align-items: center;
-
     justify-content: space-between;
+
+    width: 100%;
 
     gap: 12px;
 
@@ -493,12 +511,11 @@ input[type="submit"] {
 
     border-radius: 999px;
 
-    padding: 10px 18px;
+    padding: 9px 17px;
 
     font-family: inherit;
 
     font-size: 14px;
-
     font-weight: 800;
 
     color: white;
@@ -531,7 +548,6 @@ button:hover,
 .btn:hover,
 input[type="submit"]:hover {
     transform: translateY(-2px);
-
     filter: brightness(1.08);
 }
 
@@ -539,9 +555,6 @@ button:active,
 .btn:active,
 input[type="submit"]:active {
     transform: translateY(1px);
-
-    box-shadow:
-        inset 0 2px 4px rgba(0, 70, 100, 0.2);
 }
 
 .btn-green,
@@ -565,6 +578,8 @@ textarea,
 select {
     width: 100%;
 
+    max-width: 100%;
+
     border: 2px solid rgba(91, 185, 218, 0.35);
 
     border-radius: 14px;
@@ -585,15 +600,10 @@ select {
         );
 
     outline: none;
-
-    box-shadow:
-        inset 0 2px 5px rgba(0, 100, 150, 0.08),
-        0 1px 0 white;
 }
 
 textarea {
     min-height: 100px;
-
     resize: vertical;
 }
 
@@ -603,8 +613,7 @@ select:focus {
     border-color: #45c7ed;
 
     box-shadow:
-        0 0 0 3px rgba(80, 210, 245, 0.18),
-        inset 0 2px 5px rgba(0, 100, 150, 0.08);
+        0 0 0 3px rgba(80, 210, 245, 0.18);
 }
 
 /* =========================================================
@@ -627,20 +636,30 @@ select:focus {
     margin-bottom: 12px;
 }
 
-/*
-   avatars are intentionally separate from sidebar icons.
-*/
+.post-content {
+    width: 100%;
 
-.avatar,
-.profile-avatar {
-    width: 45px !important;
-    height: 45px !important;
+    line-height: 1.65;
 
-    min-width: 45px !important;
-    min-height: 45px !important;
+    font-size: 15px;
 
-    max-width: 45px !important;
-    max-height: 45px !important;
+    white-space: pre-wrap;
+
+    overflow-wrap: anywhere;
+}
+
+/* post avatar ONLY */
+
+.post-header .avatar,
+.post-header .profile-avatar {
+    width: 45px;
+    height: 45px;
+
+    min-width: 45px;
+    max-width: 45px;
+
+    min-height: 45px;
+    max-height: 45px;
 
     flex: 0 0 45px;
 
@@ -661,23 +680,15 @@ select:focus {
         0 3px 8px rgba(0, 90, 130, 0.2);
 }
 
-.post-content {
-    line-height: 1.65;
-
-    font-size: 15px;
-
-    white-space: pre-wrap;
-
-    overflow-wrap: anywhere;
-}
+/* post images */
 
 .post-image {
     display: block;
 
     width: auto;
-
     max-width: 100%;
 
+    height: auto;
     max-height: 600px;
 
     margin-top: 14px;
@@ -699,11 +710,11 @@ select:focus {
 
     align-items: center;
 
+    flex-wrap: wrap;
+
     gap: 7px;
 
     margin-top: 13px;
-
-    flex-wrap: wrap;
 }
 
 .post-actions button,
@@ -725,6 +736,8 @@ select:focus {
     margin-bottom: 12px;
 
     color: var(--text);
+
+    text-decoration: none;
 
     transition:
         transform 0.15s ease,
@@ -770,7 +783,7 @@ h3 {
 }
 
 /* =========================================================
-   text
+   muted
    ========================================================= */
 
 .muted,
@@ -801,17 +814,24 @@ small,
     gap: 15px;
 }
 
-.profile-header .avatar {
-    width: 85px !important;
-    height: 85px !important;
+.profile-header .avatar,
+.profile-header .profile-avatar {
+    width: 85px;
+    height: 85px;
 
-    min-width: 85px !important;
-    min-height: 85px !important;
+    min-width: 85px;
+    max-width: 85px;
 
-    max-width: 85px !important;
-    max-height: 85px !important;
+    min-height: 85px;
+    max-height: 85px;
 
-    flex-basis: 85px;
+    flex: 0 0 85px;
+
+    border-radius: 50%;
+
+    object-fit: cover;
+
+    border: 3px solid white;
 }
 
 /* =========================================================
@@ -835,10 +855,7 @@ small,
             #ffdede
         );
 
-    border: 2px solid #ffffff;
-
-    box-shadow:
-        0 3px 8px rgba(140, 60, 60, 0.12);
+    border: 2px solid white;
 }
 
 .success,
@@ -858,11 +875,11 @@ small,
             #d8f5cb
         );
 
-    border: 2px solid #ffffff;
+    border: 2px solid white;
 }
 
 /* =========================================================
-   authentication
+   auth
    ========================================================= */
 
 .auth-page {
@@ -871,7 +888,6 @@ small,
     display: flex;
 
     align-items: center;
-
     justify-content: center;
 
     padding: 25px;
@@ -903,24 +919,6 @@ small,
 
     font-size: 34px;
 }
-
-/* =========================================================
-   generic image safety
-   ========================================================= */
-
-img {
-    max-width: 100%;
-}
-
-svg {
-    max-width: 100%;
-}
-
-/*
-   IMPORTANT:
-   do not give every svg a fixed width here.
-   sidebar navigation handles its own icon size.
-*/
 
 /* =========================================================
    scrollbar
@@ -956,17 +954,22 @@ svg {
     .page {
         width: calc(100% - 16px);
 
-        margin-top: 10px;
+        margin: 10px auto 30px;
     }
 
     .layout {
-        grid-template-columns: 1fr;
+        display: block;
     }
 
     .sidebar {
         position: relative;
 
         top: auto;
+
+        width: 100%;
+        min-width: 0;
+
+        margin-bottom: 14px;
     }
 
     .sidebar nav {
@@ -974,10 +977,12 @@ svg {
 
         grid-template-columns:
             repeat(2, minmax(0, 1fr));
+
+        gap: 8px;
     }
 
-    .sidebar .logo {
-        padding-bottom: 10px;
+    .main-content {
+        width: 100%;
     }
 }
 
